@@ -4,13 +4,12 @@
 !deploy/imghost.env.example
 .git
 .gitignore
+.github
 .vscode
 .idea
 README.md
 client
 deploy
-index.html
-favicon.svg
-me.jpg
-CNAME
+deny.toml
+tests
 LICENSE
