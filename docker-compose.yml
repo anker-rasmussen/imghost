@@ -1,9 +1,13 @@
 services:
   imghost:
+    # Pulled from GHCR by `docker compose pull` — the deploy workflow promotes
+    # whichever tagged image we're shipping to :latest before triggering the
+    # remote pull. `build:` is kept so local dev (`docker compose build`) still
+    # works without a registry round-trip.
+    image: ghcr.io/anker-rasmussen/imghost:latest
     build:
       context: .
       dockerfile: Dockerfile
-    image: imghost:local
     container_name: imghost
     restart: unless-stopped
     read_only: true

@@ -3,6 +3,7 @@
 # Replace <tunnel-id> and aigf.dev. Bring-up:
 #   cloudflared tunnel create imghost
 #   cloudflared tunnel route dns imghost aigf.dev
+#   cloudflared tunnel route dns imghost ssh.aigf.dev   # only if using auto-deploy
 #   sudo install -d /etc/cloudflared
 #   sudo install -m 0644 deploy/cloudflared.example.yml /etc/cloudflared/config.yml
 #   sudo systemctl enable --now cloudflared
@@ -11,9 +12,19 @@ tunnel: <tunnel-id>
 credentials-file: /etc/cloudflared/<tunnel-id>.json
 
 ingress:
+  # Public app traffic. Cloudflare Access apps gate /upload and /admin*.
   - hostname: aigf.dev
     service: http://127.0.0.1:8080
     originRequest:
       noTLSVerify: false
       connectTimeout: 10s
+
+  # SSH for the auto-deploy pipeline. sshd MUST bind 127.0.0.1 only on the
+  # host (see deploy/auto-deploy.md). The Cloudflare Access "imghost-deploy"
+  # app on ssh.aigf.dev gates this with a service token — without the token
+  # nothing reaches sshd. Remove this ingress block if you don't use the
+  # GitHub Actions deploy workflow.
+  - hostname: ssh.aigf.dev
+    service: ssh://localhost:22
+
   - service: http_status:404

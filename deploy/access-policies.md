@@ -51,6 +51,26 @@ You can also leave `/i/*` and `/healthz` outside Access entirely. Adding a Bypas
 app makes the intent explicit in the UI and protects against future "Block by
 default on this hostname" toggles.
 
+## 4. `imghost-deploy`  (service token, SSH)
+
+Only needed if you use the auto-deploy workflow. Walkthrough lives in
+`deploy/auto-deploy.md` — what follows is the Access piece.
+
+| Field | Value |
+| --- | --- |
+| Type | Self-hosted |
+| Application domain | `ssh.aigf.dev` |
+| Path | `/*` (whole hostname) |
+| Identity providers | (none — disable all) |
+
+**Policy:** `Service Auth` → action **Allow** → include rule **Service Token = imghost-deployer**.
+
+Create a separate service token under **Access → Service Auth → Service Tokens** —
+do not reuse `imghost-uploader`. The deploy token has more privilege (it ends up
+with shell on the host, restricted to a single forced command); reusing the upload
+token blurs blast radius. Copy the **Client ID** and **Client Secret** into the
+GitHub repo secrets `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`.
+
 ## Verification
 
 ```bash
