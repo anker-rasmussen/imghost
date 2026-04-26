@@ -21,7 +21,7 @@ tower-http = { version = "0.6.8", features = ["trace", "timeout", "set-header", 
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
 nanoid = "0.5.0"
 infer = "0.19.0"
-sha2 = "0.11.0"
+sha2 = "0.10.9"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 tracing = "0.1.44"
