@@ -1,0 +1,15 @@
+# cargo-audit configuration
+# https://docs.rs/cargo-audit/latest/cargo_audit/config/
+
+[advisories]
+ignore = [
+    # RUSTSEC-2023-0071 — Marvin timing attack in `rsa` 0.9.x.
+    # Reachability: pulled in via sqlx-mysql, which is compiled because the
+    # `macros` feature on sqlx unconditionally pulls all DB drivers. We only
+    # use sqlite at runtime — no `sqlx::MySql` connection is ever instantiated,
+    # so the affected RSA code paths are not reachable. No upstream fix as of
+    # 2026; the rsa crate maintainers have not landed constant-time blinding.
+    # Re-evaluate when sqlx publishes a fix or the `rsa` crate releases a
+    # patched version.
+    "RUSTSEC-2023-0071",
+]
