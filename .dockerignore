@@ -1,0 +1,16 @@
+/target
+/data
+*.env
+!deploy/imghost.env.example
+.git
+.gitignore
+.vscode
+.idea
+README.md
+client
+deploy
+index.html
+favicon.svg
+me.jpg
+CNAME
+LICENSE

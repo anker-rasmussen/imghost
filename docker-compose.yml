@@ -1,0 +1,39 @@
+services:
+  imghost:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: imghost:local
+    container_name: imghost
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    user: "65532:65532"
+    env_file:
+      - /etc/imghost.env
+    environment:
+      DATA_DIR: /var/lib/imghost
+      BIND_ADDR: 0.0.0.0:8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - imghost-data:/var/lib/imghost
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/imghost", "--healthcheck"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  imghost-data:

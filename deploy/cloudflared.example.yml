@@ -1,0 +1,19 @@
+# /etc/cloudflared/config.yml
+#
+# Replace <tunnel-id> and aigf.dev. Bring-up:
+#   cloudflared tunnel create imghost
+#   cloudflared tunnel route dns imghost aigf.dev
+#   sudo install -d /etc/cloudflared
+#   sudo install -m 0644 deploy/cloudflared.example.yml /etc/cloudflared/config.yml
+#   sudo systemctl enable --now cloudflared
+
+tunnel: <tunnel-id>
+credentials-file: /etc/cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: aigf.dev
+    service: http://127.0.0.1:8080
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 10s
+  - service: http_status:404
