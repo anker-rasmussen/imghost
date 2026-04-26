@@ -18,7 +18,7 @@ pub(crate) struct Upload {
     pub(crate) uploaded_at: i64,
 }
 
-pub(crate) async fn init_pool(db_path: &Path, objects_dir: &Path) -> anyhow::Result<SqlitePool> {
+pub async fn init_pool(db_path: &Path, objects_dir: &Path) -> anyhow::Result<SqlitePool> {
     if let Some(parent) = db_path.parent() {
         fs::create_dir_all(parent).await?;
     }

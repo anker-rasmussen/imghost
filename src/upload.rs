@@ -63,11 +63,9 @@ pub(crate) async fn upload(State(state): State<AppState>, body: Bytes) -> Respon
     let id = nanoid::nanoid!(8);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_secs() as i64);
 
-    if let Err(e) =
-        storage::atomic_write_object(&state.config.objects_dir(), &id, ext, &body).await
+    if let Err(e) = storage::atomic_write_object(&state.config.objects_dir(), &id, ext, &body).await
     {
         tracing::error!(error = %e, "object write failed");
         return (StatusCode::INTERNAL_SERVER_ERROR, "write failed").into_response();

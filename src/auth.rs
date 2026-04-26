@@ -22,9 +22,7 @@ pub(crate) async fn require_bearer(
     let provided = header_val.strip_prefix("Bearer ").unwrap_or("");
     let expected = state.config.upload_token.as_bytes();
 
-    if provided.is_empty()
-        || provided.as_bytes().ct_eq(expected).unwrap_u8() == 0
-    {
+    if provided.is_empty() || provided.as_bytes().ct_eq(expected).unwrap_u8() == 0 {
         return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
     }
 
@@ -46,10 +44,16 @@ pub(crate) async fn require_basic(
         if let Ok(decoded) = base64::engine::general_purpose::STANDARD.decode(auth.trim()) {
             if let Ok(s) = std::str::from_utf8(&decoded) {
                 if let Some((user, pass)) = s.split_once(':') {
-                    let user_ok =
-                        user.as_bytes().ct_eq(state.config.admin_user.as_bytes()).unwrap_u8() == 1;
-                    let pass_ok =
-                        pass.as_bytes().ct_eq(state.config.admin_pass.as_bytes()).unwrap_u8() == 1;
+                    let user_ok = user
+                        .as_bytes()
+                        .ct_eq(state.config.admin_user.as_bytes())
+                        .unwrap_u8()
+                        == 1;
+                    let pass_ok = pass
+                        .as_bytes()
+                        .ct_eq(state.config.admin_pass.as_bytes())
+                        .unwrap_u8()
+                        == 1;
                     if user_ok && pass_ok {
                         return next.run(request).await;
                     }

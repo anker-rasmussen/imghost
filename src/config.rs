@@ -3,26 +3,25 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
-pub(crate) struct AppConfig {
-    pub(crate) bind_addr: SocketAddr,
-    pub(crate) data_dir: PathBuf,
-    pub(crate) upload_token: String,
-    pub(crate) admin_user: String,
-    pub(crate) admin_pass: String,
-    pub(crate) public_base_url: String,
-    pub(crate) max_upload_bytes: usize,
+pub struct AppConfig {
+    pub bind_addr: SocketAddr,
+    pub data_dir: PathBuf,
+    pub upload_token: String,
+    pub admin_user: String,
+    pub admin_pass: String,
+    pub public_base_url: String,
+    pub max_upload_bytes: usize,
 }
 
 impl AppConfig {
-    pub(crate) fn from_env() -> anyhow::Result<Self> {
+    pub fn from_env() -> anyhow::Result<Self> {
         let bind_addr = env::var("BIND_ADDR")
             .unwrap_or_else(|_| "0.0.0.0:8080".to_string())
             .parse()
             .map_err(|e| anyhow::anyhow!("invalid BIND_ADDR: {e}"))?;
 
-        let data_dir = PathBuf::from(
-            env::var("DATA_DIR").unwrap_or_else(|_| "/var/lib/imghost".to_string()),
-        );
+        let data_dir =
+            PathBuf::from(env::var("DATA_DIR").unwrap_or_else(|_| "/var/lib/imghost".to_string()));
 
         let upload_token = require_env("UPLOAD_TOKEN")?;
         let admin_user = env::var("ADMIN_USER").unwrap_or_else(|_| "admin".to_string());
@@ -47,11 +46,11 @@ impl AppConfig {
         })
     }
 
-    pub(crate) fn objects_dir(&self) -> PathBuf {
+    pub fn objects_dir(&self) -> PathBuf {
         self.data_dir.join("objects")
     }
 
-    pub(crate) fn db_path(&self) -> PathBuf {
+    pub fn db_path(&self) -> PathBuf {
         self.data_dir.join("imghost.db")
     }
 }

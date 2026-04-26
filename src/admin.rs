@@ -42,10 +42,8 @@ pub(crate) async fn list(State(state): State<AppState>, Query(q): Query<ListQuer
         header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
     );
-    resp.headers_mut().insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static("no-store"),
-    );
+    resp.headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     resp.headers_mut().insert(
         HeaderName::from_static("content-security-policy"),
         HeaderValue::from_static(
@@ -93,8 +91,7 @@ fn render_admin_page(rows: &[Upload], page: i64, total: i64, page_size: i64) -> 
     let pages = (total + page_size - 1).max(1) / page_size.max(1);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_secs() as i64);
 
     let mut body = String::with_capacity(2048 + rows.len() * 256);
     body.push_str(

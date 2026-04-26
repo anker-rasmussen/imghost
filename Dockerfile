@@ -7,17 +7,21 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
-# Cache dependency compilation by copying manifests first.
+# Cache dependency compilation by copying manifests first. The crate exposes
+# both a `[lib]` and a `[[bin]]`, so we stub each out until the real source
+# arrives in the next step.
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src \
  && echo 'fn main() {}' > src/main.rs \
+ && : > src/lib.rs \
  && cargo build --release --locked \
- && rm -rf src target/release/imghost target/release/imghost.d
+ && rm -rf src target/release/imghost target/release/imghost.d \
+            target/release/libimghost.rlib target/release/libimghost.d
 
 # Real source.
 COPY migrations ./migrations
 COPY src ./src
-RUN touch src/main.rs && cargo build --release --locked
+RUN touch src/main.rs src/lib.rs && cargo build --release --locked
 
 # Empty directory we will COPY --chown into the runtime image so the volume
 # mount at /var/lib/imghost is owned by the nonroot user, not root.

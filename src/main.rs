@@ -1,29 +1,6 @@
 use std::sync::Arc;
-use std::time::Duration;
 
-use axum::extract::DefaultBodyLimit;
-use axum::middleware::from_fn_with_state;
-use axum::routing::{get, post};
-use axum::Router;
-use sqlx::SqlitePool;
-use axum::http::StatusCode;
-use tower_http::timeout::TimeoutLayer;
-use tower_http::trace::TraceLayer;
-
-mod admin;
-mod auth;
-mod config;
-mod serve;
-mod storage;
-mod upload;
-
-use config::AppConfig;
-
-#[derive(Clone, Debug)]
-pub(crate) struct AppState {
-    pub(crate) config: Arc<AppConfig>,
-    pub(crate) pool: SqlitePool,
-}
+use imghost::{build_app, storage, AppState};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -39,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
         .json()
         .init();
 
-    let cfg = Arc::new(AppConfig::from_env()?);
+    let cfg = Arc::new(imghost::config::AppConfig::from_env()?);
     tracing::info!(
         bind = %cfg.bind_addr,
         data_dir = %cfg.data_dir.display(),
@@ -53,27 +30,7 @@ async fn main() -> anyhow::Result<()> {
         pool,
     };
 
-    let upload_routes = Router::new()
-        .route("/upload", post(upload::upload))
-        .layer(DefaultBodyLimit::max(cfg.max_upload_bytes))
-        .layer(TimeoutLayer::with_status_code(
-            StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(30),
-        ))
-        .layer(from_fn_with_state(state.clone(), auth::require_bearer));
-
-    let admin_routes = Router::new()
-        .route("/admin", get(admin::list))
-        .route("/admin/delete/{id}", post(admin::delete))
-        .layer(from_fn_with_state(state.clone(), auth::require_basic));
-
-    let app = Router::new()
-        .route("/healthz", get(healthz))
-        .merge(serve::router(&cfg.objects_dir()))
-        .merge(upload_routes)
-        .merge(admin_routes)
-        .layer(TraceLayer::new_for_http())
-        .with_state(state);
+    let app = build_app(state);
 
     let listener = tokio::net::TcpListener::bind(cfg.bind_addr).await?;
     tracing::info!(addr = %cfg.bind_addr, "listening");
@@ -83,10 +40,6 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     Ok(())
-}
-
-async fn healthz() -> &'static str {
-    "ok"
 }
 
 fn run_healthcheck() -> anyhow::Result<()> {
