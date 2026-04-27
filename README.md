@@ -31,6 +31,7 @@ curl -fsS -H 'Authorization: Bearer test' --data-binary @some.png \
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
+| GET | `/` | none | static landing page |
 | GET | `/healthz` | none | liveness |
 | GET | `/i/:name` | none | image bytes; immutable, sandboxed CSP |
 | POST | `/upload` | bearer (+ CF Access service token in prod) | mime sniff, sha256 dedupe, atomic write |

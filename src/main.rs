@@ -28,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         config: cfg.clone(),
         pool,
+        started_at: std::time::Instant::now(),
     };
 
     let app = build_app(state);

@@ -83,6 +83,34 @@ pub(crate) async fn count_uploads(pool: &SqlitePool) -> sqlx::Result<i64> {
     Ok(row.0)
 }
 
+pub(crate) async fn stats_summary(pool: &SqlitePool) -> sqlx::Result<(i64, i64, Option<i64>)> {
+    let row: (i64, Option<i64>, Option<i64>) = sqlx::query_as(
+        "SELECT COUNT(*), COALESCE(SUM(size_bytes), 0), MAX(uploaded_at) FROM uploads",
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok((row.0, row.1.unwrap_or(0), row.2))
+}
+
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub(crate) struct RecentEntry {
+    pub(crate) mime: String,
+    pub(crate) size_bytes: i64,
+    pub(crate) uploaded_at: i64,
+}
+
+pub(crate) async fn recent_anonymized(
+    pool: &SqlitePool,
+    limit: i64,
+) -> sqlx::Result<Vec<RecentEntry>> {
+    sqlx::query_as::<_, RecentEntry>(
+        "SELECT mime, size_bytes, uploaded_at FROM uploads ORDER BY uploaded_at DESC LIMIT ?",
+    )
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
 pub(crate) async fn get_by_id(pool: &SqlitePool, id: &str) -> sqlx::Result<Option<Upload>> {
     sqlx::query_as::<_, Upload>("SELECT id, ext, mime, size_bytes, sha256, original_filename, uploaded_at FROM uploads WHERE id = ?")
         .bind(id)

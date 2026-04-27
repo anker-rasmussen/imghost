@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use axum::extract::DefaultBodyLimit;
 use axum::http::StatusCode;
@@ -13,6 +13,7 @@ use tower_http::trace::TraceLayer;
 pub mod admin;
 pub mod auth;
 pub mod config;
+mod index;
 pub mod serve;
 pub mod storage;
 pub mod upload;
@@ -23,6 +24,7 @@ use config::AppConfig;
 pub struct AppState {
     pub config: Arc<AppConfig>,
     pub pool: SqlitePool,
+    pub started_at: Instant,
 }
 
 /// Build the full application router from the given state.
@@ -48,6 +50,7 @@ pub fn build_app(state: AppState) -> Router {
         .layer(from_fn_with_state(state.clone(), auth::require_basic));
 
     Router::new()
+        .route("/", get(index::index))
         .route("/healthz", get(healthz))
         .merge(serve::router(&cfg.objects_dir()))
         .merge(upload_routes)

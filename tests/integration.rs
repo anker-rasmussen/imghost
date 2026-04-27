@@ -41,7 +41,11 @@ async fn spawn_app(max_upload_bytes: usize) -> (String, TempDir) {
         .await
         .expect("init_pool");
 
-    let state = AppState { config: cfg, pool };
+    let state = AppState {
+        config: cfg,
+        pool,
+        started_at: std::time::Instant::now(),
+    };
     let app = build_app(state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -407,4 +411,75 @@ async fn test_healthz() {
         .unwrap();
     assert_eq!(res.status(), 200);
     assert_eq!(res.text().await.unwrap(), "ok");
+}
+
+// ---------------------------------------------------------------------------
+// 15. /  — landing page, public, html, edge-cacheable, snapshot baked in
+// ---------------------------------------------------------------------------
+#[tokio::test]
+async fn test_index_empty_db() {
+    let (base, _tmp) = spawn_app(26_214_400).await;
+    let res = client().get(&base).send().await.unwrap();
+    assert_eq!(res.status(), 200);
+
+    let headers = res.headers().clone();
+    let ctype = headers
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    assert!(ctype.starts_with("text/html"), "content-type: {ctype}");
+
+    let cc = headers
+        .get("cache-control")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    assert!(cc.contains("max-age=300"), "cache-control: {cc}");
+    assert!(cc.contains("s-maxage=300"), "cache-control: {cc}");
+
+    let csp = headers
+        .get("content-security-policy")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    assert!(csp.contains("default-src 'none'"), "csp: {csp}");
+
+    let body = res.text().await.unwrap();
+    assert!(body.contains("imghost"));
+    // SNAPSHOT block must be inlined and well-formed for an empty db.
+    assert!(body.contains("count: 0"));
+    assert!(body.contains("bytes: 0"));
+    assert!(body.contains("lastAt: null"));
+    assert!(body.contains("recent: []"));
+}
+
+#[tokio::test]
+async fn test_index_after_upload() {
+    let (base, _tmp) = spawn_app(26_214_400).await;
+
+    // upload one png so the snapshot has real data
+    let res = client()
+        .post(format!("{base}/upload"))
+        .bearer_auth("test-token")
+        .header("content-type", "image/png")
+        .body(TINY_PNG.to_vec())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 200);
+
+    let res = client().get(&base).send().await.unwrap();
+    assert_eq!(res.status(), 200);
+    let body = res.text().await.unwrap();
+    assert!(body.contains("count: 1"), "expected count: 1 in body");
+    assert!(
+        body.contains("\"mime\":\"image/png\""),
+        "expected anonymized recent entry to contain image/png mime"
+    );
+    // the anonymized feed must NOT leak the upload id.
+    assert!(
+        !body.contains("\"id\":"),
+        "anonymized feed should not include any id field"
+    );
 }
