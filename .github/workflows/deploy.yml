@@ -28,6 +28,7 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  actions: read
 
 jobs:
   deploy:
@@ -60,6 +61,34 @@ jobs:
           echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
           echo "promote_latest=$PROMOTE_LATEST" >> "$GITHUB_OUTPUT"
           echo "Deploying $SOURCE → $VERSION (promote :latest = $PROMOTE_LATEST)"
+
+      # On a tag push, CI fires on the matching master push in parallel and
+      # publishes the sha-<short> image. Wait for that CI run to finish before
+      # we look for the image — otherwise we race CI's `docker push` and fail.
+      # Skipped on workflow_dispatch (manual rollback) since the image is
+      # already in GHCR by definition.
+      - name: Wait for CI on this commit
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          SHA="${{ github.sha }}"
+          echo "Looking up CI run for $SHA..."
+          RUN_ID=""
+          for i in $(seq 1 60); do
+            RUN_ID=$(gh run list --workflow=ci.yml --commit "$SHA" --limit 1 --json databaseId -q '.[0].databaseId // empty' || true)
+            if [ -n "$RUN_ID" ]; then break; fi
+            echo "  no CI run yet for $SHA ($i/60); sleeping 5s..."
+            sleep 5
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::no CI run found for $SHA after 5 minutes"
+            exit 1
+          fi
+          echo "Waiting on CI run $RUN_ID (deploy will fail if CI fails)..."
+          gh run watch "$RUN_ID" --exit-status
 
       - name: Login to GHCR
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
