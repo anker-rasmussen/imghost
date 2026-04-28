@@ -1,17 +1,24 @@
 name: Deploy
 
-# Two ways to fire this:
-#   1. `git tag v0.1.0 && git push --tags` — tags are the release gate.
-#   2. `gh workflow run deploy.yml -f tag=v0.1.0` — re-deploy any prior tag
-#      (sha-<short> or vX.Y.Z) without a new commit. This is the rollback path.
+# Fired two ways:
+#   1. CI completes successfully on master AND a v*.*.* tag points at that
+#      same commit. The `check` job decides whether to proceed; if no tag
+#      is pointing at HEAD, deploy is silently skipped (a master commit
+#      without a release tag is just a normal master push).
+#   2. `gh workflow run deploy.yml -f tag=v0.1.0` — manual rollback to any
+#      prior image already in GHCR. No CI dependency; the image is in
+#      GHCR by definition.
 #
-# Either way the workflow promotes the chosen image to `:vX.Y.Z` (and `:latest`
-# if a v-tag was provided) in GHCR, then SSHes the host via Cloudflare Access
-# and runs `docker compose pull && up -d`.
+# This replaces the older "deploy on tag push, then poll CI from inside
+# the deploy job" shape. That polling step (gh run watch --exit-status)
+# turned every transient GitHub API hiccup into a deploy failure, which
+# is what bit us on v0.2.2 (HTTP 504 mid-poll).
 
 on:
-  push:
-    tags: ["v*.*.*"]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
     inputs:
       tag:
@@ -19,8 +26,8 @@ on:
         required: true
         type: string
 
-# Only one deploy at a time, but never cancel an in-flight deploy with a newer
-# one — let it finish so we know what's actually running on the host.
+# Only one deploy at a time, but never cancel an in-flight deploy with a
+# newer one — let it finish so we know what's actually running on the host.
 concurrency:
   group: deploy
   cancel-in-progress: false
@@ -31,28 +38,54 @@ permissions:
   actions: read
 
 jobs:
-  deploy:
-    name: Deploy
+  check:
+    name: Resolve deploy target
     runs-on: ubuntu-latest
-    env:
-      IMAGE: ghcr.io/${{ github.repository_owner }}/imghost
+    # Skip the workflow_run path entirely if CI failed; rollback path
+    # (workflow_dispatch) runs unconditionally because the image is
+    # already known to exist.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
+    outputs:
+      should_deploy: ${{ steps.resolve.outputs.should_deploy }}
+      version: ${{ steps.resolve.outputs.version }}
+      source: ${{ steps.resolve.outputs.source }}
+      promote_latest: ${{ steps.resolve.outputs.promote_latest }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # workflow_run defaults to the default-branch HEAD; we want the
+          # exact SHA CI just validated. workflow_dispatch doesn't need a
+          # specific SHA but checkout still works at github.sha.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+          # Need release tags to answer "does a v*.*.* tag point at HEAD?".
+          fetch-tags: true
 
       - name: Resolve source and target tags
-        id: img
-        # Inputs are passed via env, never interpolated into the script body —
-        # `${{ inputs.tag }}` inline would be templated before bash sees it,
-        # giving anyone with workflow_dispatch access RCE on the runner.
+        id: resolve
+        # Inputs are passed via env, never interpolated into the script
+        # body — `${{ inputs.tag }}` inline would be templated before bash
+        # sees it, giving anyone with workflow_dispatch access RCE on the
+        # runner.
         env:
           EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
           INPUT_TAG: ${{ inputs.tag }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = "push" ]; then
-            VERSION="$REF_NAME"
-            SOURCE="sha-$(git rev-parse --short=7 "$GITHUB_SHA")"
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            VERSION=$(git tag --points-at "$HEAD_SHA" \
+                      | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+                      | head -1 || true)
+            if [ -z "$VERSION" ]; then
+              echo "No v*.*.* tag points at $HEAD_SHA — nothing to deploy."
+              echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            SOURCE="sha-$(git rev-parse --short=7 "$HEAD_SHA")"
             PROMOTE_LATEST=true
           else
             if ! [[ "$INPUT_TAG" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|sha-[0-9a-f]{7})$ ]]; then
@@ -61,46 +94,27 @@ jobs:
             fi
             VERSION="$INPUT_TAG"
             SOURCE="$INPUT_TAG"
-            # Only promote :latest when redeploying a versioned tag; refuse to
-            # point :latest at a raw sha-* tag (keeps :latest meaningful).
+            # Only promote :latest when redeploying a versioned tag; refuse
+            # to point :latest at a raw sha-* tag (keeps :latest meaningful).
             case "$VERSION" in
               v*.*.*) PROMOTE_LATEST=true ;;
-              *) PROMOTE_LATEST=false ;;
+              *)      PROMOTE_LATEST=false ;;
             esac
           fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
+          echo "should_deploy=true"           >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"             >> "$GITHUB_OUTPUT"
+          echo "source=$SOURCE"               >> "$GITHUB_OUTPUT"
           echo "promote_latest=$PROMOTE_LATEST" >> "$GITHUB_OUTPUT"
           echo "Deploying $SOURCE -> $VERSION (promote :latest = $PROMOTE_LATEST)"
 
-      # On a tag push, CI fires on the matching master push in parallel and
-      # publishes the sha-<short> image. Wait for that CI run to finish before
-      # we look for the image — otherwise we race CI's `docker push` and fail.
-      # Skipped on workflow_dispatch (manual rollback) since the image is
-      # already in GHCR by definition.
-      - name: Wait for CI on this commit
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          SHA="${{ github.sha }}"
-          echo "Looking up CI run for $SHA..."
-          RUN_ID=""
-          for i in $(seq 1 60); do
-            RUN_ID=$(gh run list --workflow=ci.yml --commit "$SHA" --limit 1 --json databaseId -q '.[0].databaseId // empty' || true)
-            if [ -n "$RUN_ID" ]; then break; fi
-            echo "  no CI run yet for $SHA ($i/60); sleeping 5s..."
-            sleep 5
-          done
-          if [ -z "$RUN_ID" ]; then
-            echo "::error::no CI run found for $SHA after 5 minutes"
-            exit 1
-          fi
-          echo "Waiting on CI run $RUN_ID (deploy will fail if CI fails)..."
-          gh run watch "$RUN_ID" --exit-status
-
+  deploy:
+    name: Deploy
+    needs: check
+    if: needs.check.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/imghost
+    steps:
       - name: Login to GHCR
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
@@ -111,24 +125,24 @@ jobs:
       - name: Verify source image exists
         run: |
           set -euo pipefail
-          if ! docker manifest inspect "$IMAGE:${{ steps.img.outputs.source }}" > /dev/null 2>&1; then
-            echo "::error::Source image $IMAGE:${{ steps.img.outputs.source }} not found in GHCR."
-            echo "If this is a fresh tag, did CI on the tagged commit finish pushing? Check the CI run for that SHA."
+          if ! docker manifest inspect "$IMAGE:${{ needs.check.outputs.source }}" > /dev/null 2>&1; then
+            echo "::error::Source image $IMAGE:${{ needs.check.outputs.source }} not found in GHCR."
+            echo "If this is a fresh tag, the CI Image job for that SHA must have published before this point."
             exit 1
           fi
 
       - name: Promote tags
         run: |
           set -euo pipefail
-          SRC="$IMAGE:${{ steps.img.outputs.source }}"
-          VER="$IMAGE:${{ steps.img.outputs.version }}"
+          SRC="$IMAGE:${{ needs.check.outputs.source }}"
+          VER="$IMAGE:${{ needs.check.outputs.version }}"
           docker pull "$SRC"
           # Skip re-tagging if source == version (workflow_dispatch with sha-* tag).
           if [ "$SRC" != "$VER" ]; then
             docker tag "$SRC" "$VER"
             docker push "$VER"
           fi
-          if [ "${{ steps.img.outputs.promote_latest }}" = "true" ]; then
+          if [ "${{ needs.check.outputs.promote_latest }}" = "true" ]; then
             docker tag "$SRC" "$IMAGE:latest"
             docker push "$IMAGE:latest"
           fi
@@ -172,6 +186,6 @@ jobs:
         run: |
           echo "### Deployed" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Image: \`$IMAGE:${{ steps.img.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Source: \`$IMAGE:${{ steps.img.outputs.source }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- :latest promoted: \`${{ steps.img.outputs.promote_latest }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image: \`$IMAGE:${{ needs.check.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Source: \`$IMAGE:${{ needs.check.outputs.source }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- :latest promoted: \`${{ needs.check.outputs.promote_latest }}\`" >> "$GITHUB_STEP_SUMMARY"
