@@ -1,0 +1,18 @@
+{# Managed by Ansible (roles/cloudflared). Manual edits revert on next run. #}
+tunnel: {{ cloudflared_tunnel_id }}
+credentials-file: /etc/cloudflared/{{ cloudflared_tunnel_id }}.json
+
+ingress:
+  - hostname: {{ cloudflared_public_hostname }}
+    service: {{ cloudflared_origin_service }}
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 10s
+
+  # SSH for the auto-deploy pipeline. sshd is bound to 127.0.0.1 by the
+  # sshd_hardening role; the Cloudflare Access "imghost-deploy" app on
+  # this hostname gates the tunnel with a service token.
+  - hostname: {{ cloudflared_ssh_hostname }}
+    service: ssh://localhost:22
+
+  - service: http_status:404

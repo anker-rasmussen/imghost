@@ -1,0 +1,23 @@
+---
+# Copy to host_vars/imghost.aigf.dev.yml (matching the inventory hostname)
+# and fill in real addresses. This file is per-host — anything that
+# varies between boxes lives here rather than in group_vars.
+#
+# Find these on the host:
+#   ip -4 addr show       # LAN IP (eth0 / enp..., 192.168.x.y)
+#   tailscale ip -4       # Tailscale IPv4 (100.x.y.z)
+#   tailscale ip -6       # Tailscale IPv6 (fd7a:...) — optional
+#
+# These addresses are not secret, so they can live in plain inventory
+# rather than in the vault.
+sshd_listen_addresses:
+  - 127.0.0.1            # cloudflared tunnel ingress lands here
+  - ::1                  # same, IPv6
+  - 192.168.1.50         # LAN — replace with mincom's actual LAN IPv4
+  - 100.64.0.50          # Tailscale IPv4 — replace with `tailscale ip -4`
+  # - fd7a:115c:0:0:0:0:0:1   # Tailscale IPv6, optional
+
+# Set true because at least one address above is on tailscale0. This
+# makes ssh.service block on boot until tailscale assigns the IP, so
+# sshd doesn't lose the race and refuse to start.
+sshd_wait_for_tailscale: true

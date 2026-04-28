@@ -1,0 +1,16 @@
+---
+# Single play, applied to the imghost group. Each role is independently
+# re-runnable; running site.yml from scratch on a fresh box and against an
+# already-configured box must both converge on the same end state. If a
+# human SSH'd in and edited /etc/ssh/sshd_config or /etc/cloudflared/config.yml
+# by hand, the next site.yml run is what reverts them.
+- name: Configure imghost host
+  hosts: imghost
+  become: true
+  gather_facts: true
+  roles:
+    - role: sshd_hardening
+    - role: deploy_user
+    - role: docker_engine
+    - role: cloudflared
+    - role: imghost_host

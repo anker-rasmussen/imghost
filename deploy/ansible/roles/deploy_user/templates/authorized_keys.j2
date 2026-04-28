@@ -1,0 +1,5 @@
+{# Managed by Ansible (roles/deploy_user). Manual edits are reverted on next run. #}
+{# The forced command is the only thing this user can ever execute via SSH. #}
+{# `restrict` (in key_options) implies all the no-* flags but we list them too #}
+{# for clarity against older sshd that may not honor `restrict`. #}
+command="{{ deploy_forced_command }}",{{ deploy_key_options }} {{ deploy_authorized_public_key }}

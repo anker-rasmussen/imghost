@@ -1,0 +1,8 @@
+---
+# These mirror the values in group_vars/imghost.yml so the role works
+# in isolation if anyone runs it standalone. Group vars override these.
+deploy_user_name: deploy
+deploy_user_groups: ["docker"]
+deploy_forced_command: "cd /opt/imghost && /usr/bin/docker compose pull && /usr/bin/docker compose up -d --remove-orphans"
+deploy_key_options: "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty,restrict"
+# deploy_authorized_public_key has no default — must come from the vault.

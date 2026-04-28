@@ -1,0 +1,54 @@
+---
+- name: Fail fast if the deploy public key isn't set
+  ansible.builtin.assert:
+    that:
+      - deploy_authorized_public_key is defined
+      - deploy_authorized_public_key | length > 0
+      - not (deploy_authorized_public_key is search('replace-me'))
+    fail_msg: >-
+      deploy_authorized_public_key is missing or still the placeholder.
+      Decrypt group_vars/imghost.vault.yml (or pass --ask-vault-pass)
+      and set the real public key before running this role.
+
+- name: Ensure docker group exists
+  # Created early so useradd -G docker doesn't fail. The docker_engine
+  # role will create it again idempotently when it installs the package.
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Create deploy user
+  ansible.builtin.user:
+    name: "{{ deploy_user_name }}"
+    shell: /bin/bash
+    groups: "{{ deploy_user_groups }}"
+    append: true
+    create_home: true
+    state: present
+  register: deploy_user_info
+
+- name: Lock deploy user's home directory to 0700
+  # useradd defaults vary across distros. Force the perms so SSH won't
+  # refuse the authorized_keys file because the home dir is too open.
+  ansible.builtin.file:
+    path: "{{ deploy_user_info.home }}"
+    state: directory
+    owner: "{{ deploy_user_name }}"
+    group: "{{ deploy_user_name }}"
+    mode: "0700"
+
+- name: Ensure deploy .ssh directory
+  ansible.builtin.file:
+    path: "{{ deploy_user_info.home }}/.ssh"
+    state: directory
+    owner: "{{ deploy_user_name }}"
+    group: "{{ deploy_user_name }}"
+    mode: "0700"
+
+- name: Render deploy authorized_keys with forced command
+  ansible.builtin.template:
+    src: authorized_keys.j2
+    dest: "{{ deploy_user_info.home }}/.ssh/authorized_keys"
+    owner: "{{ deploy_user_name }}"
+    group: "{{ deploy_user_name }}"
+    mode: "0600"

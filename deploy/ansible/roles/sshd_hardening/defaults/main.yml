@@ -1,0 +1,17 @@
+---
+# Default is paranoid: loopback only. Override per-host (in inventory or
+# host_vars) with the LAN and Tailscale IPs that should also be allowed
+# to receive SSH directly. The WAN interface intentionally never appears
+# in this list — public reach is exclusively via the cloudflared tunnel.
+sshd_listen_addresses:
+  - 127.0.0.1
+  - ::1
+
+# If any of the addresses above are on tailscale0 (i.e. tailscale IPs),
+# set this true. It installs a systemd drop-in for ssh.service that
+# blocks startup until tailscale0 has its IPv4 address — without it,
+# sshd races tailscaled at boot and fails with "Cannot assign requested
+# address". Setting true on a host without tailscale just adds a 60s
+# startup timeout that will fire and fail; only enable if tailscale is
+# actually configured and enabled on the host.
+sshd_wait_for_tailscale: false

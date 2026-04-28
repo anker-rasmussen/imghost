@@ -1,0 +1,9 @@
+---
+# Mirrors the values in group_vars/imghost.yml so the role works in
+# isolation. Group vars override these.
+cloudflared_tunnel_name: imghost
+cloudflared_public_hostname: aigf.dev
+cloudflared_ssh_hostname: ssh.aigf.dev
+cloudflared_origin_service: "http://127.0.0.1:8080"
+# cloudflared_tunnel_id and cloudflared_tunnel_credentials_json must come
+# from the vault — there are no safe defaults.

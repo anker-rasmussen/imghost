@@ -1,0 +1,98 @@
+---
+- name: Ensure sshd_config.d include directory exists
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Verify sshd_config has Include for sshd_config.d
+  # Debian/Ubuntu and recent OpenSSH ship with `Include
+  # /etc/ssh/sshd_config.d/*.conf` already. Fail loudly if it's missing
+  # rather than silently editing the main config.
+  ansible.builtin.command:
+    cmd: grep -E '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config\.d/\*\.conf' /etc/ssh/sshd_config
+  register: sshd_include_check
+  changed_when: false
+  failed_when: sshd_include_check.rc != 0
+
+- name: Render sshd ListenAddress drop-in
+  ansible.builtin.template:
+    src: 10-sshd-listen.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-sshd-listen.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Validate sshd configuration
+  # Catches syntax errors before a handler restarts the daemon and locks
+  # us out of the host.
+  ansible.builtin.command: sshd -t
+  changed_when: false
+
+- name: Ensure ssh.service drop-in directory (only if waiting for tailscale)
+  ansible.builtin.file:
+    path: /etc/systemd/system/ssh.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: sshd_wait_for_tailscale | bool
+
+- name: Install ssh.service wait-for-tailscale drop-in
+  ansible.builtin.template:
+    src: wait-for-tailscale.conf.j2
+    dest: /etc/systemd/system/ssh.service.d/wait-for-tailscale.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: sshd_wait_for_tailscale | bool
+  notify:
+    - Reload systemd
+    - Restart sshd
+
+- name: Remove ssh.service wait-for-tailscale drop-in (when disabled)
+  # Idempotent flip-back: if the host stops using tailscale, set
+  # sshd_wait_for_tailscale=false and the drop-in is cleaned up.
+  ansible.builtin.file:
+    path: /etc/systemd/system/ssh.service.d/wait-for-tailscale.conf
+    state: absent
+  when: not (sshd_wait_for_tailscale | bool)
+  notify:
+    - Reload systemd
+    - Restart sshd
+
+- name: Snapshot current :22 listeners
+  ansible.builtin.shell: |
+    set -o pipefail
+    ss -lntH 'sport = :22' | awk '{print $4}'
+  args:
+    executable: /bin/bash
+  register: sshd_listeners
+  changed_when: false
+  failed_when: false
+
+- name: Assert no unexpected :22 listener
+  # Builds the allowed set from sshd_listen_addresses, normalising IPv6
+  # to ss's [addr]:22 form. If ss reports anything outside that set
+  # (typically: the public WAN interface), bail out — the operator
+  # needs to see it.
+  ansible.builtin.assert:
+    that:
+      - >-
+        sshd_listeners.stdout_lines
+        | reject('match', '^(' ~ (
+            sshd_listen_addresses
+            | map('regex_replace', '^(.*:.*)$', '[\\1]')
+            | map('regex_escape')
+            | join('|')
+          ) ~ '):22$')
+        | list | length == 0
+    fail_msg: |
+      sshd is listening on an address not declared in sshd_listen_addresses.
+      Observed: {{ sshd_listeners.stdout_lines }}
+      Expected: {{ sshd_listen_addresses }}
+      Investigate before continuing — this is not safe to ignore.
+  when: sshd_listeners.stdout != ""

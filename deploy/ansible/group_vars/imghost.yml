@@ -1,0 +1,30 @@
+---
+# Non-secret, per-group defaults. Anything sensitive (tunnel credentials,
+# the contents of /etc/imghost.env, the deploy public key per the project
+# spec) belongs in imghost.vault.yml — encrypted with ansible-vault and
+# loaded by Ansible automatically because of the filename.
+
+# ---- cloudflared --------------------------------------------------------
+# Tunnel id is not strictly secret (it's a UUID that appears in DNS), but
+# the credentials JSON keyed to it absolutely is — that lives in vault.
+cloudflared_tunnel_name: imghost
+cloudflared_public_hostname: aigf.dev
+cloudflared_ssh_hostname: ssh.aigf.dev
+cloudflared_origin_service: "http://127.0.0.1:8080"
+
+# ---- imghost_host -------------------------------------------------------
+imghost_install_dir: /opt/imghost
+imghost_env_path: /etc/imghost.env
+# Path on the controller (relative to playbook_dir) of the docker-compose
+# file to ship to the host. Keeping a single source of truth avoids drift
+# between the repo's compose file and what's in /opt/imghost.
+imghost_compose_src: "{{ playbook_dir }}/../../docker-compose.yml"
+
+# ---- deploy_user --------------------------------------------------------
+deploy_user_name: deploy
+deploy_user_groups: ["docker"]
+# The forced command is the actual security boundary — without it, a user
+# in the docker group is trivially root. Keep this in lockstep with the
+# command Cloudflare Tunnel SSH triggers from GitHub Actions.
+deploy_forced_command: "cd /opt/imghost && /usr/bin/docker compose pull && /usr/bin/docker compose up -d --remove-orphans"
+deploy_key_options: "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty,restrict"

@@ -1,0 +1,12 @@
+{#- systemd drop-in: /etc/systemd/system/ssh.service.d/wait-for-tailscale.conf -#}
+{#- sshd's ListenAddress fails fatally if the IP doesn't yet exist on the host. -#}
+{#- tailscaled assigns 100.x.y.z to tailscale0 asynchronously after it starts, -#}
+{#- so without this drop-in sshd often loses the boot race and refuses to come -#}
+{#- up at all. The ExecStartPre poll ends as soon as tailscale0 has an IPv4. -#}
+[Unit]
+After=tailscaled.service
+Wants=tailscaled.service
+
+[Service]
+ExecStartPre=/bin/sh -c 'until ip -4 addr show tailscale0 2>/dev/null | grep -q "inet "; do sleep 1; done'
+TimeoutStartSec=60

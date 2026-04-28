@@ -1,0 +1,4 @@
+---
+imghost_install_dir: /opt/imghost
+imghost_env_path: /etc/imghost.env
+imghost_compose_src: "{{ playbook_dir }}/../../docker-compose.yml"

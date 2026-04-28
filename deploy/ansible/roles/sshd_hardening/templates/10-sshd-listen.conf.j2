@@ -1,0 +1,6 @@
+{#- Managed by Ansible (roles/sshd_hardening). Manual edits revert on next run. -#}
+{#- Public reach is via the cloudflared tunnel; LAN/Tailscale are listed below -#}
+{#- explicitly because we trust those networks. The WAN interface is never bound. -#}
+{% for addr in sshd_listen_addresses -%}
+ListenAddress {{ addr }}
+{% endfor %}

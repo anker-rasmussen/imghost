@@ -1,0 +1,13 @@
+# Defensive — the committed imghost.vault.yml MUST be the encrypted form.
+# `ansible-vault decrypt` rewrites the file in-place to plaintext; if you
+# forget to re-encrypt before `git add`, this stops you from shipping
+# secrets to the remote.
+#
+# To check encryption: `head -c 32 imghost.vault.yml` should start with
+# `$ANSIBLE_VAULT;1.1;AES256`.
+*.vault.yml.dec
+*.vault.yml.bak
+
+# Ansible runtime artifacts
+*.retry
+.ansible/

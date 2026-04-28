@@ -1,0 +1,41 @@
+---
+- name: Fail fast if imghost_env_contents isn't set
+  ansible.builtin.assert:
+    that:
+      - imghost_env_contents is defined
+      - imghost_env_contents | length > 0
+      - not (imghost_env_contents is search('replace-me'))
+    fail_msg: >-
+      imghost_env_contents is missing or still contains placeholders.
+      Decrypt group_vars/imghost.vault.yml before running.
+
+- name: Ensure {{ imghost_install_dir }}
+  ansible.builtin.file:
+    path: "{{ imghost_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Drop docker-compose.yml from the repo
+  # Single source of truth: the compose file under deploy/ansible/../..
+  # (i.e. the repo root) is copied verbatim to /opt/imghost. The deploy
+  # workflow's forced command runs `docker compose pull && up -d` from
+  # this exact path, so any change here ships on the next deploy.
+  ansible.builtin.copy:
+    src: "{{ imghost_compose_src }}"
+    dest: "{{ imghost_install_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Render /etc/imghost.env from vault
+  # Contents are secret (UPLOAD_TOKEN, ADMIN_PASS). 0600 root.
+  # The compose file references this path via env_file:.
+  ansible.builtin.copy:
+    content: "{{ imghost_env_contents }}"
+    dest: "{{ imghost_env_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+    no_log: true

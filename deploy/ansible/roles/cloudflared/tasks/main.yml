@@ -1,0 +1,97 @@
+---
+- name: Verify host is Debian-family
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Debian'
+    fail_msg: >-
+      cloudflared role currently supports Debian/Ubuntu only.
+      Detected os_family={{ ansible_facts['os_family'] }}.
+
+- name: Fail fast if vault values aren't set
+  ansible.builtin.assert:
+    that:
+      - cloudflared_tunnel_id is defined
+      - cloudflared_tunnel_id | length > 0
+      - cloudflared_tunnel_credentials_json is defined
+      - cloudflared_tunnel_credentials_json | length > 0
+      - not (cloudflared_tunnel_id is search('00000000-0000-0000-0000'))
+    fail_msg: >-
+      cloudflared_tunnel_id / cloudflared_tunnel_credentials_json are
+      missing or still placeholders. Decrypt the vault before running.
+
+- name: Ensure /etc/apt/keyrings exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Fetch Cloudflare apt signing key
+  ansible.builtin.get_url:
+    url: https://pkg.cloudflare.com/cloudflare-main.gpg
+    dest: /etc/apt/keyrings/cloudflare-main.gpg
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+
+- name: Add Cloudflare apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/cloudflare-main.gpg]
+      https://pkg.cloudflare.com/cloudflared
+      {{ ansible_facts['distribution_release'] }} main
+    state: present
+    filename: cloudflared
+    update_cache: true
+
+- name: Install cloudflared
+  ansible.builtin.apt:
+    name: cloudflared
+    state: present
+
+- name: Ensure /etc/cloudflared exists
+  ansible.builtin.file:
+    path: /etc/cloudflared
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install tunnel credentials JSON
+  # Secret. Comes from vault. 0600 root.
+  ansible.builtin.copy:
+    content: "{{ cloudflared_tunnel_credentials_json }}"
+    dest: "/etc/cloudflared/{{ cloudflared_tunnel_id }}.json"
+    owner: root
+    group: root
+    mode: "0600"
+    no_log: true
+  notify: Restart cloudflared
+
+- name: Render cloudflared config.yml
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /etc/cloudflared/config.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart cloudflared
+
+- name: Install cloudflared systemd unit (one-time)
+  # `cloudflared service install` writes /etc/systemd/system/cloudflared.service.
+  # `creates:` makes it idempotent — subsequent runs no-op. Re-installing
+  # would clobber any local unit overrides without warning.
+  ansible.builtin.command: cloudflared service install
+  args:
+    creates: /etc/systemd/system/cloudflared.service
+  notify:
+    - Reload systemd
+    - Restart cloudflared
+
+- name: Enable and start cloudflared
+  ansible.builtin.service:
+    name: cloudflared
+    enabled: true
+    state: started

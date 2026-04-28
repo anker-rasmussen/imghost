@@ -1,0 +1,10 @@
+---
+# Composes the lower-level roles. Listed in dependency order so that if
+# someone runs `ansible-playbook --tags imghost_host` directly, they
+# still get a working host. site.yml runs them explicitly too — that's
+# fine, role dependencies are deduplicated by name.
+dependencies:
+  - role: sshd_hardening
+  - role: deploy_user
+  - role: docker_engine
+  - role: cloudflared

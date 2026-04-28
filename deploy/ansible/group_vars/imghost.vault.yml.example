@@ -1,0 +1,39 @@
+---
+# Copy this file to imghost.vault.yml, fill in real values, then encrypt:
+#   ansible-vault encrypt group_vars/imghost.vault.yml
+#
+# After encryption the file is committed as ciphertext. The decryption
+# password lives outside the repo (a password manager, a CI secret, or
+# `--ask-vault-pass` at runtime).
+#
+# Anything in this file is loaded automatically by Ansible because the
+# filename matches the `imghost` group.
+
+# Public key for the deploy user — per project spec the public key is
+# stored in vault even though it isn't strictly a secret. The matching
+# private key never touches Ansible: it lives on whichever workstation
+# runs the playbook and on GitHub Actions as DEPLOY_SSH_KEY.
+deploy_authorized_public_key: "ssh-ed25519 AAAA...replace-me imghost-deploy"
+
+# Cloudflare Tunnel.
+# Get the id from `cloudflared tunnel list` after `cloudflared tunnel
+# create imghost`. The credentials JSON is what `tunnel create` wrote to
+# ~/.cloudflared/<id>.json — paste its full contents below.
+cloudflared_tunnel_id: "00000000-0000-0000-0000-000000000000"
+cloudflared_tunnel_credentials_json: |
+  {
+    "AccountTag": "replace-me",
+    "TunnelSecret": "replace-me-base64",
+    "TunnelID": "00000000-0000-0000-0000-000000000000"
+  }
+
+# Contents of /etc/imghost.env. Generate strong values with:
+#   UPLOAD_TOKEN: openssl rand -base64 48
+#   ADMIN_PASS:   openssl rand -base64 32
+imghost_env_contents: |
+  UPLOAD_TOKEN=replace-me
+  ADMIN_PASS=replace-me
+  PUBLIC_BASE_URL=https://aigf.dev
+  ADMIN_USER=admin
+  MAX_UPLOAD_BYTES=26214400
+  RUST_LOG=imghost=info,tower_http=info

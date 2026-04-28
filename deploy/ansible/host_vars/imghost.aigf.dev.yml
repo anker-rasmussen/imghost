@@ -1,0 +1,24 @@
+---
+# Per-host config for mincom. Discovered from `ip a` on the box itself.
+#
+# Stability assumptions:
+#  - 192.168.1.107 is DHCP today. Pin a reservation for MAC
+#    38:05:25:33:1f:03 on the router so sshd doesn't fail to bind on
+#    reboot if the lease ever moves to a different IP.
+#  - Tailscale addresses (100.108.123.14, fd7a:115c:a1e0::c83b:7b0e)
+#    are stable per node identity. They only change if you
+#    `tailscale logout && tailscale up` and re-enrol.
+#
+# Deliberately NOT bound:
+#  - 2a01:4b00:b90d:d100:78e2:beb1:7352:5204 — public IPv6 from the
+#    ISP. Binding sshd there would expose :22 to the entire IPv6
+#    internet. Off-net reach is exclusively via the cloudflared tunnel.
+#  - 172.17.0.1 / 172.18.0.1 / veth* — Docker bridges. Containers must
+#    not be able to talk SSH to the host.
+sshd_listen_addresses:
+  - 127.0.0.1                       # cloudflared tunnel terminus
+  - ::1                             # same, IPv6
+  - 192.168.1.107                   # LAN — pin DHCP reservation for 38:05:25:33:1f:03
+  - 100.108.123.14                  # Tailscale IPv4
+  - fd7a:115c:a1e0::c83b:7b0e       # Tailscale IPv6 (ULA, tailnet-only)
+sshd_wait_for_tailscale: true
