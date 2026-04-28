@@ -382,6 +382,7 @@ async fn test_admin_delete() {
     let del = client()
         .post(format!("{base}/admin/delete/{id}"))
         .basic_auth("admin", Some("secret"))
+        .header("origin", "http://localhost")
         .send()
         .await
         .unwrap();
@@ -396,6 +397,54 @@ async fn test_admin_delete() {
     let serve_url = format!("{base}{path}");
     let res = client().get(&serve_url).send().await.unwrap();
     assert_eq!(res.status(), 404);
+}
+
+// ---------------------------------------------------------------------------
+// 13b. POST /admin/delete/:id with foreign or missing Origin — 403 (CSRF guard)
+// ---------------------------------------------------------------------------
+#[tokio::test]
+async fn test_admin_delete_csrf_blocked() {
+    let (base, _tmp) = spawn_app(26_214_400).await;
+
+    let upload: serde_json::Value = client()
+        .post(format!("{base}/upload"))
+        .bearer_auth("test-token")
+        .body(TINY_PNG)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let id = upload["url"]
+        .as_str()
+        .unwrap()
+        .rsplit('/')
+        .next()
+        .unwrap()
+        .split('.')
+        .next()
+        .unwrap()
+        .to_string();
+
+    // Foreign Origin: rejected.
+    let res = client()
+        .post(format!("{base}/admin/delete/{id}"))
+        .basic_auth("admin", Some("secret"))
+        .header("origin", "https://evil.example")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 403);
+
+    // No Origin at all: also rejected.
+    let res = client()
+        .post(format!("{base}/admin/delete/{id}"))
+        .basic_auth("admin", Some("secret"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), 403);
 }
 
 // ---------------------------------------------------------------------------

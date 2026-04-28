@@ -41,15 +41,26 @@ jobs:
 
       - name: Resolve source and target tags
         id: img
+        # Inputs are passed via env, never interpolated into the script body —
+        # `${{ inputs.tag }}` inline would be templated before bash sees it,
+        # giving anyone with workflow_dispatch access RCE on the runner.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "push" ]; then
-            VERSION="${{ github.ref_name }}"
+          if [ "$EVENT_NAME" = "push" ]; then
+            VERSION="$REF_NAME"
             SOURCE="sha-$(git rev-parse --short=7 "$GITHUB_SHA")"
             PROMOTE_LATEST=true
           else
-            VERSION="${{ inputs.tag }}"
-            SOURCE="${{ inputs.tag }}"
+            if ! [[ "$INPUT_TAG" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+|sha-[0-9a-f]{7})$ ]]; then
+              echo "::error::invalid tag format: $INPUT_TAG (expected vX.Y.Z or sha-<7hex>)"
+              exit 1
+            fi
+            VERSION="$INPUT_TAG"
+            SOURCE="$INPUT_TAG"
             # Only promote :latest when redeploying a versioned tag; refuse to
             # point :latest at a raw sha-* tag (keeps :latest meaningful).
             case "$VERSION" in
@@ -60,7 +71,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
           echo "promote_latest=$PROMOTE_LATEST" >> "$GITHUB_OUTPUT"
-          echo "Deploying $SOURCE → $VERSION (promote :latest = $PROMOTE_LATEST)"
+          echo "Deploying $SOURCE -> $VERSION (promote :latest = $PROMOTE_LATEST)"
 
       # On a tag push, CI fires on the matching master push in parallel and
       # publishes the sha-<short> image. Wait for that CI run to finish before

@@ -1,7 +1,7 @@
 use std::fmt::Write as _;
 
 use axum::extract::{Path, Query, State};
-use axum::http::{header, HeaderName, HeaderValue, StatusCode};
+use axum::http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
@@ -53,7 +53,22 @@ pub(crate) async fn list(State(state): State<AppState>, Query(q): Query<ListQuer
     resp
 }
 
-pub(crate) async fn delete(State(state): State<AppState>, Path(id): Path<String>) -> Response {
+pub(crate) async fn delete(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> Response {
+    // CSRF: cached HTTP Basic + the CF Access cookie would otherwise let any
+    // third-party page submit a delete on the admin's behalf. Browsers always
+    // attach Origin to POSTs; missing or mismatched → reject.
+    let origin_ok = headers
+        .get(header::ORIGIN)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|o| o == state.config.public_base_url);
+    if !origin_ok {
+        return (StatusCode::FORBIDDEN, "cross-origin").into_response();
+    }
+
     if !is_safe_id(&id) {
         return (StatusCode::BAD_REQUEST, "bad id").into_response();
     }
