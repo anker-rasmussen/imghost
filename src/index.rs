@@ -428,7 +428,7 @@ const BODY_AND_SCRIPT: &str = r#"</head>
         'one human uploads (cf-access service token), one human admins (cf-access idp).',
         'everyone else can see only what gets shared as /i/&lt;id&gt;.&lt;ext&gt;.',
         'this page is the only public html — no listing, no search, no api.',
-        'source: <a href="https://github.com/anker-rasmussen/imghost" target="_blank" rel="noopener noreferrer">github.com/anker-rasmussen/imghost</a> (MIT)',
+        'source available on request (MIT).',
       ];
       for (const l of lines) append(l);
     },
