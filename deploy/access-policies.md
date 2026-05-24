@@ -1,9 +1,9 @@
 # Cloudflare Access policies
 
-The threat model assumes only `GET /`, `GET /i/*`, and `GET /healthz` are publicly
-reachable. `POST /upload` and `/admin*` must be fronted by Cloudflare Access. Set up
-three applications in **Zero Trust → Access → Applications** on the same hostname,
-ordered most-specific first.
+The threat model assumes only `GET /`, `GET /i/*`, `GET /healthz`, and `GET /fleet`
+are publicly reachable. `POST /upload` and `/admin*` must be fronted by Cloudflare
+Access. Set up three applications in **Zero Trust → Access → Applications** on the
+same hostname, ordered most-specific first.
 
 ## 1. `imghost-upload`  (service token)
 
@@ -43,13 +43,13 @@ multiple admins later.
 | --- | --- |
 | Type | Self-hosted |
 | Application domain | `aigf.dev` |
-| Path | `/`, `/i/*`, and `/healthz` (add each as a path entry) |
+| Path | `/`, `/i/*`, `/healthz`, and `/fleet` (add each as a path entry) |
 
 **Policy:** action **Bypass** → include rule **Everyone**.
 
-You can also leave `/`, `/i/*`, and `/healthz` outside Access entirely. Adding a
-Bypass app makes the intent explicit in the UI and protects against future "Block by
-default on this hostname" toggles.
+You can also leave `/`, `/i/*`, `/healthz`, and `/fleet` outside Access entirely.
+Adding a Bypass app makes the intent explicit in the UI and protects against future
+"Block by default on this hostname" toggles.
 
 ## 4. `imghost-deploy`  (service token, SSH)
 
@@ -77,6 +77,7 @@ GitHub repo secrets `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`.
 # From a public network (no service token, no IdP login):
 curl -i https://aigf.dev/                       # 200 (landing)
 curl -i https://aigf.dev/healthz                # 200
+curl -i https://aigf.dev/fleet                  # 200 (defcom=…\nmincom=…\n…)
 curl -i https://aigf.dev/i/<id>.jpg             # 200 (or 404)
 curl -i https://aigf.dev/upload                  # 302 to CF Access login
 curl -i https://aigf.dev/admin                  # 302 to CF Access login

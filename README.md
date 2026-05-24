@@ -2,7 +2,7 @@
 
 A screenshot host for one. Hotkey, drag a region, URL's on the clipboard.
 
-It's a small Rust + axum service in a distroless container on my homelab box. Public ingress goes through a Cloudflare Tunnel, so nothing on the host listens on the open internet. Cloudflare Access gates `/upload` (service token) and `/admin` (IdP login); only `/i/<id>` and `/healthz` are publicly reachable.
+It's a small Rust + axum service in a distroless container on my homelab box. Public ingress goes through a Cloudflare Tunnel, so nothing on the host listens on the open internet. Cloudflare Access gates `/upload` (service token) and `/admin` (IdP login); only `/i/<id>`, `/healthz`, and `/fleet` are publicly reachable.
 
 Live at [aigf.dev](https://aigf.dev).
 
@@ -33,6 +33,7 @@ curl -fsS -H 'Authorization: Bearer test' --data-binary @some.png \
 |---|---|---|---|
 | GET | `/` | none | static landing page |
 | GET | `/healthz` | none | liveness |
+| GET | `/fleet` | none | LAN fleet TCP probe; `name=up\|down\n` per host, for TLS-less clients |
 | GET | `/i/:name` | none | image bytes; immutable, sandboxed CSP |
 | POST | `/upload` | bearer (+ CF Access service token in prod) | mime sniff, sha256 dedupe, atomic write |
 | GET | `/admin` | HTTP Basic (+ CF Access IdP in prod) | paginated listing, 50/page |

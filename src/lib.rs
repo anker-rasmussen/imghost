@@ -13,6 +13,7 @@ use tower_http::trace::TraceLayer;
 pub mod admin;
 pub mod auth;
 pub mod config;
+mod fleet;
 mod index;
 pub mod serve;
 pub mod storage;
@@ -52,6 +53,7 @@ pub fn build_app(state: AppState) -> Router {
     Router::new()
         .route("/", get(index::index))
         .route("/healthz", get(healthz))
+        .route("/fleet", get(fleet::fleet))
         .merge(serve::router(&cfg.objects_dir()))
         .merge(upload_routes)
         .merge(admin_routes)
