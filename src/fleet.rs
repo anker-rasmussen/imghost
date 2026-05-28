@@ -2,16 +2,17 @@
 //! (`defcom=up\nmincom=up\n…`). Designed for tools that can't do TLS,
 //! e.g. an ESP32 polling from a hostile network.
 //!
-//! Self (`SELF_HOST`) is always reported up — if a response came back,
-//! it's up. Others are checked by DNS resolution through the host's
-//! resolver: if the name resolves, the box is reachable enough to call
-//! "up". TCP-probing from inside the container is unreliable because the
-//! bridge → host-LAN path is silently dropped by the host firewall, so
-//! DNS is the strongest signal available without changing the network
-//! posture of the container.
+//! Liveness is a real TCP connect to SSH (:22): if the handshake completes
+//! the box is up, if it's refused or times out it's down. A powered-off
+//! host simply never answers, so the connect rides out the (short) timeout
+//! — that's a genuine "down", not a probe failure. Earlier this was
+//! "fixed" by switching to DNS name resolution, but resolution only proves
+//! the resolver *knows* the name, not that the box is alive, so everything
+//! reported up forever. Self (`SELF_HOST`) is short-circuited to up: if
+//! this handler is responding, the host it runs on is up by definition.
 //!
 //! Results are cached for `CACHE_TTL` so a 1Hz poller doesn't trigger
-//! four DNS lookups per request; the `Cache-Control` header lets CF
+//! four TCP probes per request; the `Cache-Control` header lets CF
 //! edge-cache for the same window.
 
 use std::sync::OnceLock;
@@ -19,16 +20,17 @@ use std::time::{Duration, Instant};
 
 use axum::http::{header, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
-use tokio::net::lookup_host;
+use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tokio::time::timeout;
 
 const FLEET: &[&str] = &["defcom", "mincom", "centcom", "flightcom"];
 const SELF_HOST: &str = "mincom";
-// LAN + Tailscale resolves in single-digit ms; 250ms fails fast on
-// silent drops without false negatives on a healthy resolver.
-const PROBE_TIMEOUT: Duration = Duration::from_millis(250);
+// LAN TCP handshakes finish sub-ms; Tailscale (WireGuard) adds tens of ms.
+// 500ms leaves ~10× headroom over Tailscale so a momentarily busy but
+// alive host isn't misread as down, while a down host still fails fast.
+const PROBE_TIMEOUT: Duration = Duration::from_millis(500);
 const CACHE_TTL: Duration = Duration::from_secs(10);
 
 struct Snapshot {
@@ -71,9 +73,9 @@ async fn probe() -> String {
     for &name in FLEET {
         set.spawn(async move {
             let up = name == SELF_HOST
-                || timeout(PROBE_TIMEOUT, lookup_host(format!("{name}:22")))
+                || timeout(PROBE_TIMEOUT, TcpStream::connect(format!("{name}:22")))
                     .await
-                    .is_ok_and(|r| r.is_ok_and(|mut a| a.next().is_some()));
+                    .is_ok_and(|r| r.is_ok());
             (name, up)
         });
     }
