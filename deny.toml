@@ -9,14 +9,6 @@ no-default-features = false
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
 yanked = "deny"
-ignore = [
-    # RUSTSEC-2023-0071 — Marvin timing attack in `rsa` 0.9.x.
-    # Pulled in via sqlx-mysql (a transitive of sqlx's `macros` feature). We
-    # only use sqlite at runtime — no MySQL connection is ever instantiated,
-    # so the vulnerable RSA paths are unreachable. No upstream fix as of 2026.
-    # Mirrored in .cargo/audit.toml. Re-evaluate when sqlx or rsa ship a fix.
-    "RUSTSEC-2023-0071",
-]
 
 [licenses]
 allow = [
