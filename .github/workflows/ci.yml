@@ -7,6 +7,9 @@ on:
   schedule:
     # Weekly Monday noon UTC — catches new advisories without commits
     - cron: "0 12 * * 1"
+  # Manual re-run of the full pipeline on master (e.g. after GitHub auto-disables the
+  # workflow for inactivity and a push is silently skipped).
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
