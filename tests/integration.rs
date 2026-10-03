@@ -569,7 +569,7 @@ async fn test_showroom_served_with_csp() {
     .unwrap();
     let want = format!(
         "app.js?v={}",
-        &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&app))[..12]
+        &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&app))[..16]
     );
     let index = std::fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
