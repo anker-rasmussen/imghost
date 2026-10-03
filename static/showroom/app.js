@@ -47,7 +47,7 @@ scene.add(sun, sun.target);
 // post: bloom on the light sources only (high threshold), then AgX output
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.5, 0.55, 0.92);
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.32, 0.45, 0.95);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -245,9 +245,9 @@ function frame() {
   setO('rcs_glow', rcsPulse);
   // nav lights: 0.5 Hz, 75% duty with a 0.15 floor (aviation-style)
   const navOn = S.nav ? ((t * 0.5) % 1 < 0.75 ? 1 : 0.15) : 0;
-  setE('nav_red', 3 * navOn); setE('nav_green', 3 * navOn); setE('formation_strip', S.nav ? 2 : 0);
+  setE('nav_red', 1.6 * navOn); setE('nav_green', 1.6 * navOn); setE('formation_strip', S.nav ? 0.9 : 0);
   lights.nav.forEach((L) => (L.visible = navOn > 0));
-  lights.nav.forEach((L) => (L.intensity = (L.color.r > 0.9 && L.color.g > 0.9 ? 6 : 25) * navOn));
+  lights.nav.forEach((L) => (L.intensity = (L.color.r > 0.9 && L.color.g > 0.9 ? 2 : 6) * navOn));
   // anti-collision strobes: aviation double flash (two ~50 ms bursts 0.1 s apart, every 1.2 s), instant attack,
   // fast exponential decay; belly strobe half a cycle out of phase. Lights wash the hull, glare sprites bloom.
   const flash = (ph) => {
@@ -257,17 +257,17 @@ function frame() {
     return Math.min(1, burst(0) + burst(0.1));
   };
   const fTop = flash(0), fBelly = flash(0.5);
-  setE('strobe', 80 * Math.max(fTop, fBelly));
-  lights.strobe.forEach((L) => (L.intensity = 1200 * flash(L.userData.phase)));
+  setE('strobe', 22 * Math.max(fTop, fBelly));
+  lights.strobe.forEach((L) => (L.intensity = 220 * flash(L.userData.phase)));
   for (const g of glares) {
     const f = flash(g.phase);
-    g.sprite.material.opacity = 0.7 * f;
-    g.sprite.scale.setScalar(1.5 + 3.5 * f);
+    g.sprite.material.opacity = 0.35 * f;
+    g.sprite.scale.setScalar(0.8 + 1.4 * f);
   }
   // beacons: rotating-style pulse
   const b = Math.pow(0.5 + 0.5 * Math.sin(2 * Math.PI * t / 2), 3);
-  setE('beacon', S.nav ? 6 * (b + 0.05) : 0);
-  lights.beacon.forEach((L) => (L.intensity = S.nav ? 40 * b : 0));
+  setE('beacon', S.nav ? 2.2 * (b + 0.05) : 0);
+  lights.beacon.forEach((L) => (L.intensity = S.nav ? 10 * b : 0));
   // landing lights come on as the gear locks down
   const land = THREE.MathUtils.smoothstep(S.gearT, 0.85, 1);
   setE('landing_light', 8 * land);
