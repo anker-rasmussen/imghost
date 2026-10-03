@@ -69,6 +69,10 @@ dev-logs:  ## Local: tail container logs
 showroom:  ## Open the live ship showroom (https://aigf.dev/showroom/)
 	xdg-open https://aigf.dev/showroom/ 2>/dev/null || open https://aigf.dev/showroom/
 
+showroom-stamp:  ## Re-stamp app.js?v=<sha256> in the showroom page (run after editing app.js; a test enforces it)
+	h=$$(sha256sum static/showroom/app.js | cut -c1-12); \
+	sed -i "s|src=\"app.js[^\"]*\"|src=\"app.js?v=$$h\"|" static/showroom/index.html && echo "app.js?v=$$h"
+
 ## --- release ---------------------------------------------------------------
 
 .PHONY: release

@@ -561,6 +561,26 @@ async fn test_showroom_served_with_csp() {
     assert!(csp.contains("frame-ancestors 'none'"));
     assert!(r.text().await.unwrap().contains("Atlantia"));
 
+    // the edge caches app.js for hours: index.html must reference it by content hash (`make showroom-stamp`)
+    let app = std::fs::read(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/static/showroom/app.js"
+    ))
+    .unwrap();
+    let want = format!(
+        "app.js?v={}",
+        &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&app))[..12]
+    );
+    let index = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/static/showroom/index.html"
+    ))
+    .unwrap();
+    assert!(
+        index.contains(&want),
+        "stale showroom stamp: run `make showroom-stamp` (want {want})"
+    );
+
     let r = c
         .get(format!("{base}/showroom/atlantia.glb"))
         .send()
