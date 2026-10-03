@@ -4,3 +4,9 @@
 /data
 *.env
 !deploy/imghost.env.example
+
+# OpenTofu
+deploy/terraform/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan

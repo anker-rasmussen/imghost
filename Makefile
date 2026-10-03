@@ -63,6 +63,12 @@ dev-down:  ## Local: docker compose down
 dev-logs:  ## Local: tail container logs
 	docker compose logs -f imghost
 
+## --- showroom -------------------------------------------------------------
+
+.PHONY: showroom
+showroom:  ## Open the live ship showroom (https://aigf.dev/showroom/)
+	xdg-open https://aigf.dev/showroom/ 2>/dev/null || open https://aigf.dev/showroom/
+
 ## --- release ---------------------------------------------------------------
 
 .PHONY: release

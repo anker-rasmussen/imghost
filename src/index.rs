@@ -374,6 +374,7 @@ const BODY_AND_SCRIPT: &str = r#"</head>
         ['stats',   'live origin stats (from page snapshot)'],
         ['recent',  'last ' + SNAPSHOT.recent.length + ' uploads, anonymized'],
         ['whoami',  'what your browser tells me, locally'],
+        ['showroom', 'open the Atlantia ship viewer (WebGL)'],
         ['about',   'what is this'],
         ['clear',   'clear screen'],
       ];
@@ -427,16 +428,23 @@ const BODY_AND_SCRIPT: &str = r#"</head>
         'imghost is a personal screenshot host.',
         'one human uploads (cf-access service token), one human admins (cf-access idp).',
         'everyone else can see only what gets shared as /i/&lt;id&gt;.&lt;ext&gt;.',
-        'this page is the only public html — no listing, no search, no api.',
+        'public html: this page, plus /showroom/ — a real-time ship viewer from my blender work.',
+        'no listing, no search, no api.',
         'source available on request (MIT).',
       ];
       for (const l of lines) append(l);
+    },
+    showroom: () => {
+      append('launching <span class="bright">atlantia lightweight · KRT-4471</span> … <a href="/showroom/">/showroom/</a>');
+      append('<span class="dim">(drag to orbit, deploy the gear, hold the retro burn, tap the ship to hail the pilot)</span>');
+      setTimeout(() => { window.location.href = '/showroom/'; }, 900);
     },
     clear: () => { out.innerHTML = ''; },
   };
 
   // aliases
   COMMANDS['?'] = COMMANDS.help;
+  COMMANDS['ships'] = COMMANDS.showroom;
   COMMANDS['ls'] = () => append('<span class="dim">nothing to list. try </span><span class="bright">recent</span><span class="dim">.</span>');
   COMMANDS['cat'] = () => append('<span class="dim">no.</span>');
   COMMANDS['rm'] = () => append('<span class="err">permission denied.</span>');
