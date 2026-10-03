@@ -35,6 +35,7 @@ async fn spawn_app(max_upload_bytes: usize) -> (String, TempDir) {
         admin_pass: "secret".to_string(),
         public_base_url: "http://localhost".to_string(),
         max_upload_bytes,
+        showroom_dir: std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static/showroom"),
     });
 
     let pool = storage::init_pool(&cfg.db_path(), &cfg.objects_dir())
@@ -531,4 +532,47 @@ async fn test_index_after_upload() {
         !body.contains("\"id\":"),
         "anonymized feed should not include any id field"
     );
+}
+
+#[tokio::test]
+async fn test_showroom_served_with_csp() {
+    let (base, _tmp) = spawn_app(1024).await;
+    let c = client();
+
+    // bare path redirects to the trailing-slash index so relative assets resolve
+    let r = c
+        .get(format!("{base}/showroom"))
+        .send()
+        .await
+        .expect("send");
+    assert_eq!(r.status(), 308);
+
+    let r = c
+        .get(format!("{base}/showroom/"))
+        .send()
+        .await
+        .expect("send");
+    assert_eq!(r.status(), 200);
+    let csp = r.headers()["content-security-policy"]
+        .to_str()
+        .unwrap()
+        .to_string();
+    assert!(csp.contains("script-src 'self'"));
+    assert!(csp.contains("frame-ancestors 'none'"));
+    assert!(r.text().await.unwrap().contains("Atlantia"));
+
+    let r = c
+        .get(format!("{base}/showroom/atlantia.glb"))
+        .send()
+        .await
+        .expect("send");
+    assert_eq!(r.status(), 200);
+
+    // ServeDir must not escape the showroom directory
+    let r = c
+        .get(format!("{base}/showroom/../Cargo.toml"))
+        .send()
+        .await
+        .expect("send");
+    assert_ne!(r.status(), 200);
 }

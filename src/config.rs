@@ -11,6 +11,7 @@ pub struct AppConfig {
     pub admin_pass: String,
     pub public_base_url: String,
     pub max_upload_bytes: usize,
+    pub showroom_dir: PathBuf,
 }
 
 impl AppConfig {
@@ -35,6 +36,10 @@ impl AppConfig {
             .and_then(|v| v.parse().ok())
             .unwrap_or(26_214_400);
 
+        let showroom_dir = PathBuf::from(
+            env::var("SHOWROOM_DIR").unwrap_or_else(|_| "/usr/share/imghost/showroom".to_string()),
+        );
+
         Ok(Self {
             bind_addr,
             data_dir,
@@ -43,6 +48,7 @@ impl AppConfig {
             admin_pass,
             public_base_url,
             max_upload_bytes,
+            showroom_dir,
         })
     }
 

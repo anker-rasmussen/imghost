@@ -16,6 +16,7 @@ pub mod config;
 mod fleet;
 mod index;
 pub mod serve;
+mod showroom;
 pub mod storage;
 pub mod upload;
 
@@ -55,6 +56,7 @@ pub fn build_app(state: AppState) -> Router {
         .route("/healthz", get(healthz))
         .route("/fleet", get(fleet::fleet))
         .merge(serve::router(&cfg.objects_dir()))
+        .merge(showroom::router(&cfg.showroom_dir))
         .merge(upload_routes)
         .merge(admin_routes)
         .layer(TraceLayer::new_for_http())

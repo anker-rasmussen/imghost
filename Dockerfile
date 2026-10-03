@@ -32,6 +32,7 @@ FROM gcr.io/distroless/cc-debian12:nonroot
 
 COPY --from=builder --chown=nonroot:nonroot /opt/imghost-data /var/lib/imghost
 COPY --from=builder /src/target/release/imghost /usr/local/bin/imghost
+COPY static/showroom /usr/share/imghost/showroom
 
 USER nonroot:nonroot
 WORKDIR /var/lib/imghost
