@@ -21,5 +21,10 @@ tofu plan      # always review before apply
 tofu apply
 ```
 
-State: not committed (`*.tfstate` is ignored). Planned: remote state on R2 with OpenTofu state encryption.
+State: local `terraform.tfstate`, gitignored and **encrypted client-side** (OpenTofu `encryption` block, PBKDF2 → AES-GCM;
+plans are encrypted too). The passphrase is `TF_VAR_state_passphrase` in `~/.config/cloudflare/terraform.env` (mode 600).
+An encrypted backup lives at `~/.config/cloudflare/imghost.tfstate.enc.bak`. Lose the passphrase and you re-import with
+`imports.tf` — nothing in Cloudflare is lost. To move to R2 later: enable R2, add an `s3` backend, `tofu init -migrate-state`.
+
+Rotate the API token: create it in the dashboard, copy it, run `~/.local/bin/cf-token-set` (reads the clipboard, then clears it).
 Roadmap: uploader → WARP + device posture; deployer → pull-based deploys; then retire both service tokens.

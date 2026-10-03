@@ -15,3 +15,9 @@ variable "admin_email" {
   type        = string
   default     = "anker@rasmussen.engineering"
 }
+
+variable "state_passphrase" {
+  description = "Passphrase for OpenTofu state/plan encryption (>= 16 chars). Set TF_VAR_state_passphrase."
+  type        = string
+  sensitive   = true
+}
