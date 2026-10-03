@@ -21,11 +21,16 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 4000);
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 4000);
 camera.position.set(34, 12, 48);                       // 3/4 rear chase, like the film
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.minDistance = 22; controls.maxDistance = 160;
+controls.minDistance = 6; controls.maxDistance = 220;     // close enough to read the stencils, far enough to see it whole
+controls.enablePan = true; controls.screenSpacePanning = true; controls.panSpeed = 0.8;   // right-drag / two-finger pan
+controls.zoomToCursor = true;                                                             // zoom toward what you point at
+controls.addEventListener('change', () => {                                               // keep the pivot on the ship
+  if (controls.target.length() > 26) controls.target.setLength(26);
+});
 controls.autoRotate = !reduceMotion; controls.autoRotateSpeed = 0.35;
 controls.target.set(0, 0, 0);
 
@@ -66,6 +71,32 @@ new RGBELoader().load('earth_env.hdr', (env) => {
   scene.environmentRotation.set(0, Math.PI, 0);
   scene.environmentIntensity = 1.0;
 });
+
+// ---------------------------------------------------------------- strobe glare: camera-facing starburst sprites
+function starburstTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const r = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.08, 'rgba(255,255,255,0.9)');
+  r.addColorStop(0.25, 'rgba(200,220,255,0.25)'); r.addColorStop(1, 'rgba(200,220,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 256, 256);
+  g.globalCompositeOperation = 'lighter';
+  for (const [w, a] of [[3, 0], [3, Math.PI / 2], [1.5, Math.PI / 4], [1.5, -Math.PI / 4]]) {   // diffraction spikes
+    g.save(); g.translate(128, 128); g.rotate(a);
+    const l = g.createLinearGradient(-128, 0, 128, 0);
+    l.addColorStop(0, 'rgba(255,255,255,0)'); l.addColorStop(0.5, 'rgba(255,255,255,0.85)'); l.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = l; g.fillRect(-128, -w, 256, 2 * w); g.restore();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const glareTex = starburstTexture();
+const glares = [];                       // { sprite, phase }
+function addGlare(parent, phase, offset = new THREE.Vector3()) {
+  const m = new THREE.SpriteMaterial({ map: glareTex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending,
+    depthWrite: false, opacity: 0 });
+  const sp = new THREE.Sprite(m); sp.position.copy(offset); sp.scale.setScalar(6); sp.renderOrder = 5;
+  parent.add(sp); glares.push({ sprite: sp, phase }); return sp;
+}
 
 // ---------------------------------------------------------------- ship
 const M = {};               // materials by name
@@ -110,8 +141,12 @@ function onShip(gltf) {
     const col = ex.color ? toC(ex.color) : new THREE.Color(1, 1, 1);
     let L = null;
     const kind = ex.kind || (o.name === 'L_tail' ? 'tail' : '');
-    if (kind === 'nav') { L = new THREE.PointLight(col, 25, 18, 2); lights.nav.push(L); }
-    else if (kind === 'strobe') { L = new THREE.PointLight(col, 0, 26, 2); L.userData.phase = ex.phase || 0; lights.strobe.push(L); }
+    if (kind === 'nav') {
+      L = new THREE.PointLight(col, 25, 18, 2); lights.nav.push(L);
+      const ws = new THREE.PointLight(0xffffff, 0, 10, 2); ws.userData.phase = 0.0; ws.position.x = Math.sign(o.position.x) * 0.5;
+      o.add(ws); lights.strobe.push(ws); addGlare(o, 0.0, new THREE.Vector3(Math.sign(o.position.x) * 0.6, 0, 0));   // wingtip strobe
+    }
+    else if (kind === 'strobe') { L = new THREE.PointLight(col, 0, 10, 2); L.userData.phase = ex.phase || 0; lights.strobe.push(L); addGlare(o, L.userData.phase, new THREE.Vector3(0, Math.sign(o.position.y || 1) * 0.4, 0)); }
     else if (kind === 'beacon') { L = new THREE.PointLight(col, 0, 16, 2); lights.beacon.push(L); }
     else if (kind === 'engine') { L = new THREE.PointLight(new THREE.Color(0.6, 0.78, 1), 0, 22, 2); lights.engine.push(L); }
     else if (kind === 'retro') { L = new THREE.PointLight(new THREE.Color(1, 0.62, 0.28), 0, 18, 2); lights.retro.push(L); }
@@ -213,10 +248,22 @@ function frame() {
   setE('nav_red', 3 * navOn); setE('nav_green', 3 * navOn); setE('formation_strip', S.nav ? 2 : 0);
   lights.nav.forEach((L) => (L.visible = navOn > 0));
   lights.nav.forEach((L) => (L.intensity = (L.color.r > 0.9 && L.color.g > 0.9 ? 6 : 25) * navOn));
-  // strobes: 0.75 Hz, 5% duty, belly half a period out of phase
-  const strobeAt = (ph) => (S.strobe && ((t * 0.75 + ph) % 1) < 0.05 ? 1 : 0);
-  setE('strobe', 20 * Math.max(strobeAt(0), strobeAt(0.5)));
-  lights.strobe.forEach((L) => (L.intensity = 900 * strobeAt(L.userData.phase)));
+  // anti-collision strobes: aviation double flash (two ~50 ms bursts 0.1 s apart, every 1.2 s), instant attack,
+  // fast exponential decay; belly strobe half a cycle out of phase. Lights wash the hull, glare sprites bloom.
+  const flash = (ph) => {
+    if (!S.strobe) return 0;
+    const p = (((t / 1.2) + ph) % 1) * 1.2;           // seconds into this cycle
+    const burst = (dt0) => (p >= dt0 ? Math.exp(-(p - dt0) / 0.035) : 0);
+    return Math.min(1, burst(0) + burst(0.1));
+  };
+  const fTop = flash(0), fBelly = flash(0.5);
+  setE('strobe', 80 * Math.max(fTop, fBelly));
+  lights.strobe.forEach((L) => (L.intensity = 1200 * flash(L.userData.phase)));
+  for (const g of glares) {
+    const f = flash(g.phase);
+    g.sprite.material.opacity = 0.7 * f;
+    g.sprite.scale.setScalar(1.5 + 3.5 * f);
+  }
   // beacons: rotating-style pulse
   const b = Math.pow(0.5 + 0.5 * Math.sin(2 * Math.PI * t / 2), 3);
   setE('beacon', S.nav ? 6 * (b + 0.05) : 0);
