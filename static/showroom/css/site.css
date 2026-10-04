@@ -324,7 +324,7 @@ a:hover > .link-arrow::after, .link-arrow:hover::after { transform: translateX(5
 .v-back { display: inline-flex; align-items: center; gap: 10px; color: var(--v-dim); font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; transition: color .25s; width: max-content; padding: 6px 0; }
 .v-back:hover { color: #fff; }
 .v-back .logo-mask { width: 110px; color: currentColor; }
-.v-title h1 { font-family: var(--display); font-weight: var(--display-weight); text-transform: var(--display-case); letter-spacing: var(--display-track); font-size: clamp(30px, 4.6vw, 64px); line-height: 1; margin: 0; }
+.v-title h1 { font-family: var(--display); font-weight: var(--display-weight); text-transform: var(--display-case); letter-spacing: var(--display-track); font-size: clamp(26px, 3.4vw, 54px); line-height: 1; margin: 0; overflow-wrap: anywhere; }
 .v-sub { font: 400 12px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--v-dim); }
 .v-sub b { color: #fff; font-weight: 400; }
 .v-spec { width: min(20rem, 42vw); background: var(--v-panel); border: 1px solid var(--v-line); border-radius: 4px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); padding: 12px 14px; }
