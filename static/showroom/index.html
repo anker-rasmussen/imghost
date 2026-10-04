@@ -1,148 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-mode="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Interactive real-time viewer of the Atlantia Lightweight KRT-4471, from the Aurelia short film.">
-<title>Atlantia Lightweight</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Jura:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>
-/* Layout: full-bleed real-time ship over the path-traced Earth plate; HUD = brand lockup (top-left),
-   spec plate (top-right), flight console (bottom). Single deliberate dark look: an orbital hangar. */
-:root {
-  --void: #0a0c0e;          /* space behind everything */
-  --graphite: #24272a;      /* Atlantia graphite */
-  --panel: rgba(28, 31, 34, 0.74);
-  --line: rgba(227, 225, 219, 0.14);
-  --hull: #e3e1db;          /* Atlantia off-white */
-  --dim: #9aa3a9;
-  --steel: #6f8797;         /* Atlantia steel blue */
-  --amber: #e8a33d;         /* hazard/active */
-  --nav-red: #ff3b2f;
-  --nav-green: #3dff6e;
-  --display: "Michroma", "Eurostile", "Arial Black", sans-serif;
-  --body: "Jura", "Avenir Next", "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  color-scheme: dark;
-}
-html, body { height: 100%; }
-body { margin: 0; background: var(--void); color: var(--hull); font: 15px/1.45 var(--body); overflow: hidden; }
-canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
-
-.hud { position: fixed; inset: 0; pointer-events: none; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-rows: auto 1fr auto; gap: 12px; }
-.hud > * { pointer-events: auto; }
-.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-
-.lockup { display: grid; gap: 4px; max-width: 34rem; min-width: 0; }
-.maker { font: 11px/1 var(--display); letter-spacing: 0.32em; color: var(--steel); text-transform: uppercase; }
-.ship { font: clamp(26px, 4.4vw, 46px)/1.02 var(--display); letter-spacing: 0.04em; margin: 0; text-wrap: balance; }
-.reg { font: 12px/1.4 var(--mono); color: var(--dim); letter-spacing: 0.08em; }
-.reg b { color: var(--hull); font-weight: 500; }
-
-.spec { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 14px; min-width: 0; width: min(19rem, 100%); }
-.spec summary { cursor: pointer; font: 10px/1 var(--display); letter-spacing: 0.28em; text-transform: uppercase; color: var(--steel); list-style: none; display: flex; justify-content: space-between; }
-.spec summary::-webkit-details-marker { display: none; }
-.spec summary::after { content: "−"; color: var(--dim); }
-.spec:not([open]) summary::after { content: "+"; }
-.spec dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 12px 0 0; font-size: 13px; }
-.spec dt { color: var(--dim); }
-.spec dd { margin: 0; text-align: right; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
-
-.console { justify-self: center; width: min(58rem, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 14px; display: grid; gap: 10px; }
-.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.btn { appearance: none; border: 1px solid var(--line); background: rgba(227,225,219,0.04); color: var(--hull); font: 600 12px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 12px; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; }
-.btn:hover { border-color: rgba(227,225,219,0.32); }
-.btn:focus-visible, input[type=range]:focus-visible, .spec summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.btn[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
-.btn .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); box-shadow: none; }
-.btn[aria-pressed="true"] .pip { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-.btn.retro:active, .btn.retro.held { border-color: var(--amber); color: var(--amber); }
-.thrust { display: flex; align-items: center; gap: 10px; flex: 1 1 18rem; min-width: 0; }
-.thrust label { font: 600 11px/1 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
-.thrust input { flex: 1; min-width: 0; accent-color: var(--steel); }
-.thrust output { font: 12px var(--mono); width: 7.5em; text-align: right; font-variant-numeric: tabular-nums; }
-.status { display: flex; flex-wrap: wrap; gap: 14px; font: 11px/1.3 var(--mono); color: var(--dim); letter-spacing: 0.06em; }
-.status b { color: var(--hull); font-weight: 500; }
-.caption { min-height: 1.4em; font: 14px/1.4 var(--body); color: var(--hull); }
-.caption .who { color: var(--steel); font: 10px var(--display); letter-spacing: 0.24em; margin-right: 8px; }
-.note { font: 11px/1.4 var(--body); color: var(--dim); }
-
-.loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--void); transition: opacity .6s ease; z-index: 5; }
-.loader.done { opacity: 0; pointer-events: none; }
-.loader .box { width: min(22rem, calc(100% - 32px)); display: grid; gap: 10px; text-align: center; }
-.loader .bar { height: 2px; background: var(--line); overflow: hidden; }
-.loader .bar i { display: block; height: 100%; width: 0; background: var(--steel); transition: width .2s; }
-.loader small { font: 11px var(--mono); color: var(--dim); }
-.err { color: var(--amber); font: 13px var(--body); }
-
-@media (max-width: 640px) {
-  .spec { width: 100%; }
-  .btn { padding: 9px 10px; letter-spacing: 0.1em; }
-}
-@media (prefers-reduced-motion: reduce) { .loader { transition: none; } }
-</style>
-
+<meta name="description" content="The Aurelia Fleet: five fictional shipyards, twenty-two spacecraft, real-time WebGL showrooms. Procedural ships from Blender, baked rooms, three.js.">
+<meta name="theme-color" content="#0b0c0d">
+<meta name="color-scheme" content="dark light">
+<title>The Aurelia Fleet — Showroom</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0c0d'/%3E%3Cellipse cx='16' cy='16' rx='12' ry='4.6' fill='none' stroke='%23ecebe6' stroke-width='1.2'/%3E%3Ccircle cx='26.6' cy='13.9' r='1.8' fill='%23ecebe6'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/jost.woff2?v=b26e33e9e91d5296" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/cormorant.woff2?v=9caaac84996965f9" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css?v=562560d8f78cf0ca">
+<script type="importmap">{ "imports": { "three": "/showroom/vendor/three/build/three.module.js", "three/addons/": "/showroom/vendor/three/addons/" } }</script>
+<link rel="modulepreload" href="js/data.js?v=f0c62a88aeb0bd1c">
 </head>
 <body>
-<canvas id="gl" aria-label="Interactive 3D model of the Atlantia Lightweight starship" tabindex="0"></canvas>
+<a class="skip" href="#main">Skip to content</a>
 
-<div class="loader" id="loader">
-  <div class="box">
-    <div class="maker">Atlantia Industries</div>
-    <div class="bar"><i id="loadbar"></i></div>
-    <small id="loadtxt">Loading ship · 10.3 MB</small>
-  </div>
-</div>
+<header class="masthead">
+  <a class="brandmark" href="#/" aria-label="The Aurelia Fleet, home">Aurelia <i>fleet</i></a>
+  <nav class="mastnav" aria-label="Shipyards"></nav>
+</header>
 
-<div class="hud">
-  <div class="top">
-    <header class="lockup">
-      <div class="maker">Atlantia Industries</div>
-      <h1 class="ship">Lightweight</h1>
-      <div class="reg">Registration <b>KRT-4471</b> · home berth <b>Aurelia, Bay 41</b></div>
-    </header>
-    <details class="spec" id="spec" open>
-      <summary>Spec plate</summary>
-      <dl>
-        <dt>Length · span</dt><dd>43 m · 28 m</dd>
-        <dt>Main engines</dt><dd>4</dd>
-        <dt>Retro thrusters</dt><dd>4 (forward)</dd>
-        <dt>RCS</dt><dd>16 quads</dd>
-        <dt>Landing gear</dt><dd>tricycle · 4.6 m</dd>
-        <dt>Registry</dt><dd>K · Kuiper Frontier</dd>
-        <dt>Real-time mesh</dt><dd>142k tris · 20 calls</dd>
-      </dl>
-    </details>
-  </div>
-  <div></div>
-  <section class="console" aria-label="Flight console">
-    <div class="row">
-      <button class="btn" id="gear" aria-pressed="false"><span class="pip"></span>Gear</button>
-      <button class="btn" id="nav" aria-pressed="true"><span class="pip"></span>Nav lights</button>
-      <button class="btn" id="strobe" aria-pressed="true"><span class="pip"></span>Strobes</button>
-      <button class="btn retro" id="retro" aria-pressed="false"><span class="pip"></span>Retro burn (hold)</button>
-      <button class="btn" id="hail"><span class="pip"></span>Hail pilot</button>
-      <button class="btn" id="spin" aria-pressed="true"><span class="pip"></span>Orbit</button>
-    </div>
-    <div class="row">
-      <div class="thrust">
-        <label for="thr">Thrust</label>
-        <input type="range" id="thr" min="0" max="100" value="35" step="1">
-        <output id="throut" for="thr">35% cruise</output>
-      </div>
-      <div class="status" aria-live="polite">
-        <span>GEAR <b id="s-gear">STOWED</b></span>
-        <span>RETRO <b id="s-retro">SAFE</b></span>
-      </div>
-    </div>
-    <div class="caption" id="caption" aria-live="polite"></div>
-    <div class="note">Drag to orbit · scroll or pinch to zoom · tap the ship to hail it. Real-time WebGL; the Earth backdrop is path-traced in Blender with physical Rayleigh, Mie and ozone scattering.</div>
-  </section>
-</div>
+<main id="main" tabindex="-1">
+  <noscript>
+    <section class="hero"><div class="wrap">
+      <h1 class="display">The Aurelia Fleet</h1>
+      <p class="lede">Five shipyards, twenty-two spacecraft, real-time WebGL showrooms. This portfolio needs JavaScript (and WebGL for the 3D rooms).</p>
+    </div></section>
+  </noscript>
+</main>
 
-<script type="importmap">{ "imports": { "three": "/showroom/vendor/three/build/three.module.js", "three/addons/": "/showroom/vendor/three/addons/" } }</script>
-<script type="module" src="app.js?v=4cb080ca7f845e03"></script>
+<section class="viewer" id="viewer" aria-label="Showroom" hidden></section>
+<div class="curtain" aria-hidden="true"></div>
+
+<script type="module" src="js/main.js?v=ce42b054a3b4548d"></script>
 </body>
 </html>
