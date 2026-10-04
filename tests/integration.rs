@@ -575,7 +575,7 @@ async fn test_showroom_served_with_csp() {
         let text = std::fs::read_to_string(src).unwrap();
         for (i, _) in text.match_indices("?v=") {
             let start = text[..i]
-                .rfind(|c: char| matches!(c, '"' | '\'' | '(' | ' ' | '\n'))
+                .rfind(['"', '\'', '(', ' ', '\n'])
                 .map_or(0, |s| s + 1);
             let rel = &text[start..i];
             let want = &text[i + 3..i + 19];
