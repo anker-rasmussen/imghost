@@ -66,12 +66,23 @@ dev-logs:  ## Local: tail container logs
 ## --- showroom -------------------------------------------------------------
 
 .PHONY: showroom
-showroom:  ## Open the live ship showroom (https://aigf.dev/showroom/)
+showroom:  ## Open the live fleet showroom (https://aigf.dev/showroom/)
 	xdg-open https://aigf.dev/showroom/ 2>/dev/null || open https://aigf.dev/showroom/
 
-showroom-stamp:  ## Re-stamp app.js?v=<sha256> in the showroom page (run after editing app.js; a test enforces it)
-	h=$$(sha256sum static/showroom/app.js | cut -c1-16); \
-	sed -i "s|src=\"app.js[^\"]*\"|src=\"app.js?v=$$h\"|" static/showroom/index.html && echo "app.js?v=$$h"
+.PHONY: showroom-assets
+showroom-assets:  ## Sync fleet assets from ../blender/universe into static/showroom/assets + regenerate js/data.js
+	python3 tools/showroom/sync_assets.py
+
+.PHONY: showroom-stamp
+showroom-stamp:  ## Re-stamp every ?v=<sha256> asset URL in the showroom (run after editing js/css; a test enforces it)
+	python3 tools/showroom/stamp.py
+
+.PHONY: showroom-dev
+showroom-dev: showroom-stamp  ## Serve the showroom locally on :8765 (http://localhost:8765/showroom/)
+	cd static && python3 -m http.server 8765 --bind 127.0.0.1
+
+.PHONY: showroom-build
+showroom-build: showroom-assets showroom-stamp  ## Assets + stamps in one go (after new exports land)
 
 ## --- release ---------------------------------------------------------------
 

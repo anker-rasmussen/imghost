@@ -14,7 +14,7 @@ use crate::AppState;
 const SHOWROOM_CSP: &str = "default-src 'none'; \
     script-src 'self' 'wasm-unsafe-eval' 'sha256-GrYJXwxye0I3hzyc7iEYb0SjdRcHNaWy7DM+OgwzKR4='; \
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-    font-src https://fonts.gstatic.com; \
+    font-src 'self' https://fonts.gstatic.com; \
     img-src 'self' blob: data:; \
     connect-src 'self' blob: data:; \
     media-src 'self'; \

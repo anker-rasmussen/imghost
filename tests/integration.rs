@@ -559,30 +559,48 @@ async fn test_showroom_served_with_csp() {
         .to_string();
     assert!(csp.contains("script-src 'self'"));
     assert!(csp.contains("frame-ancestors 'none'"));
-    assert!(r.text().await.unwrap().contains("Atlantia"));
+    assert!(r.text().await.unwrap().contains("Aurelia"));
 
-    // the edge caches app.js for hours: index.html must reference it by content hash (`make showroom-stamp`)
-    let app = std::fs::read(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/static/showroom/app.js"
-    ))
-    .unwrap();
-    let want = format!(
-        "app.js?v={}",
-        &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&app))[..16]
-    );
-    let index = std::fs::read_to_string(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/static/showroom/index.html"
-    ))
-    .unwrap();
-    assert!(
-        index.contains(&want),
-        "stale showroom stamp: run `make showroom-stamp` (want {want})"
-    );
+    // the edge caches static files for hours: every `?v=<hash>` URL in the page, its modules, stylesheets and the
+    // generated asset manifest must match the file's content hash (`make showroom-stamp` / `make showroom`)
+    let site = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static/showroom"));
+    let mut sources = vec![site.join("index.html")];
+    for dir in ["js", "css"] {
+        for e in std::fs::read_dir(site.join(dir)).unwrap() {
+            sources.push(e.unwrap().path());
+        }
+    }
+    let mut checked = 0;
+    for src in &sources {
+        let text = std::fs::read_to_string(src).unwrap();
+        for (i, _) in text.match_indices("?v=") {
+            let start = text[..i]
+                .rfind(|c: char| matches!(c, '"' | '\'' | '(' | ' ' | '\n'))
+                .map_or(0, |s| s + 1);
+            let rel = &text[start..i];
+            let want = &text[i + 3..i + 19];
+            // "./x" and "../x" resolve against the referencing file; bare paths against the site root
+            let path = if rel.starts_with("./") || rel.starts_with("../") {
+                src.parent().unwrap().join(rel)
+            } else {
+                site.join(rel)
+            };
+            let bytes =
+                std::fs::read(&path).unwrap_or_else(|_| panic!("{}: missing {rel}", src.display()));
+            let got = &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&bytes))[..16];
+            assert_eq!(
+                want,
+                got,
+                "stale stamp for {rel} in {}: run `make showroom-stamp`",
+                src.display()
+            );
+            checked += 1;
+        }
+    }
+    assert!(checked > 20, "expected the showroom to stamp its assets");
 
     let r = c
-        .get(format!("{base}/showroom/atlantia.glb"))
+        .get(format!("{base}/showroom/js/main.js"))
         .send()
         .await
         .expect("send");
