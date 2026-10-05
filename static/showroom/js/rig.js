@@ -25,6 +25,18 @@ function starburst() {
 }
 
 const FX = /plume|rcs_glow/;
+
+/** nudge a material's log-depth fragment depth toward the camera (relative ~10x eps of the distance) */
+function biasDepth(m, eps) {
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => {
+    prev?.call(m, sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <logdepthbuf_fragment>',
+      `#include <logdepthbuf_fragment>\n#if defined( USE_LOGDEPTHBUF )\n  gl_FragDepth = max(0.0, gl_FragDepth - ${eps.toExponential()});\n#endif`);
+  };
+  const key = m.customProgramCacheKey?.bind(m);
+  m.customProgramCacheKey = () => `${key ? key() : ''}|bias${eps}`;
+}
 const isFx = (m) => FX.test(m.name || '');
 
 /**
@@ -65,7 +77,13 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
       m.userData.rigged = true;
       m.userData.baseEmissive = m.emissiveIntensity ?? 1;
       if (isFx(m)) { m.transparent = true; m.depthWrite = false; m.blending = THREE.AdditiveBlending; m.opacity = 0; }
-      if (m.name === 'decals') { m.depthWrite = false; m.polygonOffset = true; m.polygonOffsetFactor = -2; }
+      // surface layers (decals, window cards) sit on the hull: with a logarithmic depth buffer polygonOffset is
+      // ignored (depth is written per fragment), so pull their fragment depth forward a hair instead
+      if (m.name === 'decals' || /^c_/.test(m.name)) {
+        if (m.name === 'decals') m.depthWrite = false;
+        m.polygonOffset = true; m.polygonOffsetFactor = -2;
+        biasDepth(m, m.name === 'decals' ? 3e-5 : 1.5e-5);
+      }
     }
     if (isFx(m)) { o.castShadow = false; o.renderOrder = 2; fxMeshes.push(o); }
     else { o.castShadow = !m.transparent; o.receiveShadow = true; }

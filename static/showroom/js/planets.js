@@ -149,6 +149,8 @@ export function buildPlanet(kind, radius, { earthUrl } = {}) {
     const { m, b } = cache.get(kind);
     Object.assign(mat, { map: m, bumpMap: b, bumpScale: 4 });
   }
+  // worlds are lit only by the exterior key (no hall probe): a darker albedo keeps them from blowing out under AgX
+  mat.color.setScalar(kind === 'earth' ? 0.16 : 0.22);
   const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 128, 96), mat);
   body.rotation.y = Math.PI * 0.85;                    // the texture seam faces away from the hall
   group.add(body);

@@ -13,8 +13,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { rigShip } from './rig.js?v=0c7fafad2fdc37e6';
-import { buildPlanet } from './planets.js?v=c6f6c14f42290b3a';
+import { rigShip } from './rig.js?v=4136c9fa52f7435e';
+import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
 import data from './data.js?v=63e7db68aa53ab85';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
@@ -205,18 +205,18 @@ export class Viewer {
         this.rgbe.loadAsync(maker.room.bg, tick('bg', 'Loading backdrop')),
       ]);
       if (token !== this.roomToken) { disposeTree(gl.scene); env.dispose(); bg.dispose(); return; }
+      this.disposeRoom();                               // first: building sets scene.environment / background / exterior
       built = this.buildBakedRoom(info, gl, env, bg);
     } else {
+      this.disposeRoom();
       built = this.buildStudio(maker.theme, info);
     }
-    this.disposeRoom();
     this.room = { id: maker.id, info, totem: maker.totem || null, ...built };
     this.room.floorMeshes = [];
     this.room.group.updateMatrixWorld(true);
     this.room.group.traverse((o) => {
       if (!o.isMesh) return;
       if (/floor/.test(o.name)) this.room.floorMeshes.push(o);
-      else if (!/glass/.test(o.name)) (this.room.occluders ||= []).push(o);   // mullions, door frames, walls
       if (/glass/.test(o.name)) {                       // window(s) onto the giants outside
         const b = new THREE.Box3().setFromObject(o);
         this.room.glassBox = this.room.glassBox ? this.room.glassBox.union(b) : b;
@@ -227,7 +227,7 @@ export class Viewer {
     // the hall exposure is tuned for the interior; outside is space: keep the backdrop near its own exposure so
     // faint scatter in bg.hdr reads as black sky (with stars and the authored planet / dock), not grey haze
     const cave = /ceres|asteroid|cavern|hollow/i.test(`${maker.yard?.where || ''} ${maker.yard?.copy || ''}`);
-    this.bgIntensity = this.scene.backgroundIntensity = cave ? 1 : Math.min(1, 1.1 / this.renderer.toneMappingExposure);   // caves stay lit rock
+    this.bgIntensity = this.scene.backgroundIntensity = Math.min(1, (cave ? 2 : 1.1) / this.renderer.toneMappingExposure);   // caves stay lit rock
     this.resize();
   }
 
@@ -256,7 +256,9 @@ export class Viewer {
     bgTex.mapping = THREE.EquirectangularReflectionMapping;
     this.scene.environment = envRT.texture;
     this.scene.background = bgTex;
-    this.addExterior(group, info);
+    this.extGroup = new THREE.Group();
+    this.scene.add(this.extGroup);
+    this.addExterior(this.extGroup, info);
     this.scene.fog = null;
     const rot = THREE.MathUtils.degToRad(info.env?.rotation_y || 0);
     this.scene.environmentRotation.set(0, rot, 0);
@@ -303,10 +305,53 @@ export class Viewer {
     group.traverse((o) => { if (o.isMesh && /glass/.test(o.name)) this.exterior.glass.push(o); });
   }
 
+  /** crossfade the hall (shell, frames, floor, indoor hulls) in or out over ~0.6 s */
+  fadeRoom(show) {
+    const r = this.room; if (!r) return;
+    if (!r.fadeMats) {
+      r.fadeMats = [];
+      r.group.traverse((o) => {
+        if (!o.isMesh || !o.material || o.material.isShadowMaterial || o.isReflector || o.material.isShaderMaterial) return;
+        const m = o.material;
+        if (!r.fadeMats.some((x) => x.m === m)) r.fadeMats.push({ m, op: m.opacity, tr: m.transparent, dw: m.depthWrite });
+      });
+    }
+    const cur = this.roomFade ? this.roomFade.k : (r.group.visible ? 1 : 0);
+    const to = show ? 1 : 0;
+    if (cur === to && !this.roomFade) return;
+    const instant = matchMedia('(prefers-reduced-motion: reduce)').matches || !this.running;
+    this.roomFade = { from: cur, to, k: cur, start: performance.now(), dur: instant ? 0 : 600 };
+    r.group.visible = true;
+    this.stepFade(performance.now());
+  }
+  stepFade(now) {
+    const f = this.roomFade, r = this.room; if (!f || !r) return;
+    const u = f.dur ? Math.min(1, (now - f.start) / f.dur) : 1;
+    f.k = f.from + (f.to - f.from) * u;
+    const partial = f.k > 0.001 && f.k < 0.999;
+    for (const x of r.fadeMats) {
+      const tr = partial ? true : x.tr;
+      if (x.m.transparent !== tr) { x.m.transparent = tr; x.m.needsUpdate = true; }
+      x.m.opacity = x.op * f.k;
+      x.m.depthWrite = partial ? false : x.dw;
+    }
+    // indoor hulls and the hall's reflector / shadows / lights go with the room
+    r.group.traverse((o) => { if (o.isReflector || o.isLight || o.material?.isShadowMaterial) o.visible = f.k > 0.999; });
+    for (const e of this.fleet?.values() || []) if (!e.outdoor) e.holder.visible = f.k > 0.02;
+    if (u >= 1) {
+      r.group.visible = f.to > 0;
+      for (const x of r.fadeMats) { x.m.opacity = x.op; if (x.m.transparent !== x.tr) { x.m.transparent = x.tr; x.m.needsUpdate = true; } x.m.depthWrite = x.dw; }
+      this.roomFade = null;
+    }
+  }
+
   /** looking out at a giant: exterior lights up, the glass stops mirroring the bright hall */
   setOutside(on, target) {
     const x = this.exterior; if (!x) return;
-    x.key.intensity = on ? 2.4 : 0; x.rim.intensity = on ? 1.4 : 0;
+    // same exterior look in every hall: intensities normalised by the hall's exposure
+    const ex = this.renderer.toneMappingExposure || 1;
+    x.key.intensity = on ? 7 / ex : 0; x.rim.intensity = on ? 3 / ex : 0;
+    this.fadeRoom(!on);
     if (target) {
       x.key.target.position.copy(target); x.rim.target.position.copy(target);
       // light the side the visitor sees: key from over the viewer's shoulder, cool rim from behind the hull
@@ -486,7 +531,8 @@ export class Viewer {
     r.envRT.dispose();
     r.bgTex?.dispose();
     this.scene.environment = null; this.scene.background = null; this.scene.fog = null;
-    this.exterior = null; this.outside = false;
+    if (this.extGroup) { this.scene.remove(this.extGroup); disposeTree(this.extGroup); this.extGroup = null; }
+    this.exterior = null; this.outside = false; this.roomFade = null;
     this.room = null;
     this.hallCatcher = null;
   }
@@ -561,6 +607,7 @@ export class Viewer {
       e.rig = rig;
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
+      if (!e.outdoor && this.outside) e.holder.visible = false;   // arrived while the hall is faded out
       e.state = 'ready';
       return e;
     })();
@@ -569,6 +616,8 @@ export class Viewer {
 
   placeEntry(e) {
     const root = e.rig.root;
+    // decimated giants have open/flipped faces at some angles: draw both sides so they never look shredded
+    if (e.outdoor) root.traverse((o) => { if (o.isMesh && !o.material.transparent) o.material.side = THREE.DoubleSide; });
     // grazing-angle hull plating stays crisp at distance
     const aniso = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
     root.traverse((o) => { if (o.isMesh) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap']) { const tx = o.material[k]; if (tx && tx.anisotropy !== aniso) { tx.anisotropy = aniso; tx.needsUpdate = true; } } });
@@ -681,29 +730,25 @@ export class Viewer {
     const e = this.ship, info = this.room.info, cam = info.camera, tt = info.turntable, hall = info.hall;
     e.holder.updateMatrixWorld(true);
     const sphere = e.rig.bounds().getBoundingSphere(new THREE.Sphere());
+    if (e.outdoor) { this.camera.fov = 26; this.camera.updateProjectionMatrix(); }   // giants: a long lens, less distortion
     const vfov = THREE.MathUtils.degToRad(this.camera.fov);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
     const fit = 0.8 * sphere.radius / Math.tan(Math.min(vfov, hfov) / 2);
     const target = sphere.center.clone();
     let pos;
     const box = this.roomBox();
-    if (e.outdoor && box) {
-      // giants outside: the camera stays in the hall, a few metres inside the glass, on the line of sight that
-      // passes through the window (glass bounds come from the room's own glass mesh)
-      const g = this.room.glassBox, fb = this.roomBox();
-      const gz = g ? Math.max(g.min.z, fb.z0 - 1.5) : fb.z0;
-      const z = Math.min(gz + 10, fb.z1);
-      const gx0 = g ? g.min.x + 2 : -box.x, gx1 = g ? g.max.x - 2 : box.x;
-      // choose x so the ray to the giant crosses the glass plane inside the window
-      const in0 = gx0 + (gx1 - gx0) * 0.2, in1 = gx1 - (gx1 - gx0) * 0.2;   // look through the middle of the window
-      let x = THREE.MathUtils.clamp(target.x * 0.02, in0, in1);
-      const k = (gz - z) / (target.z - z);
-      const cross = x + (target.x - x) * k;
-      if (cross < in0 || cross > in1) x = THREE.MathUtils.clamp((THREE.MathUtils.clamp(cross, in0, in1) - target.x * k) / (1 - k), -box.x, box.x);
-      const gy = g ? THREE.MathUtils.clamp(g.min.y + (g.max.y - g.min.y) * 0.3, tt.top + 2, g.max.y - 2) : tt.top + 4;
-      pos = new THREE.Vector3(x, gy, z);
-      // slide along the glass (and a little up/down) to the spot where window mullions cut the hull the least
-      pos = this.clearView(pos, e, { x0: in0, x1: in1, y0: tt.top + 1.6, y1: g ? g.max.y - 1.5 : gy + 4 });
+    if (e.outdoor) {
+      // giants outside: the hall fades away and the camera flies out to a clean 3/4 hero angle, on the hall's side
+      // of the hull (the maker's world hangs behind it), nose turned ~40 degrees toward the lens
+      // the view the bay was designed for (from the hall), without the glass: along the hall's line of sight,
+      // swung 15 degrees toward the nose, a few degrees above the hull
+      const toHall = Math.atan2(-target.x, -target.z);
+      const nose = e.yaw + Math.PI;
+      const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+      const az = toHall + Math.sign(wrap(nose - toHall) || 1) * THREE.MathUtils.degToRad(15);
+      const el = THREE.MathUtils.degToRad(6);
+      const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+      pos = target.clone().addScaledVector(dir, fit * 1.05);
     } else {
       const { az, avail } = this.heroAzimuth(e);
       const dist = Math.max(Math.min(fit, avail - 0.5), sphere.radius * 0.9);
@@ -712,12 +757,14 @@ export class Viewer {
       const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
       pos = target.clone().addScaledVector(dir, dist);
     }
-    pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
-    if (box) { pos.x = THREE.MathUtils.clamp(pos.x, -box.x, box.x); pos.z = THREE.MathUtils.clamp(pos.z, box.z0, box.z1); }
+    if (!e.outdoor) {
+      pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
+      if (box) { pos.x = THREE.MathUtils.clamp(pos.x, -box.x, box.x); pos.z = THREE.MathUtils.clamp(pos.z, box.z0, box.z1); }
+    }
     // giants are far away: a longer lens (narrower fov) frames them; indoor bays use the room's authored lens
     const baseFov = (this.camera.aspect < 0.8 ? 1.25 : 1) * (cam.fov ?? 40);
     if (e.outdoor) {
-      // fit the hull's own (oriented) box as seen from the glass, with ~15 % margin
+      // fit the hull's own (oriented) box as seen from the hero spot
       const probe = this.camera.clone();
       probe.position.copy(pos); probe.lookAt(target); probe.updateMatrixWorld(true);
       const inv = probe.matrixWorldInverse, lb = e.localBox, m = e.rig.root.matrixWorld;
@@ -727,53 +774,24 @@ export class Viewer {
         const z = Math.max(1, -v.z);
         need = Math.max(need, Math.abs(v.x) / z / this.camera.aspect, Math.abs(v.y) / z);
       }
-      this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(need * 1.35)), 10, baseFov);
+      this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(need * 1.2)), 14, 34);
     } else this.camera.fov = Math.min(62, baseFov);
     this.camera.updateProjectionMatrix();
     const c = this.controls;
     // looking out and up at a giant needs the camera below its target: lift the 'never under the floor' orbit limit
     c.maxPolarAngle = e.outdoor ? Math.PI - 0.05 : THREE.MathUtils.degToRad(89);
     const d = pos.distanceTo(target);
-    c.minDistance = e.outdoor ? d * 0.4 : Math.max(0.4, sphere.radius * 0.12);
-    c.maxDistance = e.outdoor ? d * 1.05 : Math.max(d * 1.3, cam.orbit_max_distance);
+    c.minDistance = e.outdoor ? sphere.radius * 0.1 : Math.max(0.4, sphere.radius * 0.12);
+    c.maxDistance = e.outdoor ? d * 1.8 : Math.max(d * 1.3, cam.orbit_max_distance);
     this.home = { pos: pos.clone(), target: target.clone() };
     { const cur = this.camera.position.clone(); this.camera.position.copy(pos); this.setOutside(!!e.outdoor, target); this.camera.position.copy(cur); }
-    this.bounds = { r: Infinity, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box, focus: e };
+    this.bounds = e.outdoor ? { r: Infinity, top: -1e5, minH: 0, maxH: 1e5, box: null, focus: e }
+      : { r: Infinity, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box, focus: e };
     if (instant || !this.running || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       this.camera.position.copy(pos); c.target.copy(target); this.tween = null; c.update();
     } else {
       this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1500 };
     }
-  }
-
-  /** Pick a camera spot near `pos` (same z) whose sight lines to the hull's box corners, edge midpoints and centre
-   *  cross the fewest room meshes (mullions, frames). Cheap enough to run once per focus. */
-  clearView(pos, e, { x0, x1, y0, y1 }) {
-    const occ = this.room.occluders || [];
-    if (!occ.length) return pos;
-    const lb = e.localBox, m = e.rig.root.matrixWorld, pts = [];
-    const c = lb.getCenter(new THREE.Vector3());
-    for (const fx of [0, 0.5, 1]) for (const fy of [0.3, 0.7]) for (const fz of [0, 0.25, 0.5, 0.75, 1]) {
-      pts.push(new THREE.Vector3(lb.min.x + (lb.max.x - lb.min.x) * fx, lb.min.y + (lb.max.y - lb.min.y) * fy, lb.min.z + (lb.max.z - lb.min.z) * fz).applyMatrix4(m));
-    }
-    pts.push(c.applyMatrix4(m));
-    const ray = new THREE.Raycaster();
-    let best = pos, bestScore = Infinity;
-    const steps = 22;
-    for (let i = 0; i <= steps; i++) {
-      for (const fy of [0, 0.5, 1]) {
-        const cand = new THREE.Vector3(x0 + (x1 - x0) * (i / steps), THREE.MathUtils.lerp(y0, y1, 0.25 + 0.25 * fy), pos.z);
-        let hits = 0;
-        for (const p of pts) {
-          const d = p.clone().sub(cand); const len = d.length();
-          ray.set(cand, d.divideScalar(len)); ray.far = Math.min(len, 400);
-          if (ray.intersectObjects(occ, false).length) hits++;
-        }
-        const score = hits + Math.abs(cand.x - pos.x) * 0.01 + Math.abs(cand.y - pos.y) * 0.02;
-        if (score < bestScore) { bestScore = score; best = cand; }
-      }
-    }
-    return best;
   }
 
   /** camera box: the walkable floor rectangle (or the hall) with a margin, in three.js x / z */
@@ -892,8 +910,8 @@ export class Viewer {
     const b = this.bounds;
     if (p.key === 'top' && b) dist = Math.min(dist, Math.max(2, (b.maxH - 0.5 - target.y) / Math.max(dir.y, 0.3)));
     // the camera never leaves the room: giants outside are toured from the glass by turning to look
-    const pos = s.outdoor && this.home ? this.home.pos.clone() : target.clone().addScaledVector(dir, dist);
-    if (b) pos.y = THREE.MathUtils.clamp(pos.y, b.top + 0.35, b.maxH);
+    const pos = target.clone().addScaledVector(dir, dist);
+    if (b && !s.outdoor) pos.y = THREE.MathUtils.clamp(pos.y, b.top + 0.35, b.maxH);
     if (b?.box) { pos.x = THREE.MathUtils.clamp(pos.x, -b.box.x, b.box.x); pos.z = THREE.MathUtils.clamp(pos.z, b.box.z0, b.box.z1); }
     if (s.outdoor) this.controls.maxDistance = Math.max(this.controls.maxDistance, pos.distanceTo(target) * 1.05);
     this.controls.minDistance = 0.3;
@@ -938,6 +956,11 @@ export class Viewer {
     if (!!this.walk === on || !this.room) return;
     const c = this.controls;
     if (on) {
+      if (this.ship?.outdoor) {                         // walking happens in the hall: bring it back, start at the glass
+        this.setOutside(false);
+        const g = this.room.glassBox, fb = this.roomBox();
+        this.camera.position.set(0, 1.7, (g ? Math.max(g.min.z, fb.z0) : fb.z0) + 6);
+      }
       this.walkSaved = { spin: this.spin, fov: this.camera.fov };
       this.spin = false; this.tween = null; c.enabled = false;
       const p = this.camera.position;
@@ -1053,6 +1076,7 @@ export class Viewer {
   // ---------------------------------------------------------------- frame
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+    if (this.roomFade) this.stepFade(performance.now());
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
     if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; }
