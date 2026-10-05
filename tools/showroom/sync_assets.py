@@ -20,6 +20,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from PIL import Image
@@ -217,6 +218,27 @@ def first(patterns: list[str]) -> Path | None:
     return None
 
 
+def scan_glb(p: Path) -> dict:
+    """Minimal meta for an exported ship glb: triangles, draw calls, light anchors, gear animation, materials."""
+    import struct
+    with open(p, "rb") as f:
+        f.read(12)
+        n, _ = struct.unpack("<II", f.read(8))
+        j = json.loads(f.read(n))
+    acc = j.get("accessors", [])
+    tris = calls = 0
+    for m in j.get("meshes", []):
+        for pr in m.get("primitives", []):
+            calls += 1
+            if pr.get("mode", 4) == 4:
+                cnt = acc[pr["indices"]]["count"] if "indices" in pr else acc[pr["attributes"]["POSITION"]]["count"]
+                tris += cnt // 3
+    anchors = [{"name": nd["name"], "extras": nd.get("extras", {})} for nd in j.get("nodes", []) if nd.get("name", "").startswith("L_")]
+    anims = [a.get("name") for a in j.get("animations", [])]
+    return {"model": p.stem, "tris": tris, "draw_calls": calls, "light_anchors": anchors,
+            "has_gear": "gear_deploy" in anims, "materials": [{"name": m.get("name", "")} for m in j.get("materials", [])]}
+
+
 def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
     mk, M = s["maker"], s["model"]
     c = size_class(canon["size_classes"], s["length"])
@@ -237,6 +259,8 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
     meta = manifest.get(M)
     if meta is None and meta_p.exists():
         meta = json.loads(meta_p.read_text())
+    if meta is None and glb_src.exists() and time.time() - glb_src.stat().st_mtime > 60:
+        meta = scan_glb(glb_src)                       # no meta / manifest entry: read what we need from the glb
     if meta and glb_src.exists():
         glb = copy(glb_src, ASSETS / "ships" / f"{M}.glb")
         kinds = {}

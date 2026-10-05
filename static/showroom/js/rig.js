@@ -161,6 +161,7 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   const navMats = [...mats.keys()].filter((n) => /nav/i.test(n));
   const hasRetro = mats.has('retro_glow') || mats.has('retro_plume') || retros.length > 0;
 
+  let lastG = -1;
   function update(dt, t, S) {
     rim.value += (rimTarget.v - rim.value) * Math.min(1, dt * 10);
     // gear
@@ -171,12 +172,20 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
     // engines; mains throttle back while the retros burn
     S.retro += (S.retroTarget - S.retro) * Math.min(1, dt * 6);
     const th = S.thrust * (1 - 0.85 * S.retro);
-    setE('engine_glow', 0.12 + th * 6);
+    // drives: a faint inner glow at idle, growing with the square of thrust; normalised by the hall's exposure
+    // (S.expo = 1 / exposure) so no hall blooms them into halos — lights stay tasteful
+    const g = S.expo ?? 1;
+    setE('engine_glow', (0.025 + th * th * 2.2) * g);
+    // baked emissive (windows, running-light cards) is authored for exposure ~1: keep it there in brighter halls
+    if (g !== lastG) {
+      lastG = g;
+      for (const [name, list] of mats) if (!/engine|retro|plume|nav/i.test(name)) for (const m of list) if (m.userData.emissive_scale) m.emissiveIntensity = Math.min(m.userData.baseEmissive, 10) * Math.min(1, g);   // capped: baked nozzle glows must not bloom into halos
+    }
     setO('plume', th * 0.35);
-    setE('retro_glow', S.retro * 6);
+    setE('retro_glow', S.retro * S.retro * 2.2 * g);
     setO('retro_plume', S.retro * 0.35);
-    for (const l of L.engine) l.intensity = th * 60 * k;
-    for (const l of L.retro) l.intensity = S.retro * 80 * k;
+    for (const l of L.engine) l.intensity = th * th * 40 * k * g;
+    for (const l of L.retro) l.intensity = S.retro * 50 * k * g;
     // RCS: short pulses while braking or when hailed
     S.rcs = Math.max(0, S.rcs - dt * 2.5);
     const rcs = (S.retro > 0.2 && Math.sin(t * 23) > 0.6) || S.rcs > 0.5 ? 1 : 0;

@@ -3488,10 +3488,10 @@ export default {
    "glb": {
     "src": "assets/ships/Tharsis.glb?v=8349ce7fef55e1ba",
     "bytes": 9023844,
-    "tris": 308959,
+    "tris": 324298,
     "draw_calls": 7,
     "has_gear": false,
-    "export_length": 2400.0,
+    "export_length": null,
     "lights": {
      "beacon": 1,
      "engine": 9,

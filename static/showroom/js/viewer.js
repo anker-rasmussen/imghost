@@ -13,9 +13,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { rigShip } from './rig.js?v=4136c9fa52f7435e';
+import { rigShip } from './rig.js?v=886d45a05c4f8e20';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=d28b22cec25f9dd1';
+import data from './data.js?v=34c6ef3537bffb4a';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -1086,7 +1086,8 @@ export class Viewer {
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
     if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; }
-    if (this.fleet) for (const e of this.fleet.values()) if (e.rig) e.rig.update(dt, t, e.S);
+    const expo = 1 / (this.renderer.toneMappingExposure || 1);
+    if (this.fleet) for (const e of this.fleet.values()) if (e.rig) { e.S.expo = expo; e.rig.update(dt, t, e.S); }
     const c = this.controls;
     if (this.walk) {
       this.updateWalk(dt);
