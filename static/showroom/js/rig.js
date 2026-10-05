@@ -224,6 +224,7 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   return {
     root, update, dispose, bounds, anchorsLocal,
     setHighlight(v) { rimTarget.v = v; },
+    pulse() { rim.value = 1.6; },                     // instant 'heard you' flash on hail
     hasGear: !!gear, hasRetro,
     lightCount: Object.values(L).reduce((a, l) => a + l.length, 0),
   };

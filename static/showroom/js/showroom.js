@@ -172,7 +172,7 @@ export class Showroom {
     this.root.append(this.canvas, this.still, this.dots, this.tip, hud, this.drawer, this.help, this.stick, this.toast, this.loader);
 
     this.voice = new Voice({
-      onLine: (who, text) => { this.caption.replaceChildren(h('span.who', who), h('span', text)); this.caption.classList.add('on'); this.S().rcs = 1; },
+      onLine: (who, text) => { this.caption.replaceChildren(h('span.who', h('span', { 'aria-hidden': 'true' }, '📻 '), who), h('span', text)); this.caption.classList.add('on'); this.S().rcs = 1; },
       onEnd: () => { this.caption.classList.remove('on'); },
     });
     this.press(this.b.sound, !this.voice.muted);
@@ -228,7 +228,11 @@ export class Showroom {
     this.b.sound.querySelector('.ic').replaceWith(icon(this.voice.muted ? 'mute' : 'sound'));
     this.b.sound.querySelector('.lbl').textContent = this.voice.muted ? 'Sound off' : 'Sound';
   }
-  hail() { this.voice.select(); this.coachDone('ship'); }
+  hail() {
+    this.viewer?.ship?.rig?.pulse?.();                  // instant feedback, before any audio
+    this.voice.select();
+    this.coachDone('ship');
+  }
   showSystems(on) {
     this.systems.hidden = !on;
     this.press(this.b.systems, on);
@@ -453,7 +457,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=1f76eb7ca065edec');
+        const { Viewer } = await import('./viewer.js?v=b7a36f83c65ef98c');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),
@@ -584,7 +588,7 @@ export class Showroom {
     const live = v && !this.canvas.hidden;
     if (live && v.walk && !inField) {                  // walk mode owns W A S D / arrows / Shift
       const k = WALK_KEYS[e.code];
-      if (k) { v.walk.keys.add(k); e.preventDefault(); return; }
+      if (k) { if (!e.repeat) v.walkNudge(k); v.walk.keys.add(k); e.preventDefault(); return; }
     }
     const step = (dir) => {
       const list = shipsOf(this.maker.id);

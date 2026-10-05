@@ -13,7 +13,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { rigShip } from './rig.js?v=153dec7100e24b34';
+import { rigShip } from './rig.js?v=0c7fafad2fdc37e6';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -492,8 +492,9 @@ export class Viewer {
     // indoor: stand on the bay floor (hover a little if the hull has no gear); outdoor: bay position is the hull centre
     const y = e.outdoor ? -cy : -box.min.y + (e.rig.hasGear ? 0 : Math.max(0.6, size.y * 0.12));
     root.position.set(-cx, y, -cz);
-    e.pois = this.buildPois(e);
     e.holder.updateMatrixWorld(true);
+    e.pois = this.buildPois(e);
+    this.snapPois(e);
   }
 
   /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
@@ -600,7 +601,7 @@ export class Viewer {
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
     const holders = [...this.fleet.values()].filter((e) => e.state === 'ready').map((e) => e.holder);
-    const hit = ray.intersectObjects(holders, true).find((x) => x.object.isMesh && !x.object.material?.transparent);
+    const hit = ray.intersectObjects(holders, true).find((x) => x.object.isMesh && !/plume|rcs_glow/.test(x.object.material?.name || '') && x.object.material?.opacity > 0.05 && x.object.visible);
     if (!hit) return null;
     let o = hit.object;
     while (o && !o.userData.entry) o = o.parent;
@@ -647,6 +648,40 @@ export class Viewer {
     return out;
   }
 
+  /** Put every hotspot on the hull: cast a ray from outside, through the POI, onto the solid meshes; the dot
+   *  sits 0.3 m off the hit along the surface normal and the tour camera looks at the hit point. */
+  snapPois(e) {
+    const root = e.rig.root;
+    root.updateMatrixWorld(true);
+    const q = root.getWorldQuaternion(new THREE.Quaternion()), qi = q.clone().invert();
+    e.meshes = [];
+    root.traverse((o) => { if (o.isMesh && !/plume|rcs_glow/.test(o.material.name || '') && !o.material.transparent) e.meshes.push(o); });
+    const PROBES = { cockpit: [[0, 1, -0.35], [0.4, 0.6, -1]], drives: [[0, 0.15, 1], [0.4, 0.3, 1]], gear: [[1, -0.1, 0.2], [0, -1, 0]],
+      weapons: [[0, 1, 0]], signature: [], docking: [] };
+    const ray = new THREE.Raycaster();
+    const reach = e.len * 2 + 10;
+    for (const p of e.pois) {
+      if (p.flat) continue;
+      const pw = root.localToWorld(p.local.clone());
+      let hit = null, dw = null;
+      for (const pr of [...(PROBES[p.key] || []), p.dir.toArray()]) {
+        dw = new THREE.Vector3(...pr).normalize().applyQuaternion(q);
+        ray.set(pw.clone().addScaledVector(dw, reach), dw.clone().negate());
+        ray.far = reach * 2;
+        hit = ray.intersectObjects(e.meshes, false)[0];
+        if (hit) break;
+      }
+      if (!hit) { p.nodot = true; continue; }
+      const n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : dw.clone();
+      if (n.dot(dw) < 0) n.negate();
+      p.local = root.worldToLocal(hit.point.clone());
+      p.dotLocal = root.worldToLocal(hit.point.clone().addScaledVector(n, 0.3));
+      p.normalLocal = n.applyQuaternion(qi).normalize();
+      // look at the surface from between the authored angle and the surface normal
+      p.dir = p.dir.clone().add(p.normalLocal.clone().multiplyScalar(0.3)).normalize();
+    }
+  }
+
   /** fly to POI i (camera eases ~1.2 s); returns the POI */
   flyTo(i) {
     const s = this.ship;
@@ -678,13 +713,25 @@ export class Viewer {
     const s = this.ship;
     if (!s?.pois || !s.rig || this.walk) return [];
     const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
+    const now = performance.now(), ray = this._occRay ||= new THREE.Raycaster();
     const cam = this.camera.position, out = [];
     s.pois.forEach((p, i) => {
-      if (p.flat) return;
-      const wp = root.localToWorld(p.local.clone());
-      const facing = cam.clone().sub(wp).normalize().dot(p.dir.clone().applyQuaternion(q));
+      if (p.flat || p.nodot) return;
+      const wp = root.localToWorld((p.dotLocal || p.local).clone());
+      const nrm = (p.normalLocal || p.dir).clone().applyQuaternion(q);
+      const toCam = cam.clone().sub(wp);
+      const facing = toCam.clone().normalize().dot(nrm);
       const v = wp.clone().project(this.camera);
       if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) return;
+      // hidden behind the hull? (re-tested a few times a second)
+      if (!p.occAt || now - p.occAt > 160) {
+        p.occAt = now;
+        const d = toCam.length();
+        ray.set(cam, wp.clone().sub(cam).normalize()); ray.far = d;
+        const hit = s.meshes?.length ? ray.intersectObjects(s.meshes, false)[0] : null;
+        p.occluded = !!hit && hit.distance < d - 0.45;
+      }
+      if (p.occluded) return;
       out.push({ i, x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h, facing });
     });
     return out;
@@ -761,6 +808,17 @@ export class Viewer {
     }
     p.x = THREE.MathUtils.clamp(p.x, bounds.x0, bounds.x1);
     p.z = THREE.MathUtils.clamp(p.z, bounds.z0, bounds.z1);
+  }
+
+  /** a quick key tap still moves: one 0.4 m step in that direction (holding keeps the smooth glide) */
+  walkNudge(k) {
+    const w = this.walk; if (!w) return;
+    const fwd = new THREE.Vector3(-Math.sin(w.yaw), 0, -Math.cos(w.yaw));
+    const right = new THREE.Vector3(Math.cos(w.yaw), 0, -Math.sin(w.yaw));
+    const step = { f: fwd, b: fwd.clone().negate(), l: right.clone().negate(), r: right }[k];
+    if (step) { this.camera.position.addScaledVector(step, 0.4); this.collide(this.camera.position); }
+    if (k === 'tl') w.yaw += 0.12;
+    if (k === 'tr') w.yaw -= 0.12;
   }
 
   updateWalk(dt) {

@@ -5,7 +5,7 @@
 //   #/<maker>/<ship>   showroom viewer       e.g. #/helios/zenith
 import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=eed074fe315077e5';
 import { landing, makerPage } from './pages.js?v=1333888d875d8285';
-import { Showroom } from './showroom.js?v=08bac42425ad6b83';
+import { Showroom } from './showroom.js?v=5ed6b5adecc8df4c';
 
 const main = $('#main');
 const curtain = $('.curtain');
