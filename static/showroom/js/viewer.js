@@ -73,13 +73,15 @@ export class Viewer {
     r.setPixelRatio(this.dpr);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(40, 1, 0.05, 8000);
+    this.camera = new THREE.PerspectiveCamera(40, 1, 0.05, 20000);
     const c = this.controls = new OrbitControls(this.camera, canvas);
     c.enableDamping = true; c.dampingFactor = 0.06; c.rotateSpeed = 0.7;
     c.enablePan = true; c.screenSpacePanning = true; c.panSpeed = 0.7;
     c.maxPolarAngle = THREE.MathUtils.degToRad(89);
 
-    this.composer = new EffectComposer(r);
+    // the composer renders off-screen, where the canvas' own antialias does not apply: give it 4x MSAA
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    this.composer = new EffectComposer(r, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.95);
     this.composer.addPass(this.bloom);
@@ -219,6 +221,10 @@ export class Viewer {
     });
     this.scene.add(this.room.group);
     this.renderer.toneMappingExposure = info.tone_mapping?.exposure ?? 1;
+    // the hall exposure is tuned for the interior; outside is space: keep the backdrop near its own exposure so
+    // faint scatter in bg.hdr reads as black sky (with stars and the authored planet / dock), not grey haze
+    const cave = /ceres|asteroid|cavern|hollow/i.test(`${maker.yard?.where || ''} ${maker.yard?.copy || ''}`);
+    this.scene.backgroundIntensity = cave ? 1 : Math.min(1, 1.1 / this.renderer.toneMappingExposure);   // caves stay lit rock
     this.resize();
   }
 
@@ -247,6 +253,7 @@ export class Viewer {
     bgTex.mapping = THREE.EquirectangularReflectionMapping;
     this.scene.environment = envRT.texture;
     this.scene.background = bgTex;
+    this.addExterior(group, info);
     this.scene.fog = null;
     const rot = THREE.MathUtils.degToRad(info.env?.rotation_y || 0);
     this.scene.environmentRotation.set(0, rot, 0);
@@ -255,6 +262,69 @@ export class Viewer {
     const floor = this.addFloorReflection(group, info, 2 * hall.half_width, hall.glass_y - hall.back_y, -(hall.back_y + hall.glass_y) / 2, info.turntable.top);
     this.addLights(group, info);
     return { group, envRT, bgTex, floor };
+  }
+
+  /** Outside the glass: a starfield behind the authored backdrop (not in cave halls) and an exterior key + cool rim
+   *  that light only while a giant outside is in focus (indoor bays keep the baked hall look). */
+  addExterior(group, info) {
+    const m = this.maker || {};
+    const cave = /ceres|asteroid|cavern|hollow/i.test(`${m.yard?.where || ''} ${m.yard?.copy || ''}`);
+    if (!cave) {
+      const n = 3500, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+      let seed = 7;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      for (let i = 0; i < n; i++) {
+        const u = rnd() * 2 - 1, a = rnd() * Math.PI * 2, r = Math.sqrt(1 - u * u), R = 7000;
+        pos.set([Math.cos(a) * r * R, u * R, Math.sin(a) * r * R], i * 3);
+        const b = 0.25 + Math.pow(rnd(), 6) * 2.5, warm = rnd();
+        col.set([b * (0.85 + 0.15 * warm), b * 0.92, b * (1.05 - 0.15 * warm)], i * 3);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true, depthWrite: false, fog: false }));
+      stars.renderOrder = -2; stars.frustumCulled = false;
+      group.add(stars);
+    }
+    const sun = info.sun_dir ? v3(info.sun_dir).normalize() : new THREE.Vector3(0.45, -0.35, -0.82).normalize();
+    const key = new THREE.DirectionalLight(0xfff4e6, 0);
+    key.position.copy(sun.clone().multiplyScalar(-4000));
+    const rim = new THREE.DirectionalLight(new THREE.Color(m.theme?.accent || '#8fb4ff').lerp(new THREE.Color(0.6, 0.75, 1), 0.6), 0);
+    rim.position.set(-sun.x * -3000, 1500, sun.z * 3000);
+    group.add(key, key.target, rim, rim.target);
+    // exterior mode backdrop: deep black sky + the maker's world, lit by the same exterior key (caves keep their rock)
+    const PLANET = { atlantia: '#3d6ea6', helios: '#8f8a83', cydonia: '#b1563b', kingsley: '#9b9a95' };
+    let planet = null;
+    if (!cave && PLANET[m.id]) {
+      planet = new THREE.Mesh(new THREE.SphereGeometry(2600, 96, 64),
+        new THREE.MeshStandardMaterial({ color: PLANET[m.id], roughness: 0.95, metalness: 0, envMapIntensity: 0.05 }));
+      planet.position.set(3200, -2600, -9000);
+      planet.visible = false; planet.castShadow = false; planet.receiveShadow = false;
+      group.add(planet);
+    }
+    this.exterior = { key, rim, glass: [], planet, cave, bg: this.scene.background, sky: new THREE.Color(0x020203) };
+    group.traverse((o) => { if (o.isMesh && /glass/.test(o.name)) this.exterior.glass.push(o); });
+  }
+
+  /** looking out at a giant: exterior lights up, the glass stops mirroring the bright hall */
+  setOutside(on, target) {
+    const x = this.exterior; if (!x) return;
+    x.key.intensity = on ? 2.4 : 0; x.rim.intensity = on ? 1.4 : 0;
+    if (target) {
+      x.key.target.position.copy(target); x.rim.target.position.copy(target);
+      // light the side the visitor sees: key from over the viewer's shoulder, cool rim from behind the hull
+      const toCam = this.camera.position.clone().sub(target).setY(0).normalize();
+      const side = new THREE.Vector3(-toCam.z, 0, toCam.x);
+      x.key.position.copy(target).addScaledVector(toCam, 3000).addScaledVector(side, 1800).add(new THREE.Vector3(0, 2200, 0));
+      x.rim.position.copy(target).addScaledVector(toCam, -3000).addScaledVector(side, -1200).add(new THREE.Vector3(0, 900, 0));
+    }
+    // at the hall's interior exposure even a faint pane of glass mirrors the lit hall into a grey veil: when the
+    // visitor is looking out, the glass is simply not drawn (it is perfectly clear from up close anyway)
+    for (const g of x.glass) g.visible = !on;
+    // the baked bg.hdr is a view from the probe (dock walls and all); from the glass it reads as grey haze, so
+    // exterior mode swaps it for black sky, stars and the maker's planet (caves keep their lit rock)
+    if (!x.cave) this.scene.background = on ? x.sky : x.bg;
+    if (x.planet) x.planet.visible = on;
   }
 
   buildStudio(theme, info) {
@@ -486,6 +556,9 @@ export class Viewer {
 
   placeEntry(e) {
     const root = e.rig.root;
+    // grazing-angle hull plating stays crisp at distance
+    const aniso = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
+    root.traverse((o) => { if (o.isMesh) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap']) { const tx = o.material[k]; if (tx && tx.anisotropy !== aniso) { tx.anisotropy = aniso; tx.needsUpdate = true; } } });
     root.position.set(0, 0, 0); root.scale.setScalar(1); root.rotation.set(0, 0, 0);
     e.holder.add(root);
     // bounds in the hull's own frame (holder is rotated; measure with the root detached from it)
@@ -649,6 +722,7 @@ export class Viewer {
     c.minDistance = e.outdoor ? d * 0.4 : Math.max(0.4, sphere.radius * 0.12);
     c.maxDistance = e.outdoor ? d * 1.05 : Math.max(d * 1.3, cam.orbit_max_distance);
     this.home = { pos: pos.clone(), target: target.clone() };
+    { const cur = this.camera.position.clone(); this.camera.position.copy(pos); this.setOutside(!!e.outdoor, target); this.camera.position.copy(cur); }
     this.bounds = { r: Infinity, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box, focus: e };
     if (instant || !this.running || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       this.camera.position.copy(pos); c.target.copy(target); this.tween = null; c.update();
@@ -739,11 +813,14 @@ export class Viewer {
       if (p.flat) continue;
       const pw = root.localToWorld(p.local.clone());
       let hit = null, dw = null;
-      for (const pr of [...(PROBES[p.key] || []), p.dir.toArray()]) {
+      // the side the tour camera looks from first, then the per-type probes; a hit far from the POI (a sail,
+      // a mast, the far side of a ring) is not this POI's surface
+      const near = e.len * 0.22 + 1;
+      for (const pr of [p.dir.toArray(), ...(PROBES[p.key] || [])]) {
         dw = new THREE.Vector3(...pr).normalize().applyQuaternion(q);
         ray.set(pw.clone().addScaledVector(dw, reach), dw.clone().negate());
         ray.far = reach * 2;
-        hit = ray.intersectObjects(e.meshes, false)[0];
+        hit = ray.intersectObjects(e.meshes, false).find((h) => h.point.distanceTo(pw) < near) || null;
         if (hit) break;
       }
       if (!hit) { p.nodot = true; continue; }
