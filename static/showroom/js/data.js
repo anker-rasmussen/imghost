@@ -3465,6 +3465,12 @@ export default {
    "length": 2400,
    "role": "Supercarrier / flagship",
    "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground.",
+   "hero": {
+    "swing_deg": 0,
+    "elevation_deg": 1,
+    "pitch_limit_deg": 20,
+    "_note": "side-on from the hall with Mars below; the top of the export has decimation holes"
+   },
    "id": "tharsis",
    "class": "Super-capital",
    "crew": "3,000+",

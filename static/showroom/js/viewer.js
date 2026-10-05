@@ -15,7 +15,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=4136c9fa52f7435e';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=63e7db68aa53ab85';
+import data from './data.js?v=16d8dc489cc8f1f4';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -337,7 +337,8 @@ export class Viewer {
     }
     // indoor hulls and the hall's reflector / shadows / lights go with the room
     r.group.traverse((o) => { if (o.isReflector || o.isLight || o.material?.isShadowMaterial) o.visible = f.k > 0.999; });
-    for (const e of this.fleet?.values() || []) if (!e.outdoor) e.holder.visible = f.k > 0.02;
+    // with the hall faded out only the focused giant remains: indoor hulls and the other giants step aside
+    for (const e of this.fleet?.values() || []) if (e !== this.ship) e.holder.visible = f.k > 0.02;
     if (u >= 1) {
       r.group.visible = f.to > 0;
       for (const x of r.fadeMats) { x.m.opacity = x.op; if (x.m.transparent !== x.tr) { x.m.transparent = x.tr; x.m.needsUpdate = true; } x.m.depthWrite = x.dw; }
@@ -352,6 +353,7 @@ export class Viewer {
     const ex = this.renderer.toneMappingExposure || 1;
     x.key.intensity = on ? 7 / ex : 0; x.rim.intensity = on ? 3 / ex : 0;
     this.fadeRoom(!on);
+    if (on) for (const e of this.fleet?.values() || []) if (e.outdoor) e.holder.visible = e === this.ship;   // giant to giant
     if (target) {
       x.key.target.position.copy(target); x.rim.target.position.copy(target);
       // light the side the visitor sees: key from over the viewer's shoulder, cool rim from behind the hull
@@ -607,7 +609,7 @@ export class Viewer {
       e.rig = rig;
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
-      if (!e.outdoor && this.outside) e.holder.visible = false;   // arrived while the hall is faded out
+      if (this.outside && e !== this.ship) e.holder.visible = false;   // arrived while the hall is faded out
       e.state = 'ready';
       return e;
     })();
@@ -745,8 +747,9 @@ export class Viewer {
       const toHall = Math.atan2(-target.x, -target.z);
       const nose = e.yaw + Math.PI;
       const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-      const az = toHall + Math.sign(wrap(nose - toHall) || 1) * THREE.MathUtils.degToRad(15);
-      const el = THREE.MathUtils.degToRad(6);
+      const hero = e.model.hero || {};                  // per-ship override (canon `hero`)
+      const az = toHall + Math.sign(wrap(nose - toHall) || 1) * THREE.MathUtils.degToRad(hero.swing_deg ?? 15);
+      const el = THREE.MathUtils.degToRad(hero.elevation_deg ?? 6);
       const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
       pos = target.clone().addScaledVector(dir, fit * 1.05);
     } else {
@@ -779,7 +782,9 @@ export class Viewer {
     this.camera.updateProjectionMatrix();
     const c = this.controls;
     // looking out and up at a giant needs the camera below its target: lift the 'never under the floor' orbit limit
-    c.maxPolarAngle = e.outdoor ? Math.PI - 0.05 : THREE.MathUtils.degToRad(89);
+    const lim = e.model.hero?.pitch_limit_deg;
+    c.minPolarAngle = lim != null ? THREE.MathUtils.degToRad(90 - lim) : 0;
+    c.maxPolarAngle = lim != null ? THREE.MathUtils.degToRad(90 + lim) : e.outdoor ? Math.PI - 0.05 : THREE.MathUtils.degToRad(89);
     const d = pos.distanceTo(target);
     c.minDistance = e.outdoor ? sphere.radius * 0.1 : Math.max(0.4, sphere.radius * 0.12);
     c.maxDistance = e.outdoor ? d * 1.8 : Math.max(d * 1.3, cam.orbit_max_distance);
