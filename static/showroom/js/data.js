@@ -3626,5 +3626,8 @@ export default {
     "h": 360
    }
   }
- ]
+ ],
+ "backdrops": {
+  "earth": "assets/backdrops/earth.webp?v=3caf9ce1a0aac256"
+ }
 };

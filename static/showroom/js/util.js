@@ -1,5 +1,5 @@
 // Small DOM + data helpers shared by every page module (no framework).
-import data from './data.js?v=11cd4585402014ca';
+import data from './data.js?v=63e7db68aa53ab85';
 
 export const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const $ = (sel, root = document) => root.querySelector(sel);

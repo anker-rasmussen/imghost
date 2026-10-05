@@ -14,6 +14,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=0c7fafad2fdc37e6';
+import { buildPlanet } from './planets.js?v=c6f6c14f42290b3a';
+import data from './data.js?v=63e7db68aa53ab85';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -40,7 +42,7 @@ async function downscaleTextures(root, f) {
       if (!tex?.isTexture || seen.has(tex) || !tex.image || tex.image.width <= 256) continue;
       seen.add(tex);
       const img = tex.image;
-      jobs.push(createImageBitmap(img, { resizeWidth: Math.max(64, Math.round(img.width / f)), resizeHeight: Math.max(64, Math.round(img.height / f)), resizeQuality: 'medium' })
+      jobs.push(createImageBitmap(img, { resizeWidth: Math.max(64, Math.round(img.width / f)), resizeHeight: Math.max(64, Math.round(img.height / f)), resizeQuality: 'medium', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })   // keep normal / ORM data intact
         .then((bmp) => { tex.image = bmp; tex.needsUpdate = true; img.close?.(); })
         .catch(() => {}));
     }
@@ -214,6 +216,7 @@ export class Viewer {
     this.room.group.traverse((o) => {
       if (!o.isMesh) return;
       if (/floor/.test(o.name)) this.room.floorMeshes.push(o);
+      else if (!/glass/.test(o.name)) (this.room.occluders ||= []).push(o);   // mullions, door frames, walls
       if (/glass/.test(o.name)) {                       // window(s) onto the giants outside
         const b = new THREE.Box3().setFromObject(o);
         this.room.glassBox = this.room.glassBox ? this.room.glassBox.union(b) : b;
@@ -224,7 +227,7 @@ export class Viewer {
     // the hall exposure is tuned for the interior; outside is space: keep the backdrop near its own exposure so
     // faint scatter in bg.hdr reads as black sky (with stars and the authored planet / dock), not grey haze
     const cave = /ceres|asteroid|cavern|hollow/i.test(`${maker.yard?.where || ''} ${maker.yard?.copy || ''}`);
-    this.scene.backgroundIntensity = cave ? 1 : Math.min(1, 1.1 / this.renderer.toneMappingExposure);   // caves stay lit rock
+    this.bgIntensity = this.scene.backgroundIntensity = cave ? 1 : Math.min(1, 1.1 / this.renderer.toneMappingExposure);   // caves stay lit rock
     this.resize();
   }
 
@@ -292,17 +295,11 @@ export class Viewer {
     const rim = new THREE.DirectionalLight(new THREE.Color(m.theme?.accent || '#8fb4ff').lerp(new THREE.Color(0.6, 0.75, 1), 0.6), 0);
     rim.position.set(-sun.x * -3000, 1500, sun.z * 3000);
     group.add(key, key.target, rim, rim.target);
-    // exterior mode backdrop: deep black sky + the maker's world, lit by the same exterior key (caves keep their rock)
-    const PLANET = { atlantia: '#3d6ea6', helios: '#8f8a83', cydonia: '#b1563b', kingsley: '#9b9a95' };
-    let planet = null;
-    if (!cave && PLANET[m.id]) {
-      planet = new THREE.Mesh(new THREE.SphereGeometry(2600, 96, 64),
-        new THREE.MeshStandardMaterial({ color: PLANET[m.id], roughness: 0.95, metalness: 0, envMapIntensity: 0.05 }));
-      planet.position.set(3200, -2600, -9000);
-      planet.visible = false; planet.castShadow = false; planet.receiveShadow = false;
-      group.add(planet);
-    }
-    this.exterior = { key, rim, glass: [], planet, cave, bg: this.scene.background, sky: new THREE.Color(0x020203) };
+    // exterior mode backdrop: black sky + stars + the maker's world, lit by the exterior key (caves keep
+    // their rock). Built on first use: the planet textures are painted procedurally.
+    const WORLD = { atlantia: 'earth', helios: 'mercury', cydonia: 'mars', kingsley: 'moon' };
+    this.exterior = { key, rim, glass: [], cave, kind: cave ? null : WORLD[m.id], planet: null, group,
+      bg: this.scene.background, sky: new THREE.Color(0x020203) };
     group.traverse((o) => { if (o.isMesh && /glass/.test(o.name)) this.exterior.glass.push(o); });
   }
 
@@ -323,8 +320,23 @@ export class Viewer {
     for (const g of x.glass) g.visible = !on;
     // the baked bg.hdr is a view from the probe (dock walls and all); from the glass it reads as grey haze, so
     // exterior mode swaps it for black sky, stars and the maker's planet (caves keep their lit rock)
-    if (!x.cave) this.scene.background = on ? x.sky : x.bg;
-    if (x.planet) x.planet.visible = on;
+    if (on && x.kind && !x.planet) {
+      x.planet = buildPlanet(x.kind, 2600, { earthUrl: data.backdrops?.earth });
+      x.planet.group.position.set(3200, -2300, -9000);
+      x.group.add(x.planet.group);
+    }
+    this.outside = on;
+    if (!x.cave) this.scene.background = on ? x.sky : x.bg;   // black sky; the starfield is crisp point sprites
+    if (x.planet) {
+      x.planet.group.visible = on;
+      if (on && target) {
+        // the world hangs far behind the focused giant, low and to one side, lit by the same exterior key
+        const look = target.clone().sub(this.camera.position).normalize();
+        const side = new THREE.Vector3(-look.z, 0, look.x).normalize();
+        x.planet.group.position.copy(target).addScaledVector(look, 9000).addScaledVector(side, 2600).add(new THREE.Vector3(0, -1900, 0));
+      }
+      x.planet.setSun(x.key.position.clone().sub(x.key.target.position).normalize());
+    }
   }
 
   buildStudio(theme, info) {
@@ -474,6 +486,7 @@ export class Viewer {
     r.envRT.dispose();
     r.bgTex?.dispose();
     this.scene.environment = null; this.scene.background = null; this.scene.fog = null;
+    this.exterior = null; this.outside = false;
     this.room = null;
     this.hallCatcher = null;
   }
@@ -689,6 +702,8 @@ export class Viewer {
       if (cross < in0 || cross > in1) x = THREE.MathUtils.clamp((THREE.MathUtils.clamp(cross, in0, in1) - target.x * k) / (1 - k), -box.x, box.x);
       const gy = g ? THREE.MathUtils.clamp(g.min.y + (g.max.y - g.min.y) * 0.3, tt.top + 2, g.max.y - 2) : tt.top + 4;
       pos = new THREE.Vector3(x, gy, z);
+      // slide along the glass (and a little up/down) to the spot where window mullions cut the hull the least
+      pos = this.clearView(pos, e, { x0: in0, x1: in1, y0: tt.top + 1.6, y1: g ? g.max.y - 1.5 : gy + 4 });
     } else {
       const { az, avail } = this.heroAzimuth(e);
       const dist = Math.max(Math.min(fit, avail - 0.5), sphere.radius * 0.9);
@@ -729,6 +744,36 @@ export class Viewer {
     } else {
       this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1500 };
     }
+  }
+
+  /** Pick a camera spot near `pos` (same z) whose sight lines to the hull's box corners, edge midpoints and centre
+   *  cross the fewest room meshes (mullions, frames). Cheap enough to run once per focus. */
+  clearView(pos, e, { x0, x1, y0, y1 }) {
+    const occ = this.room.occluders || [];
+    if (!occ.length) return pos;
+    const lb = e.localBox, m = e.rig.root.matrixWorld, pts = [];
+    const c = lb.getCenter(new THREE.Vector3());
+    for (const fx of [0, 0.5, 1]) for (const fy of [0.3, 0.7]) for (const fz of [0, 0.25, 0.5, 0.75, 1]) {
+      pts.push(new THREE.Vector3(lb.min.x + (lb.max.x - lb.min.x) * fx, lb.min.y + (lb.max.y - lb.min.y) * fy, lb.min.z + (lb.max.z - lb.min.z) * fz).applyMatrix4(m));
+    }
+    pts.push(c.applyMatrix4(m));
+    const ray = new THREE.Raycaster();
+    let best = pos, bestScore = Infinity;
+    const steps = 22;
+    for (let i = 0; i <= steps; i++) {
+      for (const fy of [0, 0.5, 1]) {
+        const cand = new THREE.Vector3(x0 + (x1 - x0) * (i / steps), THREE.MathUtils.lerp(y0, y1, 0.25 + 0.25 * fy), pos.z);
+        let hits = 0;
+        for (const p of pts) {
+          const d = p.clone().sub(cand); const len = d.length();
+          ray.set(cand, d.divideScalar(len)); ray.far = Math.min(len, 400);
+          if (ray.intersectObjects(occ, false).length) hits++;
+        }
+        const score = hits + Math.abs(cand.x - pos.x) * 0.01 + Math.abs(cand.y - pos.y) * 0.02;
+        if (score < bestScore) { bestScore = score; best = cand; }
+      }
+    }
+    return best;
   }
 
   /** camera box: the walkable floor rectangle (or the hall) with a margin, in three.js x / z */
