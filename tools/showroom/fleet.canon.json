@@ -167,7 +167,7 @@
     { "maker": "cydonia", "model": "Ares", "sil_flip": true, "name": "Ares", "length": 320, "role": "Destroyer", "copy": "A spear of armour. A spinal railgun along the thrust axis, point defence on every face, and a citadel bridge buried deep in the hull." },
     { "maker": "cydonia", "model": "Olympus", "sil_flip": true, "name": "Olympus", "length": 650, "role": "Command cruiser", "copy": "Heavy guns, a flag bridge, and the authority to use both." },
     { "maker": "cydonia", "model": "Valles", "sil_flip": true, "name": "Valles", "length": 1100, "role": "Fleet carrier", "copy": "Eleven hundred metres of hangar decks and launch rails, built around the fighter wings it carries." },
-    { "maker": "cydonia", "model": "Tharsis", "name": "Tharsis", "length": 2400, "role": "Supercarrier / flagship", "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground." },
+    { "maker": "cydonia", "model": "Tharsis", "sil_source": "render", "name": "Tharsis", "length": 2400, "role": "Supercarrier / flagship", "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground." },
 
     { "maker": "kingsley", "model": "Sprite", "name": "Sprite", "length": 18, "role": "Racer", "copy": "A Swiss chronometer that flies on fire. A riveted bullet of a capsule between two polished copper drive nacelles, numbers painted by hand." },
     { "maker": "kingsley", "model": "Ascot", "name": "Ascot", "length": 45, "role": "Grand tourer", "copy": "A grand tourer for two and their luggage. Brass-ringed portholes, a riveted dorsal seam, and drives you can feel through the frame." },

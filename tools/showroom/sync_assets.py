@@ -249,10 +249,20 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
                     "export_length": meta.get("length"), "lights": kinds,
                     "retro": "retro_glow" in mats or "retro_plume" in mats}
 
+    # exporter thumbnail (small turntable still): shown where no studio poster exists yet
+    th = SHIPS_SRC / M / "thumb.png"
+    e["thumb"] = None
+    if th.exists():
+        dst_t = webp(th, ASSETS / "thumbs" / f"{M}.webp", 640, 76)
+        with Image.open(dst_t) as im:
+            e["thumb"] = {"src": url(dst_t), "small": url(dst_t), "w": im.width, "h": im.height}
+        if not e["poster"]:
+            e["poster"] = e["thumb"]
+
     # silhouette: crisp from the glb when there is one, else from the concept sheet
     dst = ASSETS / "silhouettes" / f"{M}.webp"
     ok = False
-    if e["glb"]:
+    if e["glb"] and s.get("sil_source") != "render":   # canon can force the concept sheet (very dense hulls)
         ok = silhouette_from_glb(glb_src, dst)
     if not ok:
         png = RENDERS / f"v2_{mk}_{M}_silhouette.png"

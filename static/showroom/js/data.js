@@ -1299,7 +1299,13 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": true
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/SuperLightweight.webp?v=9c06d05b5b071df5",
+    "small": "assets/thumbs/SuperLightweight.webp?v=9c06d05b5b071df5",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1354,7 +1360,13 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": true
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Lightweight.webp?v=47c847f75a9d39d2",
+    "small": "assets/thumbs/Lightweight.webp?v=47c847f75a9d39d2",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1396,7 +1408,13 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": true
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Heavyweight.webp?v=c9bdf2cf21fe5d8c",
+    "small": "assets/thumbs/Heavyweight.webp?v=c9bdf2cf21fe5d8c",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1438,7 +1456,13 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": true
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/SuperHeavyweight.webp?v=efedc1c1764d601c",
+    "small": "assets/thumbs/SuperHeavyweight.webp?v=efedc1c1764d601c",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1475,6 +1499,12 @@ export default {
      "strobe": 4
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Corona.webp?v=aaf85092fcb10ca8",
+    "small": "assets/thumbs/Corona.webp?v=aaf85092fcb10ca8",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1511,6 +1541,12 @@ export default {
      "strobe": 4
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Zenith.webp?v=2b1d15d225cca826",
+    "small": "assets/thumbs/Zenith.webp?v=2b1d15d225cca826",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1547,6 +1583,12 @@ export default {
      "strobe": 13
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Solstice.webp?v=fd359e42a878d5fc",
+    "small": "assets/thumbs/Solstice.webp?v=fd359e42a878d5fc",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1585,6 +1627,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Mule.webp?v=f0f500d968d93920",
+    "small": "assets/thumbs/Mule.webp?v=f0f500d968d93920",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1622,6 +1670,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Ox.webp?v=4d8a4d60481ef30c",
+    "small": "assets/thumbs/Ox.webp?v=4d8a4d60481ef30c",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1660,6 +1714,12 @@ export default {
      "strobe": 4
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Titan.webp?v=9cf9887df7b68311",
+    "small": "assets/thumbs/Titan.webp?v=9cf9887df7b68311",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1696,6 +1756,12 @@ export default {
      "strobe": 1
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Minotaur.webp?v=7be12ad5a54b5b42",
+    "small": "assets/thumbs/Minotaur.webp?v=7be12ad5a54b5b42",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1732,6 +1798,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Talon.webp?v=d7acc9aa459e2f58",
+    "small": "assets/thumbs/Talon.webp?v=d7acc9aa459e2f58",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1768,6 +1840,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Halberd.webp?v=80be93e0e3ebe031",
+    "small": "assets/thumbs/Halberd.webp?v=80be93e0e3ebe031",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1803,6 +1881,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Sabre.webp?v=313c7b3255331a7d",
+    "small": "assets/thumbs/Sabre.webp?v=313c7b3255331a7d",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1839,6 +1923,12 @@ export default {
      "strobe": 2
     },
     "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Gladius.webp?v=7943a42b952cd2ca",
+    "small": "assets/thumbs/Gladius.webp?v=7943a42b952cd2ca",
+    "w": 640,
+    "h": 360
    }
   },
   {
@@ -1858,10 +1948,29 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Ares.webp?v=cd61783ee9c3fcb9",
-    "aspect": 0.1283
+    "src": "assets/silhouettes/Ares.webp?v=b511bccd6fe1f951",
+    "aspect": 0.1317
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Ares.glb?v=c7ae2eab31e9e972",
+    "bytes": 9517556,
+    "tris": 325764,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 320.0,
+    "lights": {
+     "engine": 9,
+     "nav": 2,
+     "strobe": 3
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Ares.webp?v=1405c3832bcd9f65",
+    "small": "assets/thumbs/Ares.webp?v=1405c3832bcd9f65",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "cydonia",
@@ -1880,10 +1989,30 @@ export default {
     "h": 540
    },
    "silhouette": {
-    "src": "assets/silhouettes/Olympus.webp?v=8571883817e2af79",
-    "aspect": 0.1397
+    "src": "assets/silhouettes/Olympus.webp?v=8efc0d4681f9c356",
+    "aspect": 0.145
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Olympus.glb?v=f5bb3ed4789f2022",
+    "bytes": 9457680,
+    "tris": 329454,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 650.0,
+    "lights": {
+     "beacon": 1,
+     "engine": 11,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Olympus.webp?v=e3987bdd6b2b9aaa",
+    "small": "assets/thumbs/Olympus.webp?v=e3987bdd6b2b9aaa",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "cydonia",
@@ -1902,10 +2031,30 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Valles.webp?v=d8fac2078a0cf3e2",
-    "aspect": 0.1167
+    "src": "assets/silhouettes/Valles.webp?v=908ec3d2e0d3b7a5",
+    "aspect": 0.1183
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Valles.glb?v=9265e99e44309622",
+    "bytes": 5781184,
+    "tris": 310378,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 1100.0,
+    "lights": {
+     "beacon": 1,
+     "engine": 11,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Valles.webp?v=235e34fca691dbf8",
+    "small": "assets/thumbs/Valles.webp?v=235e34fca691dbf8",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "cydonia",
@@ -1927,7 +2076,27 @@ export default {
     "src": "assets/silhouettes/Tharsis.webp?v=8531f9bb640bb97a",
     "aspect": 0.1041
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Tharsis.glb?v=40b84611ae2b7cbd",
+    "bytes": 5403876,
+    "tris": 308959,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 2400.0,
+    "lights": {
+     "beacon": 1,
+     "engine": 9,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Tharsis.webp?v=650a12935928b8c1",
+    "small": "assets/thumbs/Tharsis.webp?v=650a12935928b8c1",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "kingsley",
@@ -1946,10 +2115,30 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Sprite.webp?v=cd9a8098c11cb844",
-    "aspect": 0.1966
+    "src": "assets/silhouettes/Sprite.webp?v=3ee63c0942dc1839",
+    "aspect": 0.1983
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Sprite.glb?v=87bfd741fb2154ad",
+    "bytes": 3708072,
+    "tris": 106109,
+    "draw_calls": 9,
+    "has_gear": true,
+    "export_length": 18.0,
+    "lights": {
+     "engine": 2,
+     "landing": 1,
+     "nav": 3,
+     "strobe": 2
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Sprite.webp?v=efb85b8de168c861",
+    "small": "assets/thumbs/Sprite.webp?v=efb85b8de168c861",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "kingsley",
@@ -1968,10 +2157,30 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Ascot.webp?v=00824c54b4faee50",
-    "aspect": 0.1425
+    "src": "assets/silhouettes/Ascot.webp?v=77a644f589420f68",
+    "aspect": 0.1442
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Ascot.glb?v=c5d65c28b0e5b901",
+    "bytes": 3808472,
+    "tris": 107518,
+    "draw_calls": 9,
+    "has_gear": true,
+    "export_length": 45.0,
+    "lights": {
+     "engine": 2,
+     "landing": 1,
+     "nav": 3,
+     "strobe": 2
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Ascot.webp?v=5e531c97cf9ec656",
+    "small": "assets/thumbs/Ascot.webp?v=5e531c97cf9ec656",
+    "w": 640,
+    "h": 360
+   }
   },
   {
    "maker": "kingsley",
@@ -1990,10 +2199,30 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Sovereign.webp?v=6a3a872554c22b4f",
-    "aspect": 0.4436
+    "src": "assets/silhouettes/Sovereign.webp?v=4d2d52bcd4ebcd93",
+    "aspect": 0.445
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Sovereign.glb?v=8ef2815900b21e1d",
+    "bytes": 6478468,
+    "tris": 350555,
+    "draw_calls": 8,
+    "has_gear": false,
+    "export_length": 260.0,
+    "lights": {
+     "beacon": 1,
+     "engine": 4,
+     "nav": 11,
+     "strobe": 4
+    },
+    "retro": false
+   },
+   "thumb": {
+    "src": "assets/thumbs/Sovereign.webp?v=883ca22d526cbb61",
+    "small": "assets/thumbs/Sovereign.webp?v=883ca22d526cbb61",
+    "w": 640,
+    "h": 360
+   }
   }
  ]
 };
