@@ -274,7 +274,60 @@ export default {
      "tone_mapping": {
       "three": "AgXToneMapping",
       "exposure": 1.2311
-     }
+     },
+     "bays_stub": [
+      "Heavyweight",
+      "Lightweight",
+      "SuperHeavyweight",
+      "SuperLightweight"
+     ],
+     "bays": [
+      {
+       "model": "Lightweight",
+       "position": [
+        0,
+        null,
+        0
+       ],
+       "yaw_deg": 160.0,
+       "indoor": true,
+       "focus_radius": 24.7,
+       "turntable": true
+      },
+      {
+       "model": "SuperLightweight",
+       "position": [
+        40.0,
+        null,
+        18.0
+       ],
+       "yaw_deg": 200,
+       "indoor": true,
+       "focus_radius": 12.4
+      },
+      {
+       "model": "SuperHeavyweight",
+       "position": [
+        0.0,
+        10.9,
+        -242.0
+       ],
+       "yaw_deg": 110.0,
+       "indoor": false,
+       "focus_radius": 138.4
+      },
+      {
+       "model": "Heavyweight",
+       "position": [
+        14.8,
+        -4.4,
+        -135.8
+       ],
+       "yaw_deg": 100.8,
+       "indoor": false,
+       "focus_radius": 54.4
+      }
+     ]
     }
    },
    "voice": {
@@ -541,9 +594,9 @@ export default {
    },
    "room": {
     "glb": "assets/rooms/helios/room.glb?v=28826ec5e0b6cef1",
-    "env": "assets/rooms/helios/env.hdr?v=bdda62738c37d827",
-    "bg": "assets/rooms/helios/bg.hdr?v=75f28f91202ab71b",
-    "bytes": 6856738,
+    "env": "assets/rooms/helios/env.hdr?v=ef54e83db3d1a210",
+    "bg": "assets/rooms/helios/bg.hdr?v=0b0d58cf40d52b7d",
+    "bytes": 7478341,
     "info": {
      "brand": "Helios",
      "turntable": {
@@ -712,7 +765,48 @@ export default {
      "tone_mapping": {
       "three": "AgXToneMapping",
       "exposure": 0.7579
-     }
+     },
+     "bays_stub": [
+      "Corona",
+      "Solstice",
+      "Zenith"
+     ],
+     "bays": [
+      {
+       "model": "Corona",
+       "position": [
+        0,
+        null,
+        0
+       ],
+       "yaw_deg": 175.0,
+       "indoor": true,
+       "focus_radius": 18.0,
+       "turntable": true
+      },
+      {
+       "model": "Solstice",
+       "position": [
+        0.0,
+        9.4,
+        -182.0
+       ],
+       "yaw_deg": 110.0,
+       "indoor": false,
+       "focus_radius": 108.0
+      },
+      {
+       "model": "Zenith",
+       "position": [
+        13.5,
+        -3.8,
+        -105.9
+       ],
+       "yaw_deg": 100.8,
+       "indoor": false,
+       "focus_radius": 48.0
+      }
+     ]
     }
    },
    "voice": {
@@ -1133,7 +1227,60 @@ export default {
      "tone_mapping": {
       "three": "AgXToneMapping",
       "exposure": 3.249
-     }
+     },
+     "bays_stub": [
+      "Minotaur",
+      "Mule",
+      "Ox",
+      "Titan"
+     ],
+     "bays": [
+      {
+       "model": "Mule",
+       "position": [
+        0,
+        null,
+        0
+       ],
+       "yaw_deg": 205.0,
+       "indoor": true,
+       "focus_radius": 20.8,
+       "turntable": true
+      },
+      {
+       "model": "Minotaur",
+       "position": [
+        0.0,
+        31.9,
+        -746.5
+       ],
+       "yaw_deg": 110.0,
+       "indoor": false,
+       "focus_radius": 558.0
+      },
+      {
+       "model": "Titan",
+       "position": [
+        58.0,
+        -26.1,
+        -383.4
+       ],
+       "yaw_deg": 100.8,
+       "indoor": false,
+       "focus_radius": 271.2
+      },
+      {
+       "model": "Ox",
+       "position": [
+        -18.3,
+        7.6,
+        -137.5
+       ],
+       "yaw_deg": 119.2,
+       "indoor": false,
+       "focus_radius": 72.0
+      }
+     ]
     }
    },
    "voice": {
@@ -1582,7 +1729,108 @@ export default {
      "tone_mapping": {
       "three": "AgXToneMapping",
       "exposure": 2.5491
-     }
+     },
+     "bays_stub": [
+      "Ares",
+      "Gladius",
+      "Halberd",
+      "Olympus",
+      "Sabre",
+      "Talon",
+      "Tharsis",
+      "Valles"
+     ],
+     "bays": [
+      {
+       "model": "Talon",
+       "position": [
+        0,
+        null,
+        0
+       ],
+       "yaw_deg": 210.0,
+       "indoor": true,
+       "focus_radius": 9.6,
+       "turntable": true
+      },
+      {
+       "model": "Tharsis",
+       "position": [
+        0.0,
+        76.0,
+        -1845.0
+       ],
+       "yaw_deg": 110.0,
+       "indoor": false,
+       "focus_radius": 1440.0
+      },
+      {
+       "model": "Valles",
+       "position": [
+        84.9,
+        -65.0,
+        -865.8
+       ],
+       "yaw_deg": 104.3,
+       "indoor": false,
+       "focus_radius": 660.0
+      },
+      {
+       "model": "Olympus",
+       "position": [
+        -51.2,
+        23.5,
+        -529.9
+       ],
+       "yaw_deg": 115.7,
+       "indoor": false,
+       "focus_radius": 390.0
+      },
+      {
+       "model": "Ares",
+       "position": [
+        52.6,
+        -18.2,
+        -279.7
+       ],
+       "yaw_deg": 98.5,
+       "indoor": false,
+       "focus_radius": 192.0
+      },
+      {
+       "model": "Gladius",
+       "position": [
+        -25.8,
+        8.2,
+        -147.4
+       ],
+       "yaw_deg": 121.5,
+       "indoor": false,
+       "focus_radius": 84.0
+      },
+      {
+       "model": "Sabre",
+       "position": [
+        22.9,
+        -3.2,
+        -94.0
+       ],
+       "yaw_deg": 92.8,
+       "indoor": false,
+       "focus_radius": 42.0
+      },
+      {
+       "model": "Halberd",
+       "position": [
+        -12.7,
+        4.7,
+        -61.1
+       ],
+       "yaw_deg": 127.2,
+       "indoor": false,
+       "focus_radius": 14.4
+      }
+     ]
     }
    },
    "voice": {
@@ -2049,7 +2297,48 @@ export default {
      "tone_mapping": {
       "three": "AgXToneMapping",
       "exposure": 2.4623
-     }
+     },
+     "bays_stub": [
+      "Ascot",
+      "Sovereign",
+      "Sprite"
+     ],
+     "bays": [
+      {
+       "model": "Sprite",
+       "position": [
+        0,
+        null,
+        0
+       ],
+       "yaw_deg": 200.0,
+       "indoor": true,
+       "focus_radius": 10.8,
+       "turntable": true
+      },
+      {
+       "model": "Sovereign",
+       "position": [
+        0.0,
+        11.8,
+        -235.0
+       ],
+       "yaw_deg": 110.0,
+       "indoor": false,
+       "focus_radius": 156.0
+      },
+      {
+       "model": "Ascot",
+       "position": [
+        9.4,
+        -1.7,
+        -73.0
+       ],
+       "yaw_deg": 100.8,
+       "indoor": false,
+       "focus_radius": 27.0
+      }
+     ]
     }
    },
    "voice": {

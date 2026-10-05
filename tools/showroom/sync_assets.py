@@ -287,6 +287,54 @@ def room_entry(mid: str) -> dict | None:
             "bytes": sum(p.stat().st_size for p in files.values()), "info": info}
 
 
+def stub_bays(info: dict, line: list[dict]) -> list[dict]:
+    """Dealership layout for rooms exported before `bays` existed (and for any model a real `bays` list misses).
+    three.js coords: +Y up, the glass wall at z = -hall.glass_y, the back wall at z = -hall.back_y. Indoor bays hold
+    full-scale hulls up to the turntable's max length (largest on the turntable, the rest in the wall slots);
+    everything bigger floats outside the glass at true scale, smallest nearest. position[1] = None means "on the
+    floor" (resolved at runtime from the room mesh); outdoor positions are hull centres."""
+    hall, tt = info["hall"], info["turntable"]
+    hw, z_glass, z_back = hall["half_width"], -hall["glass_y"], -hall["back_y"]
+    cap = tt.get("max_ship_length", 40)
+    size = lambda s: (s.get("glb") or {}).get("export_length") or s["length"]
+    indoor = sorted([s for s in line if size(s) <= cap], key=size, reverse=True)
+    outdoor = sorted([s for s in line if size(s) > cap], key=size)
+    bays = []
+    yaw0 = info.get("ship", {}).get("yaw_deg", 160)
+    # wall slots: either side of the turntable, back half first, ships parked along the depth axis
+    slot_x = tt["radius"] + (hw - tt["radius"]) * 0.5
+    slots = [(slot_x, z_back * 0.45, 200), (-slot_x, z_back * 0.45, 160), (slot_x, z_glass * 0.4, 330), (-slot_x, z_glass * 0.4, 30)]
+    room_half = (hw - tt["radius"]) * 0.5
+    spill = []
+    for i, s in enumerate(indoor):
+        if i == 0:
+            bays.append({"model": s["model"], "position": [tt["center"][0], None, tt["center"][2]], "yaw_deg": yaw0,
+                         "indoor": True, "focus_radius": round(size(s) * 0.6, 1), "turntable": True})
+            continue
+        # a wall slot can take a hull whose half-length fits the slot's free floor (parked lengthwise along z)
+        if slots and size(s) * 0.5 <= max(room_half * 1.9, 6) and size(s) * 0.5 <= min(-z_glass, z_back) * 0.5:
+            x, z, yaw = slots.pop(0)
+            bays.append({"model": s["model"], "position": [round(x, 2), None, round(z, 2)], "yaw_deg": yaw,
+                         "indoor": True, "focus_radius": round(size(s) * 0.6, 1)})
+        else:
+            spill.append(s)
+    # giants: a fan beyond the glass seen from the middle of the window, biggest dead centre, the rest alternating
+    # outward; each hull side-on to the line of sight (+20 deg for a 3/4 read) and far enough to fit the view
+    import math
+    giants = sorted(spill + outdoor, key=size, reverse=True)
+    n = len(giants)
+    for i, s in enumerate(giants):
+        L = size(s)
+        k = (i + 1) // 2 * (1 if i % 2 else -1)
+        theta = k * min(0.16, 0.3 / max(1, (n - 1) / 2))   # narrow: rooms may only have a small window
+        D = 25 + 0.75 * L
+        x, z = math.sin(theta) * D, z_glass - math.cos(theta) * D
+        yaw = 90 - math.degrees(theta) + 20
+        bays.append({"model": s["model"], "position": [round(x, 1), round(4 + 0.03 * L - 0.12 * D * (i % 2), 1), round(z, 1)],
+                     "yaw_deg": round(yaw, 1), "indoor": False, "focus_radius": round(L * 0.6, 1)})
+    return bays
+
+
 VOICE = U / "voice" / "out"
 
 
@@ -350,6 +398,21 @@ def main() -> None:
     for s in ships:
         log(f"  {s['maker']:9s} {s['model']:17s} glb={'yes' if s['glb'] else '-':3s} "
             f"poster={'yes' if s['poster'] else '-':3s} silhouette={'yes' if s['silhouette'] else '-'}")
+
+    # every hull gets a bay in its maker's hall (stub layout until the room exports carry their own `bays`)
+    for e in makers:
+        if not e["room"]:
+            continue
+        info = e["room"]["info"]
+        line = [s for s in ships if s["maker"] == e["id"]]
+        have = {b["model"] for b in info.get("bays", [])}
+        missing = [s for s in line if s["model"] not in have]
+        if missing:
+            info["bays_stub"] = sorted(s["model"] for s in missing)
+            stub = stub_bays(info, line)
+            info["bays"] = info.get("bays", []) + [b for b in stub if b["model"] not in have]
+        log(f"  {e['id']}: bays {', '.join(('*' if b.get('indoor') else '') + b['model'] for b in info['bays'])}"
+            f"{' (stub)' if missing else ''}")
 
     data = {"fleet": canon["fleet"], "makers": makers, "ships": ships}
     out = SITE / "js" / "data.js"

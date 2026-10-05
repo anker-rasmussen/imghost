@@ -16,7 +16,6 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=153dec7100e24b34';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
-const SCALES = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 function disposeTree(root) {
@@ -28,6 +27,25 @@ function disposeTree(root) {
       m.dispose();
     }
   });
+}
+
+/** Replace every texture image in a loaded glTF with a 1/f-resolution copy before it is ever uploaded. */
+async function downscaleTextures(root, f) {
+  const seen = new Set();
+  const jobs = [];
+  root.traverse((o) => {
+    const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+    for (const m of ms) for (const k of Object.keys(m)) {
+      const tex = m[k];
+      if (!tex?.isTexture || seen.has(tex) || !tex.image || tex.image.width <= 256) continue;
+      seen.add(tex);
+      const img = tex.image;
+      jobs.push(createImageBitmap(img, { resizeWidth: Math.max(64, Math.round(img.width / f)), resizeHeight: Math.max(64, Math.round(img.height / f)), resizeQuality: 'medium' })
+        .then((bmp) => { tex.image = bmp; tex.needsUpdate = true; img.close?.(); })
+        .catch(() => {}));
+    }
+  });
+  await Promise.all(jobs);
 }
 
 /** room description used when a maker has no baked room yet (same schema as showroom.json) */
@@ -59,8 +77,6 @@ export class Viewer {
     c.enableDamping = true; c.dampingFactor = 0.06; c.rotateSpeed = 0.7;
     c.enablePan = true; c.screenSpacePanning = true; c.panSpeed = 0.7;
     c.maxPolarAngle = THREE.MathUtils.degToRad(89);
-    this.stage = new THREE.Group();           // the turntable: spins the ship (and its pedestal)
-    this.scene.add(this.stage);
 
     this.composer = new EffectComposer(r);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -74,8 +90,8 @@ export class Viewer {
     this.clock = new THREE.Clock();
     this.room = null; this.ship = null; this.tween = null;
     this.spin = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.S = { gearT: 1, gearDir: 1, nav: true, strobe: true, thrust: 0, retro: 0, retroTarget: 0, rcs: 0 };
-    this.shipToken = 0; this.roomToken = 0;
+    this._S0 = { gearT: 1, gearDir: 1, nav: true, strobe: true, thrust: 0, retro: 0, retroTarget: 0, rcs: 0 };
+    this.roomToken = 0; this.fleetToken = 0; this.fleet = null;
     this.running = false;
     this.slow = 0;
 
@@ -86,11 +102,9 @@ export class Viewer {
     let down = null;
     canvas.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
     canvas.addEventListener('pointerup', (e) => {
-      if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6 || !this.ship) return;
-      const rect = canvas.getBoundingClientRect();
-      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-      const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
-      if (ray.intersectObject(this.ship.holder, true).some((h) => h.object.isMesh)) onTap?.();
+      if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6 || !this.fleet) return;
+      const hit = this.pick(e.clientX, e.clientY);
+      if (hit) onTap?.(hit.model);
     });
     // affordances: grab / grabbing cursor, pointer + rim highlight + "click to hail" over the hull
     c.addEventListener('start', () => { this.dragging = true; canvas.style.cursor = 'grabbing'; onDrag?.(); });
@@ -100,17 +114,15 @@ export class Viewer {
       if (e.pointerType === 'touch') return;
       hoverEv = e;
       const now = performance.now();
-      if (now - hoverAt < 90 || this.dragging || this.walk || !this.ship) return;
+      if (now - hoverAt < 90 || this.dragging || this.walk || !this.fleet) return;
       hoverAt = now;
       const rect = canvas.getBoundingClientRect();
-      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-      const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
-      const hit = ray.intersectObject(this.ship.holder, true).some((x) => x.object.isMesh && !x.object.material?.transparent);
-      this.ship.rig.setHighlight(hit ? 1 : 0);
+      const hit = this.pick(e.clientX, e.clientY);
+      if (this.hovered !== hit) { this.hovered?.rig?.setHighlight(0); hit?.rig?.setHighlight(1); this.hovered = hit; }
       canvas.style.cursor = hit ? 'pointer' : '';
-      onHover?.(hit, e.clientX - rect.left, e.clientY - rect.top);
+      onHover?.(hit ? hit.model : null, e.clientX - rect.left, e.clientY - rect.top, hit === this.ship);
     });
-    canvas.addEventListener('pointerleave', () => { this.ship?.rig.setHighlight(0); canvas.style.cursor = ''; onHover?.(false); void hoverEv; });
+    canvas.addEventListener('pointerleave', () => { this.hovered?.rig?.setHighlight(0); this.hovered = null; canvas.style.cursor = ''; onHover?.(null); void hoverEv; });
 
     // walk mode: drag to look (mouse or touch outside the virtual stick)
     let look = null;
@@ -125,6 +137,9 @@ export class Viewer {
     for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, () => { look = null; });
     this.resize();
   }
+
+  /** the focused hull's system state (gear, lights, thrust...) */
+  get S() { return this.ship?.S || this._S0; }
 
   // ---------------------------------------------------------------- lifecycle
   start() {
@@ -145,23 +160,31 @@ export class Viewer {
     this.camera.updateProjectionMatrix();
   }
 
-  /** Load (if needed) room + ship; progress(fraction, label). Resolves when the ship is on the turntable. */
-  async show(maker, ship, progress = () => {}) {
+  /** Open a maker's hall (if not already) and focus `ship`; progress(fraction, label) covers the room and the
+   *  focused hull only; the rest of the line-up streams in afterwards. */
+  async show(maker, ship, progress = () => {}, lineup = []) {
     this.maker = maker;
+    this.lineup = lineup.length ? lineup : [ship];
     if (this.walk) this.setWalk(false);
     const needRoom = this.room?.id !== maker.id;
-    const total = (needRoom && maker.room ? maker.room.bytes : 0) + ship.glb.bytes;
+    const total = (needRoom && maker.room ? maker.room.bytes : 0) + (this.fleet?.get(ship.id)?.state === 'ready' ? 0 : ship.glb.bytes);
     const got = {};
     const tick = (key, label) => (e) => {
       if (!e.lengthComputable && !e.total) return;
       got[key] = e.loaded;
       const sum = Object.values(got).reduce((a, b) => a + b, 0);
-      progress(Math.min(1, sum / total), `${label} · ${(sum / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB`);
+      progress(Math.min(1, sum / Math.max(total, 1)), `${label} · ${(sum / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB`);
     };
     progress(0, 'Preparing');
-    const roomP = needRoom ? this.loadRoom(maker, tick) : Promise.resolve();
-    roomP.catch(() => {});
-    await this.loadShip(ship, tick('ship', `Loading ${ship.name}`), roomP);
+    if (needRoom) {
+      // start the focused hull download in parallel with the room
+      const early = this.gltf.loadAsync(ship.glb.src, tick('ship', `Loading ${ship.name}`)).catch(() => null);
+      await this.loadRoom(maker, tick);
+      this.setupFleet(maker, ship);
+      const e = this.fleet.get(ship.id);
+      if (e) e.prefetch = early;
+    }
+    await this.focus(ship, tick('ship', `Loading ${ship.name}`), needRoom);
     this.start();
   }
 
@@ -181,9 +204,11 @@ export class Viewer {
     } else {
       built = this.buildStudio(maker.theme, info);
     }
-    this.disposeShip();
     this.disposeRoom();
     this.room = { id: maker.id, info, totem: maker.totem || null, ...built };
+    this.room.floorMeshes = [];
+    this.room.group.traverse((o) => { if (o.isMesh && /floor/.test(o.name)) this.room.floorMeshes.push(o); });
+    this.room.group.updateMatrixWorld(true);
     this.scene.add(this.room.group);
     this.renderer.toneMappingExposure = info.tone_mapping?.exposure ?? 1;
     this.resize();
@@ -325,30 +350,45 @@ export class Viewer {
   }
 
   addLights(group, info) {
-    const tt = info.turntable, top = tt.top;
+    const tt = info.turntable, top = tt.top, hall = info.hall;
     const key = new THREE.DirectionalLight(new THREE.Color(...info.key_light.color), info.key_light.intensity);
     const kd = v3(info.key_light.direction).normalize();
-    key.position.copy(kd.clone().multiplyScalar(-80)).add(new THREE.Vector3(0, top, 0));
-    key.target.position.set(0, top, 0);
+    // the shadow camera covers the whole hall floor: every indoor bay gets a real-time contact shadow
+    const cz = hall ? -(hall.glass_y + hall.back_y) / 2 : 0;
+    const R = hall ? Math.max(hall.half_width, (hall.glass_y - hall.back_y) / 2) + 4 : tt.radius + 6;
+    key.position.copy(kd.clone().multiplyScalar(-(R * 3 + 40))).add(new THREE.Vector3(0, top, cz));
+    key.target.position.set(0, top, cz);
     key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
-    const R = tt.radius + 6;
-    Object.assign(key.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 20, far: 160 });
-    key.shadow.bias = -0.0005; key.shadow.normalBias = 0.04; key.shadow.radius = 6;
+    key.shadow.mapSize.setScalar(matchMedia('(max-width: 760px)').matches ? 2048 : 4096);
+    Object.assign(key.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 1, far: R * 6 + 80 });
+    key.shadow.bias = -0.0005; key.shadow.normalBias = 0.05; key.shadow.radius = 5;
     group.add(key, key.target);
     if (info.fill_light) {
       const fill = new THREE.DirectionalLight(new THREE.Color(...info.fill_light.color), info.fill_light.intensity);
       fill.position.copy(v3(info.fill_light.direction).normalize().multiplyScalar(-80));
       group.add(fill, fill.target);
     }
-    // the ship's own contact shadow (the floor itself is baked)
-    const catcher = new THREE.Mesh(new THREE.CircleGeometry(tt.radius + 12, 96), new THREE.ShadowMaterial({ opacity: 0.55, depthWrite: false }));
-    catcher.rotation.x = -Math.PI / 2; catcher.position.y = top + 0.01;
-    catcher.receiveShadow = true; catcher.renderOrder = 2;
-    group.add(catcher);
+    // contact-shadow catchers (the floor itself is baked): the turntable top and the hall floor
+    const mk = (geo, y) => {
+      const m = new THREE.Mesh(geo, new THREE.ShadowMaterial({ opacity: 0.5, depthWrite: false }));
+      m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; m.renderOrder = 2; group.add(m); return m;
+    };
+    mk(new THREE.CircleGeometry(tt.radius, 96), top + 0.012);
+    this.hallCatcher = hall ? mk(new THREE.PlaneGeometry(2 * hall.half_width, hall.glass_y - hall.back_y), top + 0.01) : null;
+    if (this.hallCatcher) this.hallCatcher.position.z = cz;
+  }
+
+  /** floor height under (x, z): ray down onto the baked floor mesh (turntable top included) */
+  floorAt(x, z) {
+    const r = this.room;
+    if (!r?.floorMeshes?.length) return r?.info.turntable.top ?? 0;
+    const ray = new THREE.Raycaster(new THREE.Vector3(x, 60, z), new THREE.Vector3(0, -1, 0), 0, 200);
+    const hit = ray.intersectObjects(r.floorMeshes, false)[0];
+    return hit ? hit.point.y : r.info.turntable.top;
   }
 
   disposeRoom() {
+    this.disposeFleet();
     if (!this.room) return;
     const r = this.room;
     this.scene.remove(r.group);
@@ -358,165 +398,214 @@ export class Viewer {
     r.bgTex?.dispose();
     this.scene.environment = null; this.scene.background = null; this.scene.fog = null;
     this.room = null;
+    this.hallCatcher = null;
   }
 
-  // ---------------------------------------------------------------- ship
-  async loadShip(ship, onProgress, roomReady) {
-    const token = ++this.shipToken;
-    const gl = await this.gltf.loadAsync(ship.glb.src, onProgress);
-    try { await roomReady; } catch (e) { disposeTree(gl.scene); throw e; }   // turntable + hall decide placement
-    if (token !== this.shipToken || !this.room) { disposeTree(gl.scene); return; }
-    const max = this.room.info.turntable.max_ship_length;
-    // decide full size vs scale model from the real extent of the exported hull
-    gl.scene.updateMatrixWorld(true);
-    const probe = new THREE.Box3();
-    gl.scene.traverse((o) => { if (o.isMesh && !/plume|rcs_glow/.test(o.material.name || '')) probe.expandByObject(o); });
-    const len = Math.max(probe.max.z - probe.min.z, probe.max.x - probe.min.x);
-    const fits = len <= max * 1.08;
-    const rig = rigShip(gl, { realLights: fits, length: ship.length });
-    this.disposeShip();
-    this.S.gearT = 1; this.S.gearDir = 1;
-    this.ship = { id: ship.id, model: ship, rig, holder: new THREE.Group(), extras: [], fits, len, N: 1 };
-    this.placeShip(this.ship, false);
-  }
-
-  placeShip(s, keepCamera) {
-    const info = this.room.info, tt = info.turntable, top = tt.top;
-    const { rig, holder } = s;
-    for (const e of s.extras) { holder.remove(e); disposeTree(e); }
-    s.extras = [];
-    this.stage.remove(holder);
-    const root = rig.root;
-    root.position.set(0, 0, 0); root.scale.setScalar(1);
-    holder.add(root);
-    const box = rig.bounds();                          // root is at identity here: this is the ship's own frame
-    const size = box.getSize(new THREE.Vector3());
-    s.localBox = box.clone();
-    s.plinthR = 0;
-    let scale = 1, base = top;
-    s.N = 1;
-    if (!s.fits) {
-      const target = Math.min(tt.max_ship_length * 0.42, 14);
-      s.N = SCALES.find((n) => s.len / n <= target) || Math.ceil(s.len / target);
-      scale = 1 / s.N;
-      // dealer pedestal: satin plinth + slim stand, accent hairline on the top edge
-      const mh = size.y * scale, ml = s.len * scale;
-      const R = THREE.MathUtils.clamp(ml * 0.2, 0.9, 3.2), P = 0.9;
-      s.plinthR = R;
-      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.03, P, 96),
-        new THREE.MeshStandardMaterial({ color: 0x17181b, roughness: 0.3, metalness: 0.15 }));
-      plinth.position.y = top + P / 2; plinth.castShadow = true; plinth.receiveShadow = true;
-      const rodH = 0.45 + 0.25 * mh;
-      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, rodH, 16),
-        new THREE.MeshStandardMaterial({ color: 0x9a9ea3, roughness: 0.25, metalness: 1 }));
-      rod.position.y = top + P + rodH / 2; rod.castShadow = true;
-      const lip = new THREE.Mesh(new THREE.TorusGeometry(R * 0.995, 0.01, 6, 128),
-        new THREE.MeshBasicMaterial({ color: 0xcccccc }));
-      lip.rotation.x = Math.PI / 2; lip.position.y = top + P + 0.001;
-      s.extras.push(plinth, rod, lip);
-      holder.add(plinth, rod, lip);
-      base = top + P + rodH;
-    }
-    root.scale.setScalar(scale);
-    const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
-    root.position.set(-cx * scale, base - box.min.y * scale + (s.fits && !rig.hasGear ? Math.max(0.6, size.y * 0.12) : 0), -cz * scale);
-    const c = v3(tt.center || [0, top, 0]);
-    this.stage.position.set(c.x, 0, c.z);
-    if (!keepCamera) {
-      // hero opening: camera at a 3/4 angle, ship turned so its nose (-Z) points 35 degrees off the camera line
-      this.heroAz = this.heroAzimuth();
-      this.stage.rotation.y = this.heroAz + this.heroSide * THREE.MathUtils.degToRad(35) - Math.PI;
-    }
-    this.stage.add(holder);
-    s.pois = this.buildPois(s);
-    this.frameShip(keepCamera);
-  }
-
-  /** horizontal camera azimuth for the opening shot: the room's authored camera, swung 45 degrees off the spec
-   *  totem (a baked prop at the turntable's edge) so it never stands between the lens and the hull */
-  heroAzimuth() {
-    const info = this.room.info, cam = info.camera, c = v3(info.turntable.center || [0, 0, 0]);
-    const a = v3(cam.position).sub(v3(cam.target));
-    let az = Math.atan2(a.x, a.z);
-    this.heroSide = 1;
-    const tot = this.room.totem;
-    if (tot) {
-      // try 40..80 degrees either side of the totem; keep the direction with the most floor behind the camera
-      const tAz = Math.atan2(tot[0] - c.x, tot[1] - c.z);
-      const hall = info.hall;
-      const avail = (x) => {                               // horizontal distance from the turntable to the hall wall
-        if (!hall) return 100;
-        const dx = Math.sin(x), dz = Math.cos(x), hw = hall.half_width - 2;
-        const z0 = -hall.glass_y + 1.5, z1 = -hall.back_y - 1.5;
-        const tx = dx > 0 ? (hw - c.x) / dx : dx < 0 ? (-hw - c.x) / dx : Infinity;
-        const tz = dz > 0 ? (z1 - c.z) / dz : dz < 0 ? (z0 - c.z) / dz : Infinity;
-        return Math.min(tx, tz);
-      };
-      let best = -Infinity;
-      for (let deg = 40; deg <= 80; deg += 5) {
-        for (const side of [1, -1]) {
-          const x = tAz + side * THREE.MathUtils.degToRad(deg);
-          const score = Math.min(avail(x), 60) - 0.04 * deg;
-          if (score > best) { best = score; az = x; this.heroSide = side; }
-        }
-      }
-    }
-    return az;
-  }
-
-  frameShip(instant) {
-    const info = this.room.info, cam = info.camera, tt = info.turntable;
-    this.ship.holder.updateMatrixWorld(true);
-    // frame the hull itself (a pedestal may sit under it; nudge the pivot down a little to keep it in shot)
-    const sphere = this.ship.rig.bounds().getBoundingSphere(new THREE.Sphere());
-    if (!this.ship.fits) sphere.center.y -= sphere.radius * 0.3;
-    const vfov = THREE.MathUtils.degToRad(this.camera.fov);
-    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
-    // bounding spheres of long hulls are generous: frame at ~3/4 of the sphere, never further than the room's
-    // authored hero camera for a full-size ship (it is placed to stay inside the hall)
-    const fit = 0.78 * sphere.radius / Math.tan(Math.min(vfov, hfov) / 2);
-    const authored = v3(cam.position).distanceTo(v3(cam.target));
-    const el = THREE.MathUtils.degToRad(this.ship.fits ? 18 : 24);
-    const az = this.heroAz ?? 0;
-    const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
-    const target = sphere.center.clone();
-    const far = this.ship.fits ? Math.min(authored * 1.05, cam.orbit_max_distance) : cam.orbit_max_distance;
-    const dist = THREE.MathUtils.clamp(fit, Math.min(sphere.radius * 1.3, far), far);
-    const pos = target.clone().addScaledVector(dir, dist);
-    pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
-    const c = this.controls;
-    c.minDistance = Math.max(0.4, sphere.radius * 0.12);   // close enough to read the stencils
-    c.maxDistance = Math.max(dist * 1.2, Math.min(cam.orbit_max_distance, authored * 1.6));
-    this.home = { pos: pos.clone(), target: target.clone() };
-    // hall box in three.js coords (showroom.json "hall" is in Blender Y: z = -y), with a margin off the walls
-    const hall = info.hall;
-    const box = hall ? { x: hall.half_width - 2, z0: -hall.glass_y + 1.5, z1: -hall.back_y - 1.5 } : null;
-    this.bounds = { r: tt.radius, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box };
-    if (box) {
-      pos.x = THREE.MathUtils.clamp(pos.x, -box.x, box.x);
-      pos.z = THREE.MathUtils.clamp(pos.z, box.z0, box.z1);
-    }
-    if (instant || !this.running || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      this.camera.position.copy(pos); c.target.copy(target); this.tween = null; c.update();
-    } else {
-      this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1400 };
-      this.onArrive = null;
+  // ---------------------------------------------------------------- the hall: every hull of the line-up in its bay
+  /** Lay out the maker's line-up: a ghost silhouette per bay, then load hulls focused-first, indoor, outdoor. */
+  setupFleet(maker, focused) {
+    this.disposeFleet();
+    const info = this.room.info;
+    const byModel = new Map((info.bays || []).map((b) => [b.model, b]));
+    this.fleet = new Map();
+    for (const s of this.lineup) {
+      // a room without bays (legacy export): only the focused hull, on the turntable
+      const bay = byModel.get(s.model) || (byModel.size || s.id !== focused.id ? null
+        : { model: s.model, position: [0, null, 0], yaw_deg: info.ship?.yaw_deg ?? 160, indoor: true, turntable: true });
+      if (!bay || !s.glb) continue;
+      const e = { id: s.id, model: s, bay, outdoor: bay.indoor === false, holder: new THREE.Group(), rig: null, state: 'pending',
+        S: { gearT: 1, gearDir: 1, nav: true, strobe: true, thrust: 0, retro: 0, retroTarget: 0, rcs: 0 }, spinYaw: 0, extras: [] };
+      const p = bay.position;
+      const y = p[1] == null ? this.floorAt(p[0], p[2]) : p[1];
+      e.base = new THREE.Vector3(p[0], y, p[2]);
+      e.yaw = THREE.MathUtils.degToRad(bay.yaw_deg || 0);
+      e.holder.position.copy(e.base);
+      e.holder.rotation.y = e.yaw;
+      e.holder.userData.entry = e;
+      this.scene.add(e.holder);
+      this.addGhost(e);
+      this.fleet.set(s.id, e);
     }
   }
 
-  resetView() { if (this.home && this.ship) this.frameShip(false); }
+  /** silhouette card standing in the bay until the hull streams in */
+  addGhost(e) {
+    const sil = e.model.silhouette;
+    if (!sil) return;
+    const L = e.model.length, H = L * sil.aspect;
+    const tex = new THREE.TextureLoader().load(sil.src);
+    const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide, color: 0xffffff });
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(L, H), m);
+    g.rotation.y = Math.PI / 2;                       // side view along the hull's z axis
+    g.position.y = e.outdoor ? 0 : H / 2;
+    e.ghost = g;
+    e.holder.add(g);
+  }
 
-  disposeShip() {
-    if (!this.ship) return;
-    const s = this.ship;
-    this.stage.remove(s.holder);
-    for (const e of s.extras) disposeTree(e);
-    s.rig.dispose();
+  disposeFleet() {
+    if (!this.fleet) return;
+    ++this.fleetToken;
+    for (const e of this.fleet.values()) {
+      this.scene.remove(e.holder);
+      if (e.ghost) disposeTree(e.ghost);
+      e.rig?.dispose();
+    }
+    this.fleet = null;
     this.ship = null;
   }
 
-  /** drop the ship (e.g. when the next one has no real-time model) and stop rendering */
-  idle() { ++this.shipToken; this.disposeShip(); this.stop(); }
+  async loadEntry(e, onProgress) {
+    if (e.state === 'ready') return e;
+    if (e.promise) return e.promise;
+    e.state = 'loading';
+    const token = this.fleetToken;
+    e.promise = (async () => {
+      const gl = (e.prefetch && await e.prefetch) || await this.gltf.loadAsync(e.model.glb.src, onProgress);
+      e.prefetch = null;
+      if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
+      // giants seen through the glass from hundreds of metres: quarter-resolution textures keep GPU memory sane
+      if (e.outdoor) await downscaleTextures(gl.scene, 4);
+      if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
+      const rig = rigShip(gl, { realLights: false, length: e.model.length });
+      e.rig = rig;
+      this.placeEntry(e);
+      if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
+      e.state = 'ready';
+      return e;
+    })();
+    return e.promise;
+  }
+
+  placeEntry(e) {
+    const root = e.rig.root;
+    root.position.set(0, 0, 0); root.scale.setScalar(1); root.rotation.set(0, 0, 0);
+    e.holder.add(root);
+    // bounds in the hull's own frame (holder is rotated; measure with the root detached from it)
+    e.holder.remove(root); root.updateMatrixWorld(true);
+    const box = e.rig.bounds();
+    e.holder.add(root);
+    const size = box.getSize(new THREE.Vector3());
+    e.localBox = box.clone();
+    e.len = Math.max(size.x, size.z);
+    e.fits = true; e.N = 1; e.plinthR = 0;
+    const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, cy = (box.min.y + box.max.y) / 2;
+    // indoor: stand on the bay floor (hover a little if the hull has no gear); outdoor: bay position is the hull centre
+    const y = e.outdoor ? -cy : -box.min.y + (e.rig.hasGear ? 0 : Math.max(0.6, size.y * 0.12));
+    root.position.set(-cx, y, -cz);
+    e.pois = this.buildPois(e);
+    e.holder.updateMatrixWorld(true);
+  }
+
+  /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
+  async focus(ship, progress, instant) {
+    const e = this.fleet?.get(ship.id);
+    if (!e) throw new Error(`${ship.name} has no bay in this hall`);
+    const prev = this.ship;
+    if (prev && prev !== e) { prev.holder.rotation.y = prev.yaw; prev.spinYaw = 0; prev.rig?.setHighlight(0); }
+    this.ship = e;
+    if (e.state !== 'ready') await this.loadEntry(e, progress);
+    if (this.ship !== e) return;
+    this.frameShip(instant);
+    this.streamRest();
+  }
+
+  /** load the remaining hulls in the background: indoor first, then the giants outside */
+  async streamRest() {
+    if (this.streaming) return;
+    this.streaming = true;
+    const token = this.fleetToken;
+    try {
+      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending')
+        .sort((a, b) => (a.outdoor - b.outdoor) || (a.model.length - b.model.length));
+      for (const e of rest) {
+        if (token !== this.fleetToken) break;
+        try { await this.loadEntry(e); } catch (err) { console.warn(`could not load ${e.model.name}`, err); }
+        this.onFleet?.();
+      }
+    } finally { this.streaming = false; }
+  }
+
+  /** opening shot for a bay: 3/4 front-above from the side of the hull with the most floor, away from the totem */
+  heroAzimuth(e) {
+    const info = this.room.info, hall = info.hall;
+    const c = e.base;
+    const nose = e.yaw + Math.PI;                       // hull nose is local -Z
+    const avail = (x) => {
+      if (!hall) return 100;
+      const dx = Math.sin(x), dz = Math.cos(x), hw = hall.half_width - 2;
+      const z0 = -hall.glass_y + 1.5, z1 = -hall.back_y - 1.5;
+      const tx = dx > 0 ? (hw - c.x) / dx : dx < 0 ? (-hw - c.x) / dx : Infinity;
+      const tz = dz > 0 ? (z1 - c.z) / dz : dz < 0 ? (z0 - c.z) / dz : Infinity;
+      return Math.max(0, Math.min(tx, tz));
+    };
+    const tot = e.bay.totem_position || (e.bay.turntable ? this.room.totem : null);
+    const tAz = tot ? Math.atan2(tot[0] - c.x, tot[tot.length === 3 ? 2 : 1] - c.z) : null;
+    const need = e.len * 0.9;
+    let best = -Infinity, az = nose + 0.7;
+    for (let d = 0; d < 360; d += 10) {
+      const x = THREE.MathUtils.degToRad(d);
+      const diff = Math.atan2(Math.sin(x - nose), Math.cos(x - nose));
+      let score = 2 * Math.min(avail(x), need) / need + Math.cos(Math.abs(diff) - 0.7);
+      if (tAz != null && Math.abs(Math.atan2(Math.sin(x - tAz), Math.cos(x - tAz))) < 0.6) score -= 1.5;
+      if (score > best) { best = score; az = x; }
+    }
+    return { az, avail: avail(az) };
+  }
+
+  frameShip(instant) {
+    const e = this.ship, info = this.room.info, cam = info.camera, tt = info.turntable, hall = info.hall;
+    e.holder.updateMatrixWorld(true);
+    const sphere = e.rig.bounds().getBoundingSphere(new THREE.Sphere());
+    const vfov = THREE.MathUtils.degToRad(this.camera.fov);
+    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
+    const fit = 0.8 * sphere.radius / Math.tan(Math.min(vfov, hfov) / 2);
+    const target = sphere.center.clone();
+    let pos;
+    const box = hall ? { x: hall.half_width - 2, z0: -hall.glass_y + 1.5, z1: -hall.back_y - 1.5 } : null;
+    if (e.outdoor && hall) {
+      // giants outside: stand at the glass and look out at them
+      pos = new THREE.Vector3(THREE.MathUtils.clamp(target.x * 0.08, -box.x + 2, box.x - 2), tt.top + (cam.min_height ?? 1.2) + 2.5, box.z0 + 3);
+      target.y = Math.min(target.y, pos.y + 0.5);       // look level/out; orbit polar limit forbids looking up
+    } else {
+      const { az, avail } = this.heroAzimuth(e);
+      const el = THREE.MathUtils.degToRad(20);
+      const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+      const dist = Math.max(Math.min(fit, avail / Math.cos(el) - 0.5), sphere.radius * 0.9);
+      pos = target.clone().addScaledVector(dir, dist);
+    }
+    pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
+    if (box) { pos.x = THREE.MathUtils.clamp(pos.x, -box.x, box.x); pos.z = THREE.MathUtils.clamp(pos.z, box.z0, box.z1); }
+    const c = this.controls;
+    const d = pos.distanceTo(target);
+    c.minDistance = e.outdoor ? d * 0.4 : Math.max(0.4, sphere.radius * 0.12);
+    c.maxDistance = e.outdoor ? d * 1.05 : Math.max(d * 1.3, cam.orbit_max_distance);
+    this.home = { pos: pos.clone(), target: target.clone() };
+    this.bounds = { r: Infinity, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box, focus: e };
+    if (instant || !this.running || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.camera.position.copy(pos); c.target.copy(target); this.tween = null; c.update();
+    } else {
+      this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1500 };
+    }
+  }
+
+  resetView() { if (this.home && this.ship?.rig) this.frameShip(false); }
+
+  /** stop rendering and drop the hall (used when showing a poster instead) */
+  idle() { this.disposeFleet(); this.stop(); }
+
+  /** the hull under a screen point (any ship in the hall) */
+  pick(clientX, clientY) {
+    if (!this.fleet) return null;
+    const rect = this.canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
+    const holders = [...this.fleet.values()].filter((e) => e.state === 'ready').map((e) => e.holder);
+    const hit = ray.intersectObjects(holders, true).find((x) => x.object.isMesh && !x.object.material?.transparent);
+    if (!hit) return null;
+    let o = hit.object;
+    while (o && !o.userData.entry) o = o.parent;
+    return o?.userData.entry || null;
+  }
 
   // ---------------------------------------------------------------- points of interest
   /** POIs in the ship's own frame (nose -Z): derived from the hull bounds and the exported light anchors */
@@ -568,6 +657,10 @@ export class Viewer {
     const q = root.getWorldQuaternion(new THREE.Quaternion());
     const dir = p.dir.clone().applyQuaternion(q);
     let dist = p.dist * root.scale.x;
+    if (s.outdoor && this.bounds) {                     // a giant outside: the tour camera may leave the hall
+      this.bounds = { ...this.bounds, box: null, maxH: 1e5, minH: -1e5 };
+      this.controls.maxDistance = 1e5;
+    }
     const b = this.bounds;
     if (p.key === 'top' && b) dist = Math.min(dist, Math.max(2, (b.maxH - 0.5 - target.y) / Math.max(dir.y, 0.3)));
     const pos = target.clone().addScaledVector(dir, dist);
@@ -583,7 +676,7 @@ export class Viewer {
   /** screen positions of the hull hotspots (not the profile / plan views) */
   hotspots(w, h) {
     const s = this.ship;
-    if (!s?.pois || this.walk) return [];
+    if (!s?.pois || !s.rig || this.walk) return [];
     const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
     const cam = this.camera.position, out = [];
     s.pois.forEach((p, i) => {
@@ -597,38 +690,79 @@ export class Viewer {
     return out;
   }
 
-  // ---------------------------------------------------------------- walk-around (first person)
+  // ---------------------------------------------------------------- walk-around (first person, the whole hall)
   setWalk(on) {
     if (!!this.walk === on || !this.room) return;
     const c = this.controls;
     if (on) {
       this.walkSaved = { spin: this.spin, fov: this.camera.fov };
       this.spin = false; this.tween = null; c.enabled = false;
-      const p = this.camera.position, ctr = this.stage.position;
-      const flat = new THREE.Vector2(p.x - ctr.x, p.z - ctr.z);
-      const R = this.walkBlock() + 4;
-      if (flat.length() < R) flat.setLength(R);
-      p.set(ctr.x + flat.x, 1.7, ctr.z + flat.y);
-      const look = (this.ship ? this.ship.rig.bounds().getCenter(new THREE.Vector3()) : ctr.clone()).sub(p);
-      this.walk = { yaw: Math.atan2(-look.x, -look.z), pitch: Math.atan2(look.y, Math.hypot(look.x, look.z)) * 0.6,
-        vel: new THREE.Vector3(), keys: new Set(), stick: { x: 0, y: 0 } };
+      const p = this.camera.position;
+      p.y = this.floorAt(p.x, p.z) + 1.7;
+      this.collide(p);
+      const look = (this.ship?.rig ? this.ship.rig.bounds().getCenter(new THREE.Vector3()) : c.target.clone()).sub(p);
+      this.walk = { yaw: Math.atan2(-look.x, -look.z), pitch: THREE.MathUtils.clamp(Math.atan2(look.y, Math.hypot(look.x, look.z)), -0.6, 0.6),
+        vel: new THREE.Vector3(), keys: new Set(), stick: { x: 0, y: 0 }, floor: p.y - 1.7, n: 0 };
       this.camera.fov = Math.max(this.camera.fov, 60); this.camera.updateProjectionMatrix();
     } else {
       this.walk = null;
       this.spin = this.walkSaved?.spin ?? this.spin;
       this.camera.fov = this.walkSaved?.fov ?? this.camera.fov; this.camera.updateProjectionMatrix();
-      if (this.ship) {
+      if (this.ship?.rig) {
         c.target.copy(this.ship.rig.bounds().getCenter(new THREE.Vector3()));
         c.enabled = true; c.update();
         this.frameShip(false);
       } else c.enabled = true;
     }
   }
-  /** radius around the turntable centre a walker cannot enter: the turntable edge, or the pedestal for scale models */
-  walkBlock() {
-    const tt = this.room.info.turntable;
-    return this.ship && !this.ship.fits ? this.ship.plinthR + 0.6 : tt.radius + 0.6;
+
+  /** walkable area: showroom.json floor bounds / obstacles when exported, else the hall box; indoor hulls block */
+  walkSpace() {
+    if (this._walkSpace?.room === this.room) return this._walkSpace;
+    const info = this.room.info, hall = info.hall;
+    const w = info.walk || info.walkable || info.floor || {};
+    const b = w.bounds || info.floor_bounds;
+    const bounds = b && b.length === 4 ? { x0: b[0], z0: b[1], x1: b[2], z1: b[3] }
+      : { x0: -hall.half_width + 1, x1: hall.half_width - 1, z0: -hall.glass_y + 1, z1: -hall.back_y - 1 };
+    const obstacles = (w.obstacles || info.obstacles || []).map((o) => (o.radius != null
+      ? { c: new THREE.Vector2(o.center[0], o.center[o.center.length === 3 ? 2 : 1]), r: o.radius }
+      : { min: new THREE.Vector2(o.min[0], o.min[o.min.length === 3 ? 2 : 1]), max: new THREE.Vector2(o.max[0], o.max[o.max.length === 3 ? 2 : 1]) }));
+    this._walkSpace = { room: this.room, bounds, obstacles };
+    return this._walkSpace;
   }
+
+  /** push a walker (camera position) out of hull footprints and obstacles, back inside the floor bounds */
+  collide(p) {
+    const { bounds, obstacles } = this.walkSpace();
+    const pad = 0.45;
+    for (const e of this.fleet?.values() || []) {
+      if (e.outdoor || e.state !== 'ready' || !e.localBox) continue;
+      // hull footprint: the hull's own x/z box, in its bay's frame (gear-height ships are solid walls here)
+      const local = e.rig.root.worldToLocal(p.clone());
+      const b = e.localBox;
+      if (local.x > b.min.x - pad && local.x < b.max.x + pad && local.z > b.min.z - pad && local.z < b.max.z + pad) {
+        const dx0 = local.x - (b.min.x - pad), dx1 = b.max.x + pad - local.x, dz0 = local.z - (b.min.z - pad), dz1 = b.max.z + pad - local.z;
+        const m = Math.min(dx0, dx1, dz0, dz1);
+        if (m === dx0) local.x = b.min.x - pad; else if (m === dx1) local.x = b.max.x + pad;
+        else if (m === dz0) local.z = b.min.z - pad; else local.z = b.max.z + pad;
+        const wp = e.rig.root.localToWorld(local);
+        p.x = wp.x; p.z = wp.z;
+      }
+    }
+    for (const o of obstacles) {
+      if (o.c) {
+        const d = new THREE.Vector2(p.x - o.c.x, p.z - o.c.y);
+        if (d.length() < o.r + pad) { d.setLength(o.r + pad); p.x = o.c.x + d.x; p.z = o.c.y + d.y; }
+      } else if (p.x > o.min.x - pad && p.x < o.max.x + pad && p.z > o.min.y - pad && p.z < o.max.y + pad) {
+        const opts = [[p.x - (o.min.x - pad), 'x', o.min.x - pad], [o.max.x + pad - p.x, 'x', o.max.x + pad],
+          [p.z - (o.min.y - pad), 'z', o.min.y - pad], [o.max.y + pad - p.z, 'z', o.max.y + pad]].sort((a, b) => a[0] - b[0]);
+        p[opts[0][1]] = opts[0][2];
+      }
+    }
+    p.x = THREE.MathUtils.clamp(p.x, bounds.x0, bounds.x1);
+    p.z = THREE.MathUtils.clamp(p.z, bounds.z0, bounds.z1);
+  }
+
   updateWalk(dt) {
     const w = this.walk, p = this.camera.position, k = w.keys;
     const f = (k.has('f') ? 1 : 0) - (k.has('b') ? 1 : 0) - w.stick.y;
@@ -642,14 +776,9 @@ export class Viewer {
     if (want.lengthSq() > 1) want.normalize();
     w.vel.lerp(want.multiplyScalar(speed), 1 - Math.exp(-dt * 8));
     p.addScaledVector(w.vel, dt);
-    // collide: keep off the turntable / pedestal, inside the hall
-    const ctr = this.stage.position, tt = this.room.info.turntable;
-    const flat = new THREE.Vector2(p.x - ctr.x, p.z - ctr.z), R = this.walkBlock();
-    if (flat.length() < R) { flat.setLength(R); p.x = ctr.x + flat.x; p.z = ctr.z + flat.y; }
-    const box = this.bounds?.box;
-    if (box) { p.x = THREE.MathUtils.clamp(p.x, -box.x + 0.5, box.x - 0.5); p.z = THREE.MathUtils.clamp(p.z, box.z0 + 0.5, box.z1 - 0.5); }
-    const floor = flat.length() < tt.radius ? tt.top : 0;
-    p.y += (floor + 1.7 - p.y) * Math.min(1, dt * 10);
+    this.collide(p);
+    if (w.vel.lengthSq() > 0.01 && ++w.n % 6 === 0) w.floor = this.floorAt(p.x, p.z);   // step up onto the turntable
+    p.y += (w.floor + 1.7 - p.y) * Math.min(1, dt * 10);
     this.camera.rotation.set(w.pitch, w.yaw, 0, 'YXZ');
   }
 
@@ -669,8 +798,10 @@ export class Viewer {
   // ---------------------------------------------------------------- frame
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
-    if (this.spin) this.stage.rotation.y += dt * 0.1;
-    this.ship?.rig.update(dt, t, this.S);
+    // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
+    const f = this.ship;
+    if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; }
+    if (this.fleet) for (const e of this.fleet.values()) if (e.rig) e.rig.update(dt, t, e.S);
     const c = this.controls;
     if (this.walk) {
       this.updateWalk(dt);
@@ -689,9 +820,7 @@ export class Viewer {
       const b = this.bounds, p = this.camera.position;
       p.y = THREE.MathUtils.clamp(p.y, b.top + b.minH, b.maxH);
       if (b.box) { p.x = THREE.MathUtils.clamp(p.x, -b.box.x, b.box.x); p.z = THREE.MathUtils.clamp(p.z, b.box.z0, b.box.z1); }
-      const flat = new THREE.Vector2(c.target.x - this.stage.position.x, c.target.z - this.stage.position.z);
-      if (flat.length() > b.r) { flat.setLength(b.r); c.target.x = this.stage.position.x + flat.x; c.target.z = this.stage.position.z + flat.y; }
-      c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
+      if (!b.focus?.outdoor) c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
     }
     this.composer.render();
     // adaptive resolution: step the pixel ratio down if frames stay slow
@@ -703,7 +832,7 @@ export class Viewer {
   }
 
   dispose() {
-    this.stop(); this.disposeShip(); this.disposeRoom();
+    this.stop(); this.disposeRoom();
     this.ro.disconnect(); this.controls.dispose(); this.pmrem.dispose(); this.composer.dispose?.(); this.renderer.dispose();
   }
 }

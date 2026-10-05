@@ -5,7 +5,7 @@
 // Same layout and icons for every maker; brands theme colour and type only. First visit gets three coach marks.
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=f8cea1fed0e727ba';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=eed074fe315077e5';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -412,6 +412,7 @@ export class Showroom {
     this.backBtn.href = `#/${m.id}`;
     this.backBtn.setAttribute('aria-label', `Back to ${m.full}`);
     this.title.textContent = s.name;
+    this.title.classList.toggle('long', s.name.length > 11);
     this.sub.replaceChildren(h('b', s.role), ` · ${s.class} · ${fmtLen(s.length)}`);
     this.specHead.textContent = `${m.name} ${s.name}`;
     const rows = [['Maker', m.full], ['Length', fmtLen(s.length)], ['Class', s.class], ['Crew', s.crew], ['Role', s.role]];
@@ -447,26 +448,31 @@ export class Showroom {
     this.dock.hidden = false;
     this.still.classList.remove('on');
     this.canvas.hidden = false;
-    this.loading(s, m);
+    // same hall: no full-screen loader, the camera flies bay to bay (a small pill shows any download)
+    this.fullLoader = !(this.viewer?.room?.id === m.id && this.viewer.fleet);
+    if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=b52fe57607ca1078');
+        const { Viewer } = await import('./viewer.js?v=1f76eb7ca065edec');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
-          onTap: () => this.hail(),
+          onTap: (model) => this.tapShip(model),
           onLost: () => this.showStill(this.ship, ['Graphics context lost', 'The GPU dropped the 3D view. Reload to try again.']),
           onDrag: () => this.coachDone('drag'),
           onHover: (hit, x, y) => this.hover(hit, x, y),
         });
         this.viewer.spin = !reduceMotion();
+        if (/[?&]debug\b/.test(location.search)) window.__viewer = this.viewer;   // console poking, opt-in only
       }
       await this.viewer.show(m, s, (p, label) => {
         if (token !== this.token) return;
         this.bar.style.setProperty('--p', p.toFixed(3));
         this.loadTxt.textContent = label;
-      });
+        if (!this.fullLoader) { this.tag.textContent = `${label.split(' · ')[0]} · ${Math.round(p * 100)}%`; this.tag.hidden = false; }
+      }, shipsOf(m.id));
       if (token !== this.token) return;
       this.ready(s);
+      if (this.pendingHail === s.id) { this.pendingHail = null; this.hail(); }
       if (keep.walk) this.walkMode(true);
       else if (keep.tour >= 0) this.tourGo(Math.min(keep.tour, (this.viewer.ship?.pois?.length || 1) - 1));
       this.coachStart();
@@ -478,11 +484,19 @@ export class Showroom {
     }
   }
 
-  hover(hit, x, y) {
-    const show = hit && !this.viewer?.walk && (this.maker?.voice?.lines?.length || this.ship?.extra_lines?.length);
+  /** a hull in the hall was clicked: the focused one answers, any other one is flown to (and then answers) */
+  tapShip(model) {
+    if (!model || model.id === this.ship?.id) return this.hail();
+    this.pendingHail = model.id;
+    location.hash = `#/${this.maker.id}/${model.id}`;
+  }
+
+  hover(model, x, y, focused) {
+    const show = model && !this.viewer?.walk;
     this.tip.hidden = !show;
     if (show) {
-      this.tip.textContent = touch() ? 'Tap to hail' : 'Click to hail';
+      const verb = touch() ? 'Tap' : 'Click';
+      this.tip.textContent = focused ? `${verb} to hail` : `${verb} to view the ${model.name}`;
       this.tip.style.transform = `translate3d(${x + 16}px, ${y + 18}px, 0)`;
     }
   }
@@ -509,20 +523,23 @@ export class Showroom {
     this.press(this.b.spin, v.spin);
     this.thr.value = String(Math.round(v.S.thrust * 100));
     this.thr.dispatchEvent(new Event('input'));
-    if (v.ship && !v.ship.fits) {
-      this.tag.textContent = `1:${v.ship.N} scale model · ${fmtLen(s.length)} in service`;
+    this.tag.hidden = true;
+    this.b.spin.hidden = !!v.ship?.outdoor;
+    if (v.ship?.outdoor) {
+      this.tag.textContent = `Outside the glass · true scale · ${fmtLen(s.length)}`;
       this.tag.hidden = false;
     }
     cancelAnimationFrame(this.statusRaf);
     const status = () => {
-      if (this.root.hidden || !this.viewer?.ship) return;
+      if (this.root.hidden || !this.viewer) return;
+      this.statusRaf = requestAnimationFrame(status);
+      if (!this.viewer.ship?.rig) return;                // a hull is streaming in
       const S = this.viewer.S;
       const g = !this.viewer.ship.rig.hasGear ? 'NONE' : S.gearT <= 0 ? 'STOWED' : S.gearT >= 1 ? 'DOWN · LOCKED' : S.gearDir > 0 ? 'DEPLOYING' : 'RETRACTING';
       if (this.sGear.textContent !== g) this.sGear.textContent = g;
       const r = S.retro > 0.05 ? 'BURNING' : 'SAFE';
       if (this.sRetro.textContent !== r) this.sRetro.textContent = r;
       this.drawDots();
-      this.statusRaf = requestAnimationFrame(status);
     };
     status();
   }

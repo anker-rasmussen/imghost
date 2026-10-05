@@ -353,7 +353,8 @@ a:hover > .link-arrow::after, .link-arrow:hover::after { transform: translateX(5
 .v-crumbs a:hover { color: #fff; }
 .v-crumbs [aria-current] { color: #fff; }
 .v-title h1 { font-family: var(--display); font-weight: var(--display-weight); text-transform: var(--display-case); letter-spacing: var(--display-track);
-  font-size: clamp(26px, 3.4vw, 54px); line-height: 1; margin: 2px 0 0; overflow-wrap: anywhere; }
+  font-size: clamp(26px, 3.4vw, 54px); line-height: 1; margin: 2px 0 0; }
+.v-title h1.long { font-size: clamp(20px, 2.5vw, 40px); }
 .v-sub { font: 400 11.5px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--v-dim); }
 .v-sub b { color: #fff; font-weight: 400; }
 .v-topmid { padding-top: 6px; }
