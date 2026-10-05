@@ -3486,8 +3486,8 @@ export default {
     "aspect": 0.1041
    },
    "glb": {
-    "src": "assets/ships/Tharsis.glb?v=40549ad5ccbfec0d",
-    "bytes": 6444388,
+    "src": "assets/ships/Tharsis.glb?v=8349ce7fef55e1ba",
+    "bytes": 9023844,
     "tris": 308959,
     "draw_calls": 7,
     "has_gear": false,
@@ -3501,8 +3501,8 @@ export default {
     "retro": false
    },
    "thumb": {
-    "src": "assets/thumbs/Tharsis.webp?v=38144c6f7281d3b3",
-    "small": "assets/thumbs/Tharsis.webp?v=38144c6f7281d3b3",
+    "src": "assets/thumbs/Tharsis.webp?v=451051055137488c",
+    "small": "assets/thumbs/Tharsis.webp?v=451051055137488c",
     "w": 640,
     "h": 360
    }

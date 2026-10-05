@@ -15,7 +15,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=4136c9fa52f7435e';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=3454873e69b4eebf';
+import data from './data.js?v=d28b22cec25f9dd1';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);

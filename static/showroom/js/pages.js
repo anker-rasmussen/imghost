@@ -2,7 +2,7 @@
 import {
   h, fleet, makers, ships, shipsOf, maker, logo, picture, themeVars, fmtLen, pad2, cssUrl, reveal, reduceMotion,
   showroomShip, FLEET_THEME,
-} from './util.js?v=16ced7150ac46008';
+} from './util.js?v=9af9bce2c54729c9';
 
 const range = (list) => `${fmtLen(list[0].length)} – ${fmtLen(list[list.length - 1].length)}`;
 const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
