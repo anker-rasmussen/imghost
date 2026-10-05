@@ -1119,22 +1119,22 @@ export default {
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
    "hero": {
-    "src": "assets/makers/daedalus-hero.webp?v=218d469dc22efcc1",
-    "small": "assets/makers/daedalus-hero-640.webp?v=02cb39ee027d10a1",
+    "src": "assets/makers/daedalus-hero.webp?v=d27107b5beb31c76",
+    "small": "assets/makers/daedalus-hero-640.webp?v=f9bed9bf450ede0a",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/daedalus-wide.webp?v=bf77e3650f4810eb",
-    "small": "assets/makers/daedalus-wide-640.webp?v=dc35e04d54ef4d15",
+    "src": "assets/makers/daedalus-wide.webp?v=c353542702970cd2",
+    "small": "assets/makers/daedalus-wide-640.webp?v=5b1b5d176fb72a04",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/daedalus/room.glb?v=72647a84bf8f753c",
-    "env": "assets/rooms/daedalus/env.hdr?v=88977f0cba6b2404",
-    "bg": "assets/rooms/daedalus/bg.hdr?v=58b9f5770dfaf438",
-    "bytes": 11696512,
+    "glb": "assets/rooms/daedalus/room.glb?v=4079ef725a5d7821",
+    "env": "assets/rooms/daedalus/env.hdr?v=d189545f61549498",
+    "bg": "assets/rooms/daedalus/bg.hdr?v=e24509615840770b",
+    "bytes": 11512275,
     "info": {
      "brand": "Daedalus",
      "turntable": {
@@ -1308,8 +1308,8 @@ export default {
       2.0
      ],
      "room": {
-      "triangles": 24544,
-      "glb_bytes": 700984,
+      "triangles": 24414,
+      "glb_bytes": 508088,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1319,7 +1319,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 2.5482,
+        "k": 1.8254,
         "size": [
          2048,
          2048
@@ -1353,9 +1353,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 700984,
-      "env.hdr": 5578538,
-      "bg.hdr": 5416990
+      "room.glb": 508088,
+      "env.hdr": 5429359,
+      "bg.hdr": 5574828
      },
      "env": {
       "file": "env.hdr",
@@ -1622,22 +1622,22 @@ export default {
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
    "hero": {
-    "src": "assets/makers/cydonia-hero.webp?v=3576cab3ef011518",
-    "small": "assets/makers/cydonia-hero-640.webp?v=7828c0297abafc11",
+    "src": "assets/makers/cydonia-hero.webp?v=95360377c9b15eba",
+    "small": "assets/makers/cydonia-hero-640.webp?v=e5effc7b84b7de8f",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/cydonia-wide.webp?v=51a28138a728cf35",
-    "small": "assets/makers/cydonia-wide-640.webp?v=dee11b2e3d539dcc",
+    "src": "assets/makers/cydonia-wide.webp?v=8f14c471531d62b4",
+    "small": "assets/makers/cydonia-wide-640.webp?v=e1b1a5b013b96baf",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/cydonia/room.glb?v=bba6ab4bf6350787",
-    "env": "assets/rooms/cydonia/env.hdr?v=6e1977ee91450550",
-    "bg": "assets/rooms/cydonia/bg.hdr?v=e1cf63881f7bf7df",
-    "bytes": 7865296,
+    "glb": "assets/rooms/cydonia/room.glb?v=f22cb54b9e6c82c2",
+    "env": "assets/rooms/cydonia/env.hdr?v=8ad190cc0f24804b",
+    "bg": "assets/rooms/cydonia/bg.hdr?v=65fe262a3c3499d1",
+    "bytes": 7459647,
     "info": {
      "brand": "Cydonia",
      "turntable": {
@@ -1916,8 +1916,8 @@ export default {
       1.5
      ],
      "room": {
-      "triangles": 26786,
-      "glb_bytes": 957440,
+      "triangles": 26790,
+      "glb_bytes": 517060,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1961,9 +1961,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 957440,
-      "env.hdr": 6469295,
-      "bg.hdr": 438561
+      "room.glb": 517060,
+      "env.hdr": 6504974,
+      "bg.hdr": 437613
      },
      "env": {
       "file": "env.hdr",
@@ -1978,7 +1978,7 @@ export default {
      "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
      "tone_mapping": {
       "three": "AgXToneMapping",
-      "exposure": 4.0
+      "exposure": 4.9246
      }
     }
    },
