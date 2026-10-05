@@ -316,10 +316,10 @@ export default {
     "h": 900
    },
    "room": {
-    "glb": "assets/rooms/helios/room.glb?v=a99d85cfe55ac7dd",
+    "glb": "assets/rooms/helios/room.glb?v=28826ec5e0b6cef1",
     "env": "assets/rooms/helios/env.hdr?v=bdda62738c37d827",
     "bg": "assets/rooms/helios/bg.hdr?v=75f28f91202ab71b",
-    "bytes": 6839130,
+    "bytes": 6856738,
     "info": {
      "brand": "Helios",
      "turntable": {
@@ -339,11 +339,11 @@ export default {
        26.5
       ],
       "target": [
-       1.5,
+       -4.0,
        3.2,
        -10.0
       ],
-      "fov": 53.7,
+      "fov": 56.11,
       "orbit_min_distance": 14.0,
       "orbit_max_distance": 50.0,
       "min_height": 1.2,
@@ -351,9 +351,9 @@ export default {
      },
      "key_light": {
       "direction": [
-       0.2556,
-       -0.1564,
-       0.954
+       0.3722,
+       -0.1132,
+       0.9212
       ],
       "intensity": 3.0,
       "color": [
@@ -371,13 +371,13 @@ export default {
       "apex_y": 32.0
      },
      "sun_dir": [
-      0.2556,
-      -0.1564,
-      0.954
+      0.3722,
+      -0.1132,
+      0.9212
      ],
      "ship": {
       "model": "Corona",
-      "length": 31.4,
+      "length": 32.73,
       "scale": 1.0,
       "origin": [
        0.0,
@@ -425,32 +425,32 @@ export default {
       "note": "hero-only in the stills; load the model glbs here in the viewer"
      },
      "room": {
-      "triangles": 36646,
-      "glb_bytes": 1781028,
+      "triangles": 56344,
+      "glb_bytes": 1798636,
       "lightmaps": {
        "floor": {
-        "k": 1.2018,
+        "k": 1.1715,
         "size": [
          4096,
          3072
         ]
        },
        "shell": {
-        "k": 2.3648,
+        "k": 3.2109,
         "size": [
          4096,
          4096
         ]
        },
        "sign": {
-        "k": 2.0303,
+        "k": 1.1567,
         "size": [
          2048,
          2048
         ]
        },
        "glow": {
-        "k": 2.0,
+        "k": 5.0689,
         "size": [
          256,
          256
@@ -470,9 +470,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 1781028,
-      "env.hdr": 3149409,
-      "bg.hdr": 605537
+      "room.glb": 1798636,
+      "env.hdr": 4077277,
+      "bg.hdr": 980825
      },
      "env": {
       "file": "env.hdr",
@@ -545,8 +545,8 @@ export default {
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
    "hero": {
-    "src": "assets/makers/daedalus-hero.webp?v=8869765b7a495fe1",
-    "small": "assets/makers/daedalus-hero-640.webp?v=8d9338c1d025312a",
+    "src": "assets/makers/daedalus-hero.webp?v=cd27308ca4b2071a",
+    "small": "assets/makers/daedalus-hero-640.webp?v=f76ffe28a13fd865",
     "w": 1280,
     "h": 720
    },
@@ -556,7 +556,184 @@ export default {
     "w": 1280,
     "h": 720
    },
-   "room": null
+   "room": {
+    "glb": "assets/rooms/daedalus/room.glb?v=615a0b966652b0db",
+    "env": "assets/rooms/daedalus/env.hdr?v=e18e76420985eddc",
+    "bg": "assets/rooms/daedalus/bg.hdr?v=819ebe06c442fe34",
+    "bytes": 11932924,
+    "info": {
+     "brand": "Daedalus",
+     "turntable": {
+      "center": [
+       0,
+       0.3,
+       0
+      ],
+      "radius": 17.0,
+      "top": 0.3,
+      "max_ship_length": 40.0
+     },
+     "camera": {
+      "position": [
+       -21.0,
+       2.6,
+       21.0
+      ],
+      "target": [
+       2.0,
+       3.6,
+       -3.0
+      ],
+      "fov": 49.43,
+      "orbit_min_distance": 16.0,
+      "orbit_max_distance": 45.0,
+      "min_height": 1.2,
+      "max_height": 12.0
+     },
+     "key_light": {
+      "direction": [
+       0.15,
+       -1.0,
+       -0.3
+      ],
+      "intensity": 2.0,
+      "color": [
+       1.0,
+       0.78,
+       0.45
+      ],
+      "note": "sodium floods under the gantry crane (three.js travel direction)"
+     },
+     "hall": {
+      "half_width": 28.0,
+      "back_y": -26.0,
+      "glass_y": 24.0,
+      "height": 15.0
+     },
+     "ship": {
+      "model": "Mule",
+      "length": 35.13,
+      "scale": 1.0,
+      "origin": [
+       0.0,
+       5.8,
+       -0.0
+      ],
+      "yaw_deg": 205.0
+     },
+     "fill_light": {
+      "direction": [
+       0.0,
+       -1.0,
+       -0.0
+      ],
+      "intensity": 0.6,
+      "color": [
+       0.95,
+       0.95,
+       1.0
+      ],
+      "note": "LED high-bays"
+     },
+     "floor_reflect": 0.08,
+     "floor_blur": [
+      4.0,
+      2.0
+     ],
+     "scale_models": {
+      "Ox": {
+       "position": [
+        -12.0,
+        1.1,
+        -18.0
+       ],
+       "length": 4.0
+      },
+      "Titan": {
+       "position": [
+        12.5,
+        1.1,
+        -18.0
+       ],
+       "length": 5.0
+      },
+      "Minotaur": {
+       "position": [
+        19.5,
+        1.1,
+        -6.0
+       ],
+       "length": 4.5
+      },
+      "note": "hero-only in the stills; load the model glbs here in the viewer"
+     },
+     "room": {
+      "triangles": 14876,
+      "glb_bytes": 712304,
+      "lightmaps": {
+       "floor": {
+        "k": 1.0,
+        "size": [
+         4096,
+         3072
+        ]
+       },
+       "shell": {
+        "k": 1.0,
+        "size": [
+         2048,
+         2048
+        ]
+       },
+       "sign": {
+        "k": 1.0,
+        "size": [
+         1024,
+         1024
+        ]
+       },
+       "glow": {
+        "k": 40.0,
+        "size": [
+         256,
+         256
+        ]
+       }
+      },
+      "meshes": [
+       "room_floor",
+       "room_shell",
+       "room_sign",
+       "room_glow",
+       "room_glass"
+      ],
+      "reflective": [
+       "room_floor"
+      ],
+      "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
+     },
+     "files": {
+      "room.glb": 712304,
+      "env.hdr": 5980755,
+      "bg.hdr": 5239865
+     },
+     "env": {
+      "file": "env.hdr",
+      "probe_height": 3.5,
+      "rotation_y": 0,
+      "note": "equirect, linear Radiance HDR, three.js orientation (no rotation needed)"
+     },
+     "background": {
+      "file": "bg.hdr",
+      "note": "outside only (room hidden): scene.background, visible through the glass"
+     },
+     "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
+     "tone_mapping": {
+      "three": "AgXToneMapping",
+      "exposure": 3.249
+     }
+    }
+   }
   },
   {
    "id": "cydonia",
@@ -618,8 +795,8 @@ export default {
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
    "hero": {
-    "src": "assets/makers/cydonia-hero.webp?v=cc9b52d9ab3aca10",
-    "small": "assets/makers/cydonia-hero-640.webp?v=42c40c70800ae4a0",
+    "src": "assets/makers/cydonia-hero.webp?v=bb58f471b46ac2c5",
+    "small": "assets/makers/cydonia-hero-640.webp?v=d457c113ee4d002a",
     "w": 1280,
     "h": 720
    },
@@ -629,7 +806,196 @@ export default {
     "w": 1600,
     "h": 750
    },
-   "room": null
+   "room": {
+    "glb": "assets/rooms/cydonia/room.glb?v=a17256201b48d465",
+    "env": "assets/rooms/cydonia/env.hdr?v=1966b47fdf3a3bbd",
+    "bg": "assets/rooms/cydonia/bg.hdr?v=79212de71f4811fc",
+    "bytes": 7283107,
+    "info": {
+     "brand": "Cydonia",
+     "turntable": {
+      "center": [
+       0,
+       0.25,
+       0
+      ],
+      "radius": 10.0,
+      "top": 0.25,
+      "max_ship_length": 22.0
+     },
+     "camera": {
+      "position": [
+       -9.5,
+       1.8,
+       15.5
+      ],
+      "target": [
+       -0.5,
+       2.4,
+       -6.0
+      ],
+      "fov": 53.7,
+      "orbit_min_distance": 9.0,
+      "orbit_max_distance": 30.0,
+      "min_height": 1.0,
+      "max_height": 10.0
+     },
+     "key_light": {
+      "direction": [
+       0.0,
+       -1.0,
+       -0.25
+      ],
+      "intensity": 1.8,
+      "color": [
+       0.94,
+       0.96,
+       1.0
+      ],
+      "note": "task floods under the I-beams (three.js travel direction)"
+     },
+     "hall": {
+      "half_width": 22.0,
+      "back_y": -22.0,
+      "glass_y": 20.0,
+      "height": 14.0
+     },
+     "sun_dir": [
+      0.451,
+      -0.4811,
+      -0.7517
+     ],
+     "ship": {
+      "model": "Talon",
+      "length": 16.09,
+      "scale": 1.0,
+      "origin": [
+       0.0,
+       2.7,
+       -0.0
+      ],
+      "yaw_deg": 210.0
+     },
+     "fill_light": {
+      "direction": [
+       0.0,
+       -0.15,
+       1.0
+      ],
+      "intensity": 0.45,
+      "color": [
+       1.0,
+       0.7,
+       0.55
+      ],
+      "note": "Mars-light through the blast doors"
+     },
+     "floor_reflect": 0.1,
+     "floor_blur": [
+      3.0,
+      1.5
+     ],
+     "scale_models": {
+      "Halberd": {
+       "position": [
+        9.5,
+        1.15,
+        15.0
+       ],
+       "length": 2.6
+      },
+      "Sabre": {
+       "position": [
+        14.5,
+        1.15,
+        15.0
+       ],
+       "length": 3.4
+      },
+      "Gladius": {
+       "position": [
+        18.0,
+        1.15,
+        6.0
+       ],
+       "length": 4.2
+      },
+      "Ares": {
+       "position": [
+        18.0,
+        1.15,
+        -4.5
+       ],
+       "length": 5.0
+      }
+     },
+     "room": {
+      "triangles": 15180,
+      "glb_bytes": 640080,
+      "lightmaps": {
+       "floor": {
+        "k": 1.0,
+        "size": [
+         4096,
+         3072
+        ]
+       },
+       "shell": {
+        "k": 1.0,
+        "size": [
+         2048,
+         2048
+        ]
+       },
+       "sign": {
+        "k": 1.0,
+        "size": [
+         1024,
+         1024
+        ]
+       },
+       "glow": {
+        "k": 32.2554,
+        "size": [
+         256,
+         256
+        ]
+       }
+      },
+      "meshes": [
+       "room_floor",
+       "room_shell",
+       "room_sign",
+       "room_glow",
+       "room_glass"
+      ],
+      "reflective": [
+       "room_floor"
+      ],
+      "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
+     },
+     "files": {
+      "room.glb": 640080,
+      "env.hdr": 6356352,
+      "bg.hdr": 286675
+     },
+     "env": {
+      "file": "env.hdr",
+      "probe_height": 2.5,
+      "rotation_y": 0,
+      "note": "equirect, linear Radiance HDR, three.js orientation (no rotation needed)"
+     },
+     "background": {
+      "file": "bg.hdr",
+      "note": "outside only (room hidden): scene.background, visible through the glass"
+     },
+     "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
+     "tone_mapping": {
+      "three": "AgXToneMapping",
+      "exposure": 2.5491
+     }
+    }
+   }
   },
   {
    "id": "kingsley",
@@ -685,8 +1051,8 @@ export default {
    "logo": "assets/brands/kingsley/logo.webp?v=a49d124d82bd8399",
    "mark": "assets/brands/kingsley/mark.webp?v=4c2a3580cc3c268c",
    "hero": {
-    "src": "assets/makers/kingsley-hero.webp?v=ccd9826649a9c632",
-    "small": "assets/makers/kingsley-hero-640.webp?v=ad6c65c6fa67272d",
+    "src": "assets/makers/kingsley-hero.webp?v=fef292b65383ccfd",
+    "small": "assets/makers/kingsley-hero-640.webp?v=35128e8ce8c53280",
     "w": 1280,
     "h": 720
    },
@@ -696,7 +1062,181 @@ export default {
     "w": 1280,
     "h": 720
    },
-   "room": null
+   "room": {
+    "glb": "assets/rooms/kingsley/room.glb?v=20f3ee96c3ae20cb",
+    "env": "assets/rooms/kingsley/env.hdr?v=d2d7ff6856d4d3f6",
+    "bg": "assets/rooms/kingsley/bg.hdr?v=c646871ff50d9c13",
+    "bytes": 10226337,
+    "info": {
+     "brand": "Kingsley",
+     "turntable": {
+      "center": [
+       0,
+       0.22,
+       0
+      ],
+      "radius": 10.5,
+      "top": 0.22,
+      "max_ship_length": 22.0
+     },
+     "camera": {
+      "position": [
+       -13.5,
+       2.1,
+       11.8
+      ],
+      "target": [
+       1.0,
+       2.1,
+       -5.0
+      ],
+      "fov": 53.7,
+      "orbit_min_distance": 9.0,
+      "orbit_max_distance": 26.0,
+      "min_height": 1.0,
+      "max_height": 9.0
+     },
+     "key_light": {
+      "direction": [
+       0.1,
+       -1.0,
+       -0.05
+      ],
+      "intensity": 1.6,
+      "color": [
+       1.0,
+       0.82,
+       0.6
+      ],
+      "note": "warm tungsten pendants overhead (three.js travel direction)"
+     },
+     "hall": {
+      "half_width": 18.0,
+      "back_y": -16.0,
+      "glass_y": 15.0,
+      "height": 12.0
+     },
+     "sun_dir": [
+      0.4508,
+      -0.6411,
+      -0.6211
+     ],
+     "ship": {
+      "model": "Sprite",
+      "length": 18.03,
+      "scale": 1.0,
+      "origin": [
+       0.0,
+       2.97,
+       -0.0
+      ],
+      "yaw_deg": 200.0
+     },
+     "fill_light": {
+      "direction": [
+       0.0,
+       -0.2,
+       1.0
+      ],
+      "intensity": 0.5,
+      "color": [
+       0.8,
+       0.86,
+       1.0
+      ],
+      "note": "cool moonlight through the arched window"
+     },
+     "floor_reflect": 0.12,
+     "floor_blur": [
+      3.0,
+      1.5
+     ],
+     "scale_models": {
+      "Ascot": {
+       "position": [
+        -12.5,
+        1.12,
+        -9.5
+       ],
+       "length": 2.8
+      },
+      "Sovereign": {
+       "position": [
+        12.5,
+        1.12,
+        -9.5
+       ],
+       "length": 4.2
+      },
+      "note": "hero-only in the stills; load the model glbs here in the viewer"
+     },
+     "room": {
+      "triangles": 34565,
+      "glb_bytes": 3323444,
+      "lightmaps": {
+       "floor": {
+        "k": 1.4197,
+        "size": [
+         4096,
+         3072
+        ]
+       },
+       "shell": {
+        "k": 1.0,
+        "size": [
+         2048,
+         2048
+        ]
+       },
+       "sign": {
+        "k": 1.0,
+        "size": [
+         1024,
+         1024
+        ]
+       },
+       "glow": {
+        "k": 25.0,
+        "size": [
+         256,
+         256
+        ]
+       }
+      },
+      "meshes": [
+       "room_floor",
+       "room_shell",
+       "room_sign",
+       "room_glow",
+       "room_glass"
+      ],
+      "reflective": [
+       "room_floor"
+      ],
+      "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
+     },
+     "files": {
+      "room.glb": 3323444,
+      "env.hdr": 4747892,
+      "bg.hdr": 2155001
+     },
+     "env": {
+      "file": "env.hdr",
+      "probe_height": 2.5,
+      "rotation_y": 0,
+      "note": "equirect, linear Radiance HDR, three.js orientation (no rotation needed)"
+     },
+     "background": {
+      "file": "bg.hdr",
+      "note": "outside only (room hidden): scene.background, visible through the glass"
+     },
+     "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
+     "tone_mapping": {
+      "three": "AgXToneMapping",
+      "exposure": 2.4623
+     }
+    }
+   }
   }
  ],
  "ships": [
@@ -1081,10 +1621,26 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Titan.webp?v=f76c668d5022726a",
-    "aspect": 0.1768
+    "src": "assets/silhouettes/Titan.webp?v=9df832e03ea5f44c",
+    "aspect": 0.1708
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Titan.glb?v=567b3ba7e729663f",
+    "bytes": 5824244,
+    "tris": 319997,
+    "draw_calls": 6,
+    "has_gear": false,
+    "export_length": 452.0,
+    "lights": {
+     "beacon": 1,
+     "docking": 2,
+     "engine": 9,
+     "landing": 1,
+     "nav": 4,
+     "strobe": 4
+    },
+    "retro": false
+   }
   },
   {
    "maker": "daedalus",

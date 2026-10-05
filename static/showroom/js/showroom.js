@@ -1,7 +1,7 @@
 // Showroom HUD: title, spec plate, ship switcher, flight console (gear / nav / strobes / thrust / retro / hail),
 // loader with the ship's poster, and the poster fallback when there is no real-time model or no WebGL.
 // three.js is imported on demand the first time a real-time model is opened.
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=bd3c649e66744f91';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=f7a130ea85df8883';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }

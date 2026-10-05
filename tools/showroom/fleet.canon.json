@@ -88,7 +88,7 @@
       ],
       "theme": { "mode": "dark", "bg": "#17181A", "bg2": "#22241F", "ink": "#ECE6D2", "muted": "#9C9883", "accent": "#E8B21E", "line": "rgba(236,230,210,.14)", "display": "Saira Stencil One", "body": "Barlow Condensed", "display_case": "uppercase", "display_track": "0.02em" },
       "logo": { "src": "universe/brands/daedalus/logo_horizontal.png", "mark": "universe/brands/daedalus/mark.png" },
-      "hero_render": "v2_daedalus_Ox_hero.png",
+      "hero_render": "showroom_daedalus_hero.png",
       "wide_render": "v2_daedalus_lineup.png"
     },
     {
@@ -111,7 +111,7 @@
       ],
       "theme": { "mode": "dark", "bg": "#1C1C1F", "bg2": "#2B2B2E", "ink": "#CFCBBF", "muted": "#8D8A82", "accent": "#E0702A", "accent2": "#7A2E1F", "line": "rgba(207,203,191,.14)", "display": "Barlow Condensed", "display_weight": "600", "body": "Barlow Condensed", "display_case": "uppercase", "display_track": "0.12em" },
       "logo": { "src": "universe/brands/cydonia/logo_horizontal.png", "mark": "universe/brands/cydonia/mark.png" },
-      "hero_render": "v2_cydonia_Ares_hero.png",
+      "hero_render": "showroom_cydonia_hero.png",
       "wide_render": "v2_cydonia_capital_lineup.png"
     },
     {
