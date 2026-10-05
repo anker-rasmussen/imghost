@@ -670,10 +670,11 @@
       "role": "Supercarrier / flagship",
       "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground.",
       "hero": {
-        "swing_deg": 0,
-        "elevation_deg": 1,
+        "swing_deg": 180,
+        "elevation_deg": 4,
         "pitch_limit_deg": 20,
-        "_note": "side-on from the hall with Mars below; the top of the export has decimation holes"
+        "key_gain": 1.8,
+        "_note": "round-3 framing: starboard flank from the hall's sight line, slightly above, lit side to the key, Mars below-right"
       }
     },
     {

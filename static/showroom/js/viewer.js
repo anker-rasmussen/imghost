@@ -15,7 +15,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=4136c9fa52f7435e';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=16d8dc489cc8f1f4';
+import data from './data.js?v=3454873e69b4eebf';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -351,7 +351,8 @@ export class Viewer {
     const x = this.exterior; if (!x) return;
     // same exterior look in every hall: intensities normalised by the hall's exposure
     const ex = this.renderer.toneMappingExposure || 1;
-    x.key.intensity = on ? 7 / ex : 0; x.rim.intensity = on ? 3 / ex : 0;
+    const gain = (on && this.ship?.model.hero?.key_gain) || 1;   // dark hulls (Cydonia charcoal) may ask for more key
+    x.key.intensity = on ? 7 * gain / ex : 0; x.rim.intensity = on ? 3 / ex : 0;
     this.fadeRoom(!on);
     if (on) for (const e of this.fleet?.values() || []) if (e.outdoor) e.holder.visible = e === this.ship;   // giant to giant
     if (target) {
