@@ -63,7 +63,8 @@ function studioInfo() {
 export class Viewer {
   constructor(canvas, { onTap, onLost, onDrag, onHover } = {}) {
     this.canvas = canvas;
-    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance',
+      logarithmicDepthBuffer: true });   // 5 cm close-ups and 5 km giants in one depth buffer
     r.toneMapping = THREE.AgXToneMapping;
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -429,7 +430,6 @@ export class Viewer {
       e.holder.rotation.y = e.yaw;
       e.holder.userData.entry = e;
       this.scene.add(e.holder);
-      this.addGhost(e);
       this.fleet.set(s.id, e);
     }
   }
@@ -460,7 +460,7 @@ export class Viewer {
     this.ship = null;
   }
 
-  async loadEntry(e, onProgress) {
+  async loadEntry(e, onProgress, { full = false } = {}) {
     if (e.state === 'ready') return e;
     if (e.promise) return e.promise;
     e.state = 'loading';
@@ -470,7 +470,9 @@ export class Viewer {
       e.prefetch = null;
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
       // giants seen through the glass from hundreds of metres: quarter-resolution textures keep GPU memory sane
-      if (e.outdoor) await downscaleTextures(gl.scene, 4);
+      // (the focused giant is upgraded to full resolution)
+      e.lowres = e.outdoor && !full;
+      if (e.lowres) await downscaleTextures(gl.scene, 4);
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
       const rig = rigShip(gl, { realLights: false, length: e.model.length });
       e.rig = rig;
@@ -508,6 +510,18 @@ export class Viewer {
     this.snapPois(e);
   }
 
+  /** swap a giant's quarter-res copy for the full-resolution hull (the glb is in the HTTP cache by now) */
+  async upgrade(e, progress) {
+    const token = this.fleetToken;
+    const gl = await this.gltf.loadAsync(e.model.glb.src, progress);
+    if (token !== this.fleetToken || this.ship !== e) { disposeTree(gl.scene); return; }
+    const old = e.rig;
+    e.holder.remove(old.root); old.dispose();
+    e.rig = rigShip(gl, { realLights: false, length: e.model.length });
+    e.lowres = false;
+    this.placeEntry(e);
+  }
+
   /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
   async focus(ship, progress, instant) {
     const e = this.fleet?.get(ship.id);
@@ -515,7 +529,10 @@ export class Viewer {
     const prev = this.ship;
     if (prev && prev !== e) { prev.holder.rotation.y = prev.yaw; prev.spinYaw = 0; prev.rig?.setHighlight(0); }
     this.ship = e;
-    if (e.state !== 'ready') await this.loadEntry(e, progress);
+    if (prev && prev !== e && prev.outdoor && !prev.lowres && prev.rig) { prev.lowres = true; downscaleTextures(prev.rig.root, 4); }
+    if (e.state !== 'ready') await this.loadEntry(e, progress, { full: true });
+    if (this.ship !== e) return;
+    if (e.lowres) await this.upgrade(e, progress);
     if (this.ship !== e) return;
     this.frameShip(instant);
     this.streamRest();
@@ -589,13 +606,14 @@ export class Viewer {
       // passes through the window (glass bounds come from the room's own glass mesh)
       const g = this.room.glassBox, fb = this.roomBox();
       const gz = g ? Math.max(g.min.z, fb.z0 - 1.5) : fb.z0;
-      const z = Math.min(gz + 4, fb.z1);
+      const z = Math.min(gz + 10, fb.z1);
       const gx0 = g ? g.min.x + 2 : -box.x, gx1 = g ? g.max.x - 2 : box.x;
       // choose x so the ray to the giant crosses the glass plane inside the window
-      let x = THREE.MathUtils.clamp(target.x * 0.02, gx0 * 0.5, gx1 * 0.5);
+      const in0 = gx0 + (gx1 - gx0) * 0.2, in1 = gx1 - (gx1 - gx0) * 0.2;   // look through the middle of the window
+      let x = THREE.MathUtils.clamp(target.x * 0.02, in0, in1);
       const k = (gz - z) / (target.z - z);
       const cross = x + (target.x - x) * k;
-      if (cross < gx0 || cross > gx1) x = THREE.MathUtils.clamp((THREE.MathUtils.clamp(cross, gx0, gx1) - target.x * k) / (1 - k), -box.x, box.x);
+      if (cross < in0 || cross > in1) x = THREE.MathUtils.clamp((THREE.MathUtils.clamp(cross, in0, in1) - target.x * k) / (1 - k), -box.x, box.x);
       const gy = g ? THREE.MathUtils.clamp(g.min.y + (g.max.y - g.min.y) * 0.3, tt.top + 2, g.max.y - 2) : tt.top + 4;
       pos = new THREE.Vector3(x, gy, z);
     } else {
@@ -621,7 +639,7 @@ export class Viewer {
         const z = Math.max(1, -v.z);
         need = Math.max(need, Math.abs(v.x) / z / this.camera.aspect, Math.abs(v.y) / z);
       }
-      this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(need * 1.15)), 6, baseFov);
+      this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(need * 1.35)), 10, baseFov);
     } else this.camera.fov = Math.min(62, baseFov);
     this.camera.updateProjectionMatrix();
     const c = this.controls;
@@ -732,7 +750,7 @@ export class Viewer {
       const n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : dw.clone();
       if (n.dot(dw) < 0) n.negate();
       p.local = root.worldToLocal(hit.point.clone());
-      p.dotLocal = root.worldToLocal(hit.point.clone().addScaledVector(n, 0.3));
+      p.dotLocal = root.worldToLocal(hit.point.clone().addScaledVector(n, 0.12));
       p.normalLocal = n.applyQuaternion(qi).normalize();
       // look at the surface from between the authored angle and the surface normal
       p.dir = p.dir.clone().add(p.normalLocal.clone().multiplyScalar(0.3)).normalize();
@@ -767,7 +785,7 @@ export class Viewer {
   /** screen positions of the hull hotspots (not the profile / plan views) */
   hotspots(w, h) {
     const s = this.ship;
-    if (!s?.pois || !s.rig || this.walk) return [];
+    if (!s?.pois || !s.rig || s.state !== 'ready' || this.walk) return [];
     const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
     const now = performance.now(), ray = this._occRay ||= new THREE.Raycaster();
     const cam = this.camera.position, out = [];
