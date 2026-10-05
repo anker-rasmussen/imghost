@@ -150,7 +150,7 @@ export class Viewer {
     }
     this.disposeShip();
     this.disposeRoom();
-    this.room = { id: maker.id, info, ...built };
+    this.room = { id: maker.id, info, totem: maker.totem || null, ...built };
     this.scene.add(this.room.group);
     this.renderer.toneMappingExposure = info.tone_mapping?.exposure ?? 1;
     this.resize();
@@ -259,13 +259,16 @@ export class Viewer {
     const rt = refl.getRenderTarget();
     const tmp = rt.clone();
     const mat = new THREE.ShaderMaterial({
-      uniforms: { tex: { value: null }, dir: { value: new THREE.Vector2() } },
+      uniforms: { tex: { value: null }, dir: { value: new THREE.Vector2() }, cap: { value: 0.6 } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: `uniform sampler2D tex; uniform vec2 dir; varying vec2 vUv;
+      // each tap is soft-clamped first: ceiling softboxes and emissive cards would otherwise smear into bright blobs
+      // (polished concrete reflects shapes, not light sources at full HDR strength)
+      fragmentShader: `uniform sampler2D tex; uniform vec2 dir; uniform float cap; varying vec2 vUv;
+        vec4 s(vec2 uv) { vec4 c = texture2D(tex, uv); c.rgb = c.rgb / (1.0 + max(vec3(0.0), c.rgb - cap)); return c; }
         void main() {
-          vec4 c = texture2D(tex, vUv) * 0.2270270270;
-          c += (texture2D(tex, vUv + dir * 1.3846153846) + texture2D(tex, vUv - dir * 1.3846153846)) * 0.3162162162;
-          c += (texture2D(tex, vUv + dir * 3.2307692308) + texture2D(tex, vUv - dir * 3.2307692308)) * 0.0702702703;
+          vec4 c = s(vUv) * 0.2270270270;
+          c += (s(vUv + dir * 1.3846153846) + s(vUv - dir * 1.3846153846)) * 0.3162162162;
+          c += (s(vUv + dir * 3.2307692308) + s(vUv - dir * 3.2307692308)) * 0.0702702703;
           gl_FragColor = c;
         }`,
       depthTest: false, depthWrite: false,
@@ -383,9 +386,45 @@ export class Viewer {
     root.position.set(-cx * scale, base - box.min.y * scale + (s.fits && !rig.hasGear ? Math.max(0.6, size.y * 0.12) : 0), -cz * scale);
     const c = v3(tt.center || [0, top, 0]);
     this.stage.position.set(c.x, 0, c.z);
-    if (!keepCamera) this.stage.rotation.y = THREE.MathUtils.degToRad(info.ship?.yaw_deg ?? 160);
+    if (!keepCamera) {
+      // hero opening: camera at a 3/4 angle, ship turned so its nose (-Z) points 35 degrees off the camera line
+      this.heroAz = this.heroAzimuth();
+      this.stage.rotation.y = this.heroAz + this.heroSide * THREE.MathUtils.degToRad(35) - Math.PI;
+    }
     this.stage.add(holder);
     this.frameShip(keepCamera);
+  }
+
+  /** horizontal camera azimuth for the opening shot: the room's authored camera, swung 45 degrees off the spec
+   *  totem (a baked prop at the turntable's edge) so it never stands between the lens and the hull */
+  heroAzimuth() {
+    const info = this.room.info, cam = info.camera, c = v3(info.turntable.center || [0, 0, 0]);
+    const a = v3(cam.position).sub(v3(cam.target));
+    let az = Math.atan2(a.x, a.z);
+    this.heroSide = 1;
+    const tot = this.room.totem;
+    if (tot) {
+      // try 40..80 degrees either side of the totem; keep the direction with the most floor behind the camera
+      const tAz = Math.atan2(tot[0] - c.x, tot[1] - c.z);
+      const hall = info.hall;
+      const avail = (x) => {                               // horizontal distance from the turntable to the hall wall
+        if (!hall) return 100;
+        const dx = Math.sin(x), dz = Math.cos(x), hw = hall.half_width - 2;
+        const z0 = -hall.glass_y + 1.5, z1 = -hall.back_y - 1.5;
+        const tx = dx > 0 ? (hw - c.x) / dx : dx < 0 ? (-hw - c.x) / dx : Infinity;
+        const tz = dz > 0 ? (z1 - c.z) / dz : dz < 0 ? (z0 - c.z) / dz : Infinity;
+        return Math.min(tx, tz);
+      };
+      let best = -Infinity;
+      for (let deg = 40; deg <= 80; deg += 5) {
+        for (const side of [1, -1]) {
+          const x = tAz + side * THREE.MathUtils.degToRad(deg);
+          const score = Math.min(avail(x), 60) - 0.04 * deg;
+          if (score > best) { best = score; az = x; this.heroSide = side; }
+        }
+      }
+    }
+    return az;
   }
 
   frameShip(instant) {
@@ -400,7 +439,9 @@ export class Viewer {
     // authored hero camera for a full-size ship (it is placed to stay inside the hall)
     const fit = 0.78 * sphere.radius / Math.tan(Math.min(vfov, hfov) / 2);
     const authored = v3(cam.position).distanceTo(v3(cam.target));
-    const dir = v3(cam.position).sub(v3(cam.target)).normalize();
+    const el = THREE.MathUtils.degToRad(this.ship.fits ? 18 : 24);
+    const az = this.heroAz ?? 0;
+    const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
     const target = sphere.center.clone();
     const far = this.ship.fits ? Math.min(authored * 1.05, cam.orbit_max_distance) : cam.orbit_max_distance;
     const dist = THREE.MathUtils.clamp(fit, Math.min(sphere.radius * 1.3, far), far);

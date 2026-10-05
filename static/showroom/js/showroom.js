@@ -1,7 +1,7 @@
 // Showroom HUD: title, spec plate, ship switcher, flight console (gear / nav / strobes / thrust / retro / hail),
 // loader with the ship's poster, and the poster fallback when there is no real-time model or no WebGL.
 // three.js is imported on demand the first time a real-time model is opened.
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=f7a130ea85df8883';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=d45b9aa64fe98b66';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -171,7 +171,7 @@ export class Showroom {
     this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=773eca9b10a781ab');
+        const { Viewer } = await import('./viewer.js?v=7fc82e619f2d628e');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, { onTap: () => this.hail(), onLost: () => this.showStill(this.ship, ['Graphics context lost', 'The GPU dropped the 3D view. Reload to try again.']) });
         this.viewer.spin = !reduceMotion();

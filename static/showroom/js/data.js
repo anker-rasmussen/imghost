@@ -32,6 +32,10 @@ export default {
  "makers": [
   {
    "id": "atlantia",
+   "totem": [
+    -20,
+    15.5
+   ],
    "name": "Atlantia",
    "full": "Atlantia Industries",
    "tagline": "People. Planets. Possibilities.",
@@ -253,6 +257,10 @@ export default {
   },
   {
    "id": "helios",
+   "totem": [
+    -14.5,
+    12.5
+   ],
    "name": "Helios",
    "full": "Helios Aerospace",
    "tagline": "Ride the light.",
@@ -494,6 +502,10 @@ export default {
   },
   {
    "id": "daedalus",
+   "totem": [
+    -14,
+    14.8
+   ],
    "name": "Daedalus",
    "full": "Daedalus Shipworks",
    "tagline": "Built to be rebuilt.",
@@ -737,6 +749,10 @@ export default {
   },
   {
    "id": "cydonia",
+   "totem": [
+    -9,
+    9.6
+   ],
    "name": "Cydonia",
    "full": "Cydonia Shipyards",
    "tagline": "Mars stands ready.",
@@ -999,6 +1015,10 @@ export default {
   },
   {
    "id": "kingsley",
+   "totem": [
+    -11.6,
+    4.6
+   ],
    "name": "Kingsley",
    "full": "Kingsley Aerospace",
    "tagline": "Since 2131. By hand.",
@@ -1695,10 +1715,24 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Talon.webp?v=94e03a04841797f6",
-    "aspect": 0.2408
+    "src": "assets/silhouettes/Talon.webp?v=d8d3a8e72ed5e775",
+    "aspect": 0.2427
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Talon.glb?v=31c8ff481f58ba1e",
+    "bytes": 4167328,
+    "tris": 101118,
+    "draw_calls": 9,
+    "has_gear": true,
+    "export_length": 16.0,
+    "lights": {
+     "engine": 5,
+     "landing": 3,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   }
   },
   {
    "maker": "cydonia",
@@ -1717,10 +1751,24 @@ export default {
     "h": 720
    },
    "silhouette": {
-    "src": "assets/silhouettes/Halberd.webp?v=44f58f733c0e9583",
-    "aspect": 0.1993
+    "src": "assets/silhouettes/Halberd.webp?v=30443afbe2242a1a",
+    "aspect": 0.2008
    },
-   "glb": null
+   "glb": {
+    "src": "assets/ships/Halberd.glb?v=51a6357c77332e45",
+    "bytes": 4230960,
+    "tris": 101154,
+    "draw_calls": 9,
+    "has_gear": true,
+    "export_length": 24.0,
+    "lights": {
+     "engine": 5,
+     "landing": 3,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   }
   },
   {
    "maker": "cydonia",
@@ -1738,8 +1786,24 @@ export default {
     "w": 960,
     "h": 540
    },
-   "silhouette": null,
-   "glb": null
+   "silhouette": {
+    "src": "assets/silhouettes/Sabre.webp?v=9f43c2138f13f6c7",
+    "aspect": 0.2842
+   },
+   "glb": {
+    "src": "assets/ships/Sabre.glb?v=f4d4edb66c1d7d45",
+    "bytes": 5607284,
+    "tris": 170574,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 70.0,
+    "lights": {
+     "engine": 4,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   }
   },
   {
    "maker": "cydonia",
@@ -1757,8 +1821,25 @@ export default {
     "w": 960,
     "h": 540
    },
-   "silhouette": null,
-   "glb": null
+   "silhouette": {
+    "src": "assets/silhouettes/Gladius.webp?v=60ae91ed64007280",
+    "aspect": 0.3217
+   },
+   "glb": {
+    "src": "assets/ships/Gladius.glb?v=b9a3be01e48b0e6e",
+    "bytes": 5634940,
+    "tris": 171596,
+    "draw_calls": 7,
+    "has_gear": false,
+    "export_length": 140.0,
+    "lights": {
+     "engine": 4,
+     "beacon": 1,
+     "nav": 2,
+     "strobe": 2
+    },
+    "retro": false
+   }
   },
   {
    "maker": "cydonia",

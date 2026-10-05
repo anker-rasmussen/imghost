@@ -27,6 +27,7 @@
   "makers": [
     {
       "id": "atlantia",
+      "totem": [-20, 15.5],
       "name": "Atlantia",
       "full": "Atlantia Industries",
       "tagline": "People. Planets. Possibilities.",
@@ -49,6 +50,7 @@
     },
     {
       "id": "helios",
+      "totem": [-14.5, 12.5],
       "name": "Helios",
       "full": "Helios Aerospace",
       "tagline": "Ride the light.",
@@ -71,6 +73,7 @@
     },
     {
       "id": "daedalus",
+      "totem": [-14, 14.8],
       "name": "Daedalus",
       "full": "Daedalus Shipworks",
       "tagline": "Built to be rebuilt.",
@@ -93,6 +96,7 @@
     },
     {
       "id": "cydonia",
+      "totem": [-9, 9.6],
       "name": "Cydonia",
       "full": "Cydonia Shipyards",
       "tagline": "Mars stands ready.",
@@ -116,6 +120,7 @@
     },
     {
       "id": "kingsley",
+      "totem": [-11.6, 4.6],
       "name": "Kingsley",
       "full": "Kingsley Aerospace",
       "tagline": "Since 2131. By hand.",
