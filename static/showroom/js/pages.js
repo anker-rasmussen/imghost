@@ -2,7 +2,7 @@
 import {
   h, fleet, makers, ships, shipsOf, maker, logo, picture, themeVars, fmtLen, pad2, cssUrl, reveal, reduceMotion,
   showroomShip, FLEET_THEME,
-} from './util.js?v=8d89c49146d332b8';
+} from './util.js?v=f8cea1fed0e727ba';
 
 const range = (list) => `${fmtLen(list[0].length)} – ${fmtLen(list[list.length - 1].length)}`;
 const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
@@ -34,9 +34,9 @@ export function landing() {
           h('div', h('dt.micro', 'Smallest → largest'), h('dd', range(all))))),
       h('div.hero-marks',
         makers.map((m) => h('a', { href: `#/${m.id}`, title: m.full }, logo(m, '', 'mark'))),
-        h('a.micro.scroll-cue', { href: '#makers', style: { width: 'auto', 'margin-left': 'auto' }, onclick: (e) => {
+        h('a.btn.solid.hero-cta', { href: '#makers', onclick: (e) => {
           e.preventDefault(); document.getElementById('makers').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
-        } }, 'Five yards below'))));
+        } }, 'Enter the fleet', h('span.arr', { 'aria-hidden': 'true' }, '↓')))));
 
   const studios = h('section.sec#makers', { 'aria-labelledby': 'makers-h' },
     h('div.wrap',

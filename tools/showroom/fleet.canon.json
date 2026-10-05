@@ -6,10 +6,22 @@
     "lede": "Late in the twenty-second century, humanity lives everywhere the Sun reaches: Earth and the Moon, Mars, the Belt, the mirror farms at Mercury. Everything that moves between them was built by someone. Five yards build most of it, and each has its own idea of what a spaceship is for.",
     "rules_title": "Spacecraft first. Brand second.",
     "rules": [
-      ["Form follows thrust.", "Main drives sit on the thrust axis with the mass balanced around them. RCS clusters live at the extremities, where the leverage is."],
-      ["Heat has to go somewhere.", "Radiators are big, flat and edge-on to the plume. Anything that looks like a fin has a job: radiator, array, mast, shield or gear fairing."],
-      ["No wings unless it lands.", "Only hulls under about fifty metres ever meet an atmosphere. Everything larger is shaped by structure, tankage and armour."],
-      ["Taste is restraint.", "One or two big masses, a few secondary forms, detail clustered where the work happens. Lights are small, sparse and dim."]
+      [
+        "Form follows thrust.",
+        "Main drives sit on the thrust axis with the mass balanced around them. RCS clusters live at the extremities, where the leverage is."
+      ],
+      [
+        "Heat has to go somewhere.",
+        "Radiators are big, flat and edge-on to the plume. Anything that looks like a fin has a job: radiator, array, mast, shield or gear fairing."
+      ],
+      [
+        "No wings unless it lands.",
+        "Only hulls under about fifty metres ever meet an atmosphere. Everything larger is shaped by structure, tankage and armour."
+      ],
+      [
+        "Taste is restraint.",
+        "One or two big masses, a few secondary forms, detail clustered where the work happens. Lights are small, sparse and dim."
+      ]
     ],
     "scale_title": "Every hull, to scale",
     "scale_note": "One pixel is one metre. From a sixteen-metre Talon to the two-point-four-kilometre Tharsis.",
@@ -17,17 +29,44 @@
     "colophon": "Every ship is generated procedurally in Blender, baked to a handful of textures and exported as compressed glTF. Showrooms are path-traced in Cycles and baked into lightmaps; ships are lit in real time with an HDR probe captured inside each room. WebGL via three.js; no frameworks, no trackers."
   },
   "size_classes": [
-    { "max": 25, "name": "Fighter / interceptor", "crew": "1–2" },
-    { "max": 50, "name": "Light", "crew": "1–4" },
-    { "max": 150, "name": "Medium", "crew": "4–30" },
-    { "max": 400, "name": "Heavy", "crew": "30–200" },
-    { "max": 1200, "name": "Capital", "crew": "200–3,000" },
-    { "max": 1e9, "name": "Super-capital", "crew": "3,000+" }
+    {
+      "max": 25,
+      "name": "Fighter / interceptor",
+      "crew": "1–2"
+    },
+    {
+      "max": 50,
+      "name": "Light",
+      "crew": "1–4"
+    },
+    {
+      "max": 150,
+      "name": "Medium",
+      "crew": "4–30"
+    },
+    {
+      "max": 400,
+      "name": "Heavy",
+      "crew": "30–200"
+    },
+    {
+      "max": 1200,
+      "name": "Capital",
+      "crew": "200–3,000"
+    },
+    {
+      "max": 1000000000.0,
+      "name": "Super-capital",
+      "crew": "3,000+"
+    }
   ],
   "makers": [
     {
       "id": "atlantia",
-      "totem": [-20, 15.5],
+      "totem": [
+        -20,
+        15.5
+      ],
       "name": "Atlantia",
       "full": "Atlantia Industries",
       "tagline": "People. Planets. Possibilities.",
@@ -36,21 +75,82 @@
       "archetype": "The Toyota and Boeing of space",
       "philosophy": "Dependable, clean, civilian-first. Atlantia builds the ships most people actually fly: blended wing-bodies with continuous curvature, flush canopies and drives folded into the hull. Fins appear only where a radiator needs them.",
       "materials": "Satin off-white composite over a steel-blue pinstripe, ceramic tiles on the belly, bare titanium nozzles blued by heat.",
-      "yard": { "name": "New Carthage Orbital Drydock", "where": "Earth–Moon L4", "copy": "White ring yards, cranes on rails, gantry bays in long clean rows." },
+      "yard": {
+        "name": "New Carthage Orbital Drydock",
+        "where": "Earth–Moon L4",
+        "copy": "White ring yards, cranes on rails, gantry bays in long clean rows."
+      },
       "palette": [
-        { "name": "Off-white", "hex": "#E3E1DB", "role": "hull" },
-        { "name": "Steel blue", "hex": "#6F8797", "role": "pinstripe" },
-        { "name": "Graphite", "hex": "#24272A", "role": "trim" },
-        { "name": "Graphite II", "hex": "#2E3236", "role": "panels" }
+        {
+          "name": "Off-white",
+          "hex": "#E3E1DB",
+          "role": "hull"
+        },
+        {
+          "name": "Steel blue",
+          "hex": "#6F8797",
+          "role": "pinstripe"
+        },
+        {
+          "name": "Graphite",
+          "hex": "#24272A",
+          "role": "trim"
+        },
+        {
+          "name": "Graphite II",
+          "hex": "#2E3236",
+          "role": "panels"
+        }
       ],
-      "theme": { "mode": "light", "bg": "#E3E1DB", "bg2": "#D6D3CB", "ink": "#24272A", "muted": "#5E6469", "accent": "#6F8797", "line": "rgba(36,39,42,.16)", "display": "Michroma", "body": "Jost", "display_case": "uppercase", "display_track": "0.08em" },
-      "logo": { "src": "oneill/assets/brand/atlantia_logo_horizontal.png", "mark": "oneill/assets/brand/atlantia_mark.png" },
+      "theme": {
+        "mode": "light",
+        "bg": "#E3E1DB",
+        "bg2": "#D6D3CB",
+        "ink": "#24272A",
+        "muted": "#5E6469",
+        "accent": "#6F8797",
+        "line": "rgba(36,39,42,.16)",
+        "display": "Michroma",
+        "body": "Jost",
+        "display_case": "uppercase",
+        "display_track": "0.08em"
+      },
+      "logo": {
+        "src": "oneill/assets/brand/atlantia_logo_horizontal.png",
+        "mark": "oneill/assets/brand/atlantia_mark.png"
+      },
       "hero_render": "showroom_atlantia_hero.png",
-      "wide_render": "atlantia_v2_lineup.png"
+      "wide_render": "atlantia_v2_lineup.png",
+      "speaker": "Atlantia pilot",
+      "poi": {
+        "signature_title": "Blended wing-body",
+        "signature": [
+          [
+            0.85,
+            0.55,
+            0.6
+          ],
+          [
+            1,
+            0.9,
+            0.3
+          ]
+        ],
+        "cockpit": "Flush canopy, blended into the hull: no bubble, no seams, and the best visibility in its class.",
+        "signature_text": "One continuous lifting surface from nose to nacelles. It is the shape that lets an Atlantia land on Mars and still dock nose-first.",
+        "gear": "Tricycle gear rated for a full-load touchdown at Mars gravity. The doors close flush; you would never know it was there.",
+        "drives": "Nacelles folded into the hull, bare titanium bells blued by heat. The retros face forward for the braking burn.",
+        "docking": "Docking collar and alignment lights, standard across every Atlantia hull.",
+        "profile": "Continuous curvature end to end. Fins appear only where a radiator needs one.",
+        "top": "From above, the blended wing-body reads as a single arrowhead."
+      }
     },
     {
       "id": "helios",
-      "totem": [-14.5, 12.5],
+      "totem": [
+        -14.5,
+        12.5
+      ],
       "name": "Helios",
       "full": "Helios Aerospace",
       "tagline": "Ride the light.",
@@ -59,21 +159,82 @@
       "archetype": "The Ferrari and Gulfstream of space",
       "philosophy": "Luxury and solar power. Pristine pearl pressure hulls with nothing visible that does not need to be, and mirror-finish arrays deployed on slim booms that track the Sun like any working spacecraft. Yachts, couriers, and the occasional head of state.",
       "materials": "High-gloss pearlescent paint, gold-anodised trim, mirror radiator sails, smoked glass.",
-      "yard": { "name": "Aphelion Yards", "where": "Sun-synchronous orbit, Mercury", "copy": "A yard powered by kilometre-wide solar arrays, where the light is free and the shade is the luxury." },
+      "yard": {
+        "name": "Aphelion Yards",
+        "where": "Sun-synchronous orbit, Mercury",
+        "copy": "A yard powered by kilometre-wide solar arrays, where the light is free and the shade is the luxury."
+      },
       "palette": [
-        { "name": "Pearl White", "hex": "#F2EFE8", "role": "hull" },
-        { "name": "Champagne Gold", "hex": "#C9A55A", "role": "emblem / trim" },
-        { "name": "Mirror Chrome", "hex": "#C4C9CF", "role": "radiator sails" },
-        { "name": "Smoked Glass", "hex": "#26262B", "role": "canopy" }
+        {
+          "name": "Pearl White",
+          "hex": "#F2EFE8",
+          "role": "hull"
+        },
+        {
+          "name": "Champagne Gold",
+          "hex": "#C9A55A",
+          "role": "emblem / trim"
+        },
+        {
+          "name": "Mirror Chrome",
+          "hex": "#C4C9CF",
+          "role": "radiator sails"
+        },
+        {
+          "name": "Smoked Glass",
+          "hex": "#26262B",
+          "role": "canopy"
+        }
       ],
-      "theme": { "mode": "light", "bg": "#F2EFE8", "bg2": "#E8E2D5", "ink": "#26262B", "muted": "#6E6A62", "accent": "#A8843A", "line": "rgba(38,38,43,.14)", "display": "Cinzel", "body": "Jost", "display_case": "none", "display_track": "0.06em" },
-      "logo": { "src": "universe/brands/helios/logo_horizontal.png", "mark": "universe/brands/helios/mark.png" },
+      "theme": {
+        "mode": "light",
+        "bg": "#F2EFE8",
+        "bg2": "#E8E2D5",
+        "ink": "#26262B",
+        "muted": "#6E6A62",
+        "accent": "#A8843A",
+        "line": "rgba(38,38,43,.14)",
+        "display": "Cinzel",
+        "body": "Jost",
+        "display_case": "none",
+        "display_track": "0.06em"
+      },
+      "logo": {
+        "src": "universe/brands/helios/logo_horizontal.png",
+        "mark": "universe/brands/helios/mark.png"
+      },
       "hero_render": "showroom_helios_hero.png",
-      "wide_render": "v2_helios_lineup.png"
+      "wide_render": "v2_helios_lineup.png",
+      "speaker": "Helios concierge",
+      "poi": {
+        "signature_title": "Solar sails",
+        "signature": [
+          [
+            0.5,
+            0.75,
+            0.85
+          ],
+          [
+            0.8,
+            0.6,
+            0.6
+          ]
+        ],
+        "cockpit": "The lounge band: smoked glass wrapped around the forward third, dimmed to whatever the guests prefer.",
+        "signature_text": "Mirror-finish arrays on slim articulated booms, tracking the Sun like any working spacecraft. Never fins.",
+        "gear": "Chrome-and-pearl landing legs that fold away behind flush doors.",
+        "drives": "A clean ring of nozzles inside a faired, gold-foiled shroud. Nothing visible that does not need to be.",
+        "docking": "A gold iris docking collar ringed by soft alignment lights. Guests should never have to duck.",
+        "profile": "Two or three big shapes and one gold line. That is the whole design.",
+        "top": "From above: a pebble of pearl with wings of light."
+      }
     },
     {
       "id": "daedalus",
-      "totem": [-14, 14.8],
+      "totem": [
+        -14,
+        14.8
+      ],
       "name": "Daedalus",
       "full": "Daedalus Shipworks",
       "tagline": "Built to be rebuilt.",
@@ -82,21 +243,82 @@
       "archetype": "The Caterpillar and Volvo of space",
       "philosophy": "Rugged, modular, repairable. Exposed truss spines, bolt-on pods, external tanks, floodlights and handholds. Every Daedalus can be stripped to the frame in a weekend and rebuilt as something else on Monday. If it breaks, you can see where, and you can reach it.",
       "materials": "Bare steel, scuffed hazard paint, weld seams, rust streaks, rubber bumpers, chain and cable.",
-      "yard": { "name": "Labyrinth Yards", "where": "Ceres", "copy": "Docks hollowed out of the asteroid itself; scaffolding, mining rigs and a maze of tunnels nobody has fully mapped." },
+      "yard": {
+        "name": "Labyrinth Yards",
+        "where": "Ceres",
+        "copy": "Docks hollowed out of the asteroid itself; scaffolding, mining rigs and a maze of tunnels nobody has fully mapped."
+      },
       "palette": [
-        { "name": "Hazard Yellow", "hex": "#E8B21E", "role": "hull / chevrons" },
-        { "name": "Weathered Olive", "hex": "#5A5F43", "role": "pods" },
-        { "name": "Rust", "hex": "#8A4B2A", "role": "wear / accents" },
-        { "name": "Hazard Black", "hex": "#17181A", "role": "decals" }
+        {
+          "name": "Hazard Yellow",
+          "hex": "#E8B21E",
+          "role": "hull / chevrons"
+        },
+        {
+          "name": "Weathered Olive",
+          "hex": "#5A5F43",
+          "role": "pods"
+        },
+        {
+          "name": "Rust",
+          "hex": "#8A4B2A",
+          "role": "wear / accents"
+        },
+        {
+          "name": "Hazard Black",
+          "hex": "#17181A",
+          "role": "decals"
+        }
       ],
-      "theme": { "mode": "dark", "bg": "#17181A", "bg2": "#22241F", "ink": "#ECE6D2", "muted": "#9C9883", "accent": "#E8B21E", "line": "rgba(236,230,210,.14)", "display": "Saira Stencil One", "body": "Barlow Condensed", "display_case": "uppercase", "display_track": "0.02em" },
-      "logo": { "src": "universe/brands/daedalus/logo_horizontal.png", "mark": "universe/brands/daedalus/mark.png" },
+      "theme": {
+        "mode": "dark",
+        "bg": "#17181A",
+        "bg2": "#22241F",
+        "ink": "#ECE6D2",
+        "muted": "#9C9883",
+        "accent": "#E8B21E",
+        "line": "rgba(236,230,210,.14)",
+        "display": "Saira Stencil One",
+        "body": "Barlow Condensed",
+        "display_case": "uppercase",
+        "display_track": "0.02em"
+      },
+      "logo": {
+        "src": "universe/brands/daedalus/logo_horizontal.png",
+        "mark": "universe/brands/daedalus/mark.png"
+      },
       "hero_render": "showroom_daedalus_hero.png",
-      "wide_render": "v2_daedalus_lineup.png"
+      "wide_render": "v2_daedalus_lineup.png",
+      "speaker": "Daedalus hauler",
+      "poi": {
+        "signature_title": "Spine and pods",
+        "signature": [
+          [
+            0.5,
+            0.6,
+            0.5
+          ],
+          [
+            1,
+            0.35,
+            0.15
+          ]
+        ],
+        "cockpit": "The cab. Pressurised, cramped, and the only warm place aboard, if the heater is working.",
+        "signature_text": "A bare truss spine carrying pressurised pods in clamp rings. Swap a pod in an afternoon, rebuild the ship in a weekend.",
+        "gear": "Heavy landing struts on load-rated pads. Scuffed, re-welded, still holding.",
+        "drives": "A heavy thrust frame and honest bell nozzles, with the propellant tanks right on the spine where you can reach the valves.",
+        "docking": "Docking port and floodlights, with handholds everywhere: something always needs fixing outside.",
+        "profile": "Every pipe, tank and floodlight has a job, and you can see all of them.",
+        "top": "The spine sets the rhythm; pods and tanks repeat along it."
+      }
     },
     {
       "id": "cydonia",
-      "totem": [-9, 9.6],
+      "totem": [
+        -9,
+        9.6
+      ],
       "name": "Cydonia",
       "full": "Cydonia Shipyards",
       "tagline": "Mars stands ready.",
@@ -105,22 +327,89 @@
       "archetype": "The Lockheed and BAE of space",
       "philosophy": "The Mars Commonwealth's contractor of record. Faceted stealth geometry, arrowhead and wedge plans, armour belts, turret barbettes and drives recessed inside armoured skirts. No curves anywhere, except the gun barrels.",
       "materials": "Matte radar-absorbent plating, armour panels with sheared edges, scorch and impact scars, stencilled hull numbers.",
-      "yard": { "name": "Phobos Deep Drydock", "where": "Mars orbit", "copy": "Cut into the moon itself, behind armoured blast doors and a ring of gun platforms." },
+      "yard": {
+        "name": "Phobos Deep Drydock",
+        "where": "Mars orbit",
+        "copy": "Cut into the moon itself, behind armoured blast doors and a ring of gun platforms."
+      },
       "palette": [
-        { "name": "Charcoal", "hex": "#2B2B2E", "role": "hull" },
-        { "name": "Red Oxide", "hex": "#7A2E1F", "role": "emblem / chevrons" },
-        { "name": "Gunmetal", "hex": "#4A4F55", "role": "armour" },
-        { "name": "Stencil Bone", "hex": "#CFCBBF", "role": "hull numbers" },
-        { "name": "Running Amber", "hex": "#E0702A", "role": "running lights" }
+        {
+          "name": "Charcoal",
+          "hex": "#2B2B2E",
+          "role": "hull"
+        },
+        {
+          "name": "Red Oxide",
+          "hex": "#7A2E1F",
+          "role": "emblem / chevrons"
+        },
+        {
+          "name": "Gunmetal",
+          "hex": "#4A4F55",
+          "role": "armour"
+        },
+        {
+          "name": "Stencil Bone",
+          "hex": "#CFCBBF",
+          "role": "hull numbers"
+        },
+        {
+          "name": "Running Amber",
+          "hex": "#E0702A",
+          "role": "running lights"
+        }
       ],
-      "theme": { "mode": "dark", "bg": "#1C1C1F", "bg2": "#2B2B2E", "ink": "#CFCBBF", "muted": "#8D8A82", "accent": "#E0702A", "accent2": "#7A2E1F", "line": "rgba(207,203,191,.14)", "display": "Barlow Condensed", "display_weight": "600", "body": "Barlow Condensed", "display_case": "uppercase", "display_track": "0.12em" },
-      "logo": { "src": "universe/brands/cydonia/logo_horizontal.png", "mark": "universe/brands/cydonia/mark.png" },
+      "theme": {
+        "mode": "dark",
+        "bg": "#1C1C1F",
+        "bg2": "#2B2B2E",
+        "ink": "#CFCBBF",
+        "muted": "#8D8A82",
+        "accent": "#E0702A",
+        "accent2": "#7A2E1F",
+        "line": "rgba(207,203,191,.14)",
+        "display": "Barlow Condensed",
+        "display_weight": "600",
+        "body": "Barlow Condensed",
+        "display_case": "uppercase",
+        "display_track": "0.12em"
+      },
+      "logo": {
+        "src": "universe/brands/cydonia/logo_horizontal.png",
+        "mark": "universe/brands/cydonia/mark.png"
+      },
       "hero_render": "showroom_cydonia_hero.png",
-      "wide_render": "v2_cydonia_capital_lineup.png"
+      "wide_render": "v2_cydonia_capital_lineup.png",
+      "speaker": "Cydonia flight",
+      "poi": {
+        "signature_title": "Armour belts",
+        "signature": [
+          [
+            0.5,
+            0.75,
+            0.45
+          ],
+          [
+            0.7,
+            0.8,
+            -0.3
+          ]
+        ],
+        "cockpit": "The bridge sits deep inside an armoured citadel. Crews fight from screens, not windows.",
+        "signature_text": "Faceted armour with sheared edges: every plane is angled to send radar somewhere else.",
+        "gear": "Retractable struts stowed behind armoured doors. Small craft only; warships never land.",
+        "drives": "Drives recessed inside armoured skirts, so the hottest thing on the ship is the hardest to see.",
+        "docking": "An armoured docking collar that opens for Commonwealth codes and nothing else.",
+        "profile": "Arrowhead and wedge. No curves anywhere, except the gun barrels.",
+        "top": "The spear: thrust axis, spinal weapon and armour all on one line."
+      }
     },
     {
       "id": "kingsley",
-      "totem": [-11.6, 4.6],
+      "totem": [
+        -11.6,
+        4.6
+      ],
       "name": "Kingsley",
       "full": "Kingsley Aerospace",
       "tagline": "Since 2131. By hand.",
@@ -129,48 +418,281 @@
       "archetype": "The Aston Martin and Rolls-Royce of space",
       "philosophy": "British heritage, old money, built by hand. Rocket-age art deco made real: polished drive bells and engine-turned thrust structures worn as jewellery, twin drive nacelles on struts, riveted stepped hull segments and brass-ringed portholes. A hand-built chronometer that happens to fly on fire.",
       "materials": "Deep-gloss racing green, polished brass and copper, engine-turned aluminium, oxblood leather, hand-laid gold coachlines.",
-      "yard": { "name": "Albion Dock", "where": "Lunar orbit", "copy": "Edwardian ironwork gantries, a members' clubhouse and a racing paddock with a view of the Earth." },
+      "yard": {
+        "name": "Albion Dock",
+        "where": "Lunar orbit",
+        "copy": "Edwardian ironwork gantries, a members' clubhouse and a racing paddock with a view of the Earth."
+      },
       "palette": [
-        { "name": "British Racing Green", "hex": "#1F3D2B", "role": "hull" },
-        { "name": "Cream", "hex": "#EDE3C8", "role": "roundels / lettering" },
-        { "name": "Brass", "hex": "#B08D57", "role": "coachline / crest" },
-        { "name": "Oxblood", "hex": "#5E1A1E", "role": "leather" }
+        {
+          "name": "British Racing Green",
+          "hex": "#1F3D2B",
+          "role": "hull"
+        },
+        {
+          "name": "Cream",
+          "hex": "#EDE3C8",
+          "role": "roundels / lettering"
+        },
+        {
+          "name": "Brass",
+          "hex": "#B08D57",
+          "role": "coachline / crest"
+        },
+        {
+          "name": "Oxblood",
+          "hex": "#5E1A1E",
+          "role": "leather"
+        }
       ],
-      "theme": { "mode": "dark", "bg": "#15291D", "bg2": "#1F3D2B", "ink": "#EDE3C8", "muted": "#A9A58E", "accent": "#C9A36A", "line": "rgba(237,227,200,.16)", "display": "Playfair Display", "display_weight": "700", "body": "Jost", "display_case": "none", "display_track": "0" },
-      "logo": { "src": "universe/brands/kingsley/logo_horizontal.png", "mark": "universe/brands/kingsley/mark.png" },
+      "theme": {
+        "mode": "dark",
+        "bg": "#15291D",
+        "bg2": "#1F3D2B",
+        "ink": "#EDE3C8",
+        "muted": "#A9A58E",
+        "accent": "#C9A36A",
+        "line": "rgba(237,227,200,.16)",
+        "display": "Playfair Display",
+        "display_weight": "700",
+        "body": "Jost",
+        "display_case": "none",
+        "display_track": "0"
+      },
+      "logo": {
+        "src": "universe/brands/kingsley/logo_horizontal.png",
+        "mark": "universe/brands/kingsley/mark.png"
+      },
       "hero_render": "showroom_kingsley_hero.png",
-      "wide_render": "v2_kingsley_lineup.png"
+      "wide_render": "v2_kingsley_lineup.png",
+      "speaker": "Kingsley pilot",
+      "poi": {
+        "signature_title": "Coachwork",
+        "signature": [
+          [
+            0.5,
+            0.65,
+            0.45
+          ],
+          [
+            1,
+            0.3,
+            -0.2
+          ]
+        ],
+        "cockpit": "A brass-ringed canopy over hand-stitched oxblood leather.",
+        "signature_text": "Riveted, stepped deco hull segments and gold coachlines laid by hand, one steady line at a time.",
+        "gear": "Polished landing struts with engine-turned covers. Yes, someone polishes them.",
+        "drives": "Polished copper drive bells and engine-turned shrouds: the jewellery of the ship.",
+        "docking": "A docking collar finished in brass. Clubhouse etiquette applies.",
+        "profile": "Rocket-age art deco, made to fly for real.",
+        "top": "Twin drive nacelles on swept struts: the heritage twin-boom, reborn as engines."
+      }
     }
   ],
   "ships": [
-    { "maker": "atlantia", "model": "SuperLightweight", "name": "SuperLightweight", "length": 22, "role": "Interceptor / courier", "copy": "The smallest hull Atlantia sells. One main drive flanked by two wing pods, a lifting-body belly for planetfall, and enough legs to run a parcel to Mars on short notice." },
-    { "maker": "atlantia", "model": "Lightweight", "name": "Lightweight", "length": 43, "role": "Multirole", "registration": "KRT-4471", "copy": "The multirole that flew the Aurelia approach. Four mains, four forward retros, sixteen RCS quads and a tricycle gear. KRT-4471 is the one you watched set down on Bay 41.", "hail": [
-      { "src": "audio/hail_L1.mp3", "who": "KRT-4471", "text": "Aurelia Control. Atlantia Lightweight, Kilo Romeo Tango four four seven one… requesting docking." },
-      { "src": "audio/hail_L4.mp3", "who": "KRT-4471", "text": "Copy, Aurelia. Dock four one. Good to be home." }
-    ] },
-    { "maker": "atlantia", "model": "Heavyweight", "name": "Heavyweight", "length": 95, "role": "Freighter / gunship", "copy": "Freighter or gunship, depending on who signs the lease. A cargo spine and six main engines under the same calm, continuous skin." },
-    { "maker": "atlantia", "model": "SuperHeavyweight", "name": "SuperHeavyweight", "length": 240, "role": "Capital hauler / carrier", "copy": "Atlantia's capital hauler. Its internal bay swallows two Lightweights whole and still leaves room for the paperwork." },
-
-    { "maker": "helios", "model": "Corona", "name": "Corona", "length": 30, "role": "Sport courier", "copy": "For people who measure trips in hours. A pearl capsule, a gold drive ring and a pair of mirror sails that fold flat for the approach." },
-    { "maker": "helios", "model": "Zenith", "name": "Zenith", "length": 80, "role": "Yacht", "copy": "A pebble of pearl with wings of light. A tinted lounge band wraps the forward third; the mirror arrays track the Sun on articulated booms; one gold line holds it together." },
-    { "maker": "helios", "model": "Solstice", "sil_flip": true, "sil_crop": [0, 0, 1, 0.289], "name": "Solstice", "length": 180, "role": "Flagship superyacht", "copy": "The flagship. Decks of lounge behind smoked glass, a faired drive shroud foiled in gold, and arrays big enough to throw a shadow across a station." },
-
-    { "maker": "daedalus", "model": "Mule", "name": "Mule", "length": 35, "role": "Tug / pusher", "copy": "Short, stubby and over-engined. The first thing anyone at Labyrinth Yards calls when something will not move." },
-    { "maker": "daedalus", "model": "Ox", "name": "Ox", "length": 120, "role": "Pressurised cargo hauler", "copy": "Honest industrial spacecraft. A square truss spine carrying pressurised pods in clamp rings, propellant spheres aft, four bells and a radiator wing edge-on to the plume." },
-    { "maker": "daedalus", "model": "Titan", "name": "Titan", "length": 450, "role": "Ore carrier", "copy": "Four hundred and fifty metres of spine between a crew module and a drive frame, built to haul the Belt home one rock at a time." },
-    { "maker": "daedalus", "model": "Minotaur", "name": "Minotaur", "length": 900, "role": "Mobile refinery", "copy": "A refinery the length of a small town. It swallows asteroids at one end and leaves ingots at the other." },
-
-    { "maker": "cydonia", "model": "Talon", "sil_flip": true, "name": "Talon", "length": 16, "role": "Space-superiority fighter", "copy": "Faceted, recessed, quiet. Nothing on a Talon sends radar back the way it came." },
-    { "maker": "cydonia", "model": "Halberd", "sil_flip": true, "name": "Halberd", "length": 24, "role": "Heavy fighter / torpedo bomber", "copy": "A heavy fighter with a bay full of anti-ship torpedoes, and the patience to use them." },
-    { "maker": "cydonia", "model": "Sabre", "name": "Sabre", "length": 70, "role": "Corvette", "copy": "Patrol and escort along the Mars–Belt lanes. Small enough to be everywhere, armoured enough to stay." },
-    { "maker": "cydonia", "model": "Gladius", "name": "Gladius", "length": 140, "role": "Frigate", "copy": "The Commonwealth's line escort: a wedge of armour around a reactor, a magazine and a crew who know each other by name." },
-    { "maker": "cydonia", "model": "Ares", "sil_flip": true, "name": "Ares", "length": 320, "role": "Destroyer", "copy": "A spear of armour. A spinal railgun along the thrust axis, point defence on every face, and a citadel bridge buried deep in the hull." },
-    { "maker": "cydonia", "model": "Olympus", "sil_flip": true, "name": "Olympus", "length": 650, "role": "Command cruiser", "copy": "Heavy guns, a flag bridge, and the authority to use both." },
-    { "maker": "cydonia", "model": "Valles", "sil_flip": true, "name": "Valles", "length": 1100, "role": "Fleet carrier", "copy": "Eleven hundred metres of hangar decks and launch rails, built around the fighter wings it carries." },
-    { "maker": "cydonia", "model": "Tharsis", "sil_source": "render", "name": "Tharsis", "length": 2400, "role": "Supercarrier / flagship", "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground." },
-
-    { "maker": "kingsley", "model": "Sprite", "name": "Sprite", "length": 18, "role": "Racer", "copy": "A Swiss chronometer that flies on fire. A riveted bullet of a capsule between two polished copper drive nacelles, numbers painted by hand." },
-    { "maker": "kingsley", "model": "Ascot", "name": "Ascot", "length": 45, "role": "Grand tourer", "copy": "A grand tourer for two and their luggage. Brass-ringed portholes, a riveted dorsal seam, and drives you can feel through the frame." },
-    { "maker": "kingsley", "model": "Sovereign", "name": "Sovereign", "length": 260, "role": "Luxury liner", "copy": "A spin-gravity liner: a deco gravity ring lined with promenade windows, a long spine, and a drive section finished like a watch movement." }
+    {
+      "maker": "atlantia",
+      "model": "SuperLightweight",
+      "name": "SuperLightweight",
+      "length": 22,
+      "role": "Interceptor / courier",
+      "copy": "The smallest hull Atlantia sells. One main drive flanked by two wing pods, a lifting-body belly for planetfall, and enough legs to run a parcel to Mars on short notice."
+    },
+    {
+      "maker": "atlantia",
+      "model": "Lightweight",
+      "name": "Lightweight",
+      "length": 43,
+      "role": "Multirole",
+      "registration": "KRT-4471",
+      "copy": "The multirole that flew the Aurelia approach. Four mains, four forward retros, sixteen RCS quads and a tricycle gear. KRT-4471 is the one you watched set down on Bay 41.",
+      "speaker": "KRT-4471",
+      "extra_lines": [
+        {
+          "kind": "select",
+          "src": "audio/hail_L1.mp3",
+          "text": "Aurelia Control. Atlantia Lightweight, Kilo Romeo Tango four four seven one… requesting docking."
+        },
+        {
+          "kind": "select",
+          "src": "audio/hail_L4.mp3",
+          "text": "Copy, Aurelia. Dock four one. Good to be home."
+        }
+      ]
+    },
+    {
+      "maker": "atlantia",
+      "model": "Heavyweight",
+      "name": "Heavyweight",
+      "length": 95,
+      "role": "Freighter / gunship",
+      "copy": "Freighter or gunship, depending on who signs the lease. A cargo spine and six main engines under the same calm, continuous skin."
+    },
+    {
+      "maker": "atlantia",
+      "model": "SuperHeavyweight",
+      "name": "SuperHeavyweight",
+      "length": 240,
+      "role": "Capital hauler / carrier",
+      "copy": "Atlantia's capital hauler. Its internal bay swallows two Lightweights whole and still leaves room for the paperwork."
+    },
+    {
+      "maker": "helios",
+      "model": "Corona",
+      "name": "Corona",
+      "length": 30,
+      "role": "Sport courier",
+      "copy": "For people who measure trips in hours. A pearl capsule, a gold drive ring and a pair of mirror sails that fold flat for the approach."
+    },
+    {
+      "maker": "helios",
+      "model": "Zenith",
+      "name": "Zenith",
+      "length": 80,
+      "role": "Yacht",
+      "copy": "A pebble of pearl with wings of light. A tinted lounge band wraps the forward third; the mirror arrays track the Sun on articulated booms; one gold line holds it together."
+    },
+    {
+      "maker": "helios",
+      "model": "Solstice",
+      "sil_flip": true,
+      "sil_crop": [
+        0,
+        0,
+        1,
+        0.289
+      ],
+      "name": "Solstice",
+      "length": 180,
+      "role": "Flagship superyacht",
+      "copy": "The flagship. Decks of lounge behind smoked glass, a faired drive shroud foiled in gold, and arrays big enough to throw a shadow across a station."
+    },
+    {
+      "maker": "daedalus",
+      "model": "Mule",
+      "name": "Mule",
+      "length": 35,
+      "role": "Tug / pusher",
+      "copy": "Short, stubby and over-engined. The first thing anyone at Labyrinth Yards calls when something will not move."
+    },
+    {
+      "maker": "daedalus",
+      "model": "Ox",
+      "name": "Ox",
+      "length": 120,
+      "role": "Pressurised cargo hauler",
+      "copy": "Honest industrial spacecraft. A square truss spine carrying pressurised pods in clamp rings, propellant spheres aft, four bells and a radiator wing edge-on to the plume."
+    },
+    {
+      "maker": "daedalus",
+      "model": "Titan",
+      "name": "Titan",
+      "length": 450,
+      "role": "Ore carrier",
+      "copy": "Four hundred and fifty metres of spine between a crew module and a drive frame, built to haul the Belt home one rock at a time."
+    },
+    {
+      "maker": "daedalus",
+      "model": "Minotaur",
+      "name": "Minotaur",
+      "length": 900,
+      "role": "Mobile refinery",
+      "copy": "A refinery the length of a small town. It swallows asteroids at one end and leaves ingots at the other."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Talon",
+      "sil_flip": true,
+      "name": "Talon",
+      "length": 16,
+      "role": "Space-superiority fighter",
+      "copy": "Faceted, recessed, quiet. Nothing on a Talon sends radar back the way it came."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Halberd",
+      "sil_flip": true,
+      "name": "Halberd",
+      "length": 24,
+      "role": "Heavy fighter / torpedo bomber",
+      "copy": "A heavy fighter with a bay full of anti-ship torpedoes, and the patience to use them."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Sabre",
+      "name": "Sabre",
+      "length": 70,
+      "role": "Corvette",
+      "copy": "Patrol and escort along the Mars–Belt lanes. Small enough to be everywhere, armoured enough to stay."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Gladius",
+      "name": "Gladius",
+      "length": 140,
+      "role": "Frigate",
+      "copy": "The Commonwealth's line escort: a wedge of armour around a reactor, a magazine and a crew who know each other by name."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Ares",
+      "sil_flip": true,
+      "name": "Ares",
+      "length": 320,
+      "role": "Destroyer",
+      "copy": "A spear of armour. A spinal railgun along the thrust axis, point defence on every face, and a citadel bridge buried deep in the hull."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Olympus",
+      "sil_flip": true,
+      "name": "Olympus",
+      "length": 650,
+      "role": "Command cruiser",
+      "copy": "Heavy guns, a flag bridge, and the authority to use both."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Valles",
+      "sil_flip": true,
+      "name": "Valles",
+      "length": 1100,
+      "role": "Fleet carrier",
+      "copy": "Eleven hundred metres of hangar decks and launch rails, built around the fighter wings it carries."
+    },
+    {
+      "maker": "cydonia",
+      "model": "Tharsis",
+      "sil_source": "render",
+      "name": "Tharsis",
+      "length": 2400,
+      "role": "Supercarrier / flagship",
+      "copy": "The flagship. More than two hundred craft, a spinal mass driver, and a hull assembled in orbit that will never touch ground."
+    },
+    {
+      "maker": "kingsley",
+      "model": "Sprite",
+      "name": "Sprite",
+      "length": 18,
+      "role": "Racer",
+      "copy": "A Swiss chronometer that flies on fire. A riveted bullet of a capsule between two polished copper drive nacelles, numbers painted by hand."
+    },
+    {
+      "maker": "kingsley",
+      "model": "Ascot",
+      "name": "Ascot",
+      "length": 45,
+      "role": "Grand tourer",
+      "copy": "A grand tourer for two and their luggage. Brass-ringed portholes, a riveted dorsal seam, and drives you can feel through the frame."
+    },
+    {
+      "maker": "kingsley",
+      "model": "Sovereign",
+      "name": "Sovereign",
+      "length": 260,
+      "role": "Luxury liner",
+      "copy": "A spin-gravity liner: a deco gravity ring lined with promenade windows, a long spine, and a drive section finished like a watch movement."
+    }
   ]
 }

@@ -271,7 +271,7 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
         with Image.open(dst) as im:
             e["silhouette"] = {"src": url(dst), "aspect": round(im.height / im.width, 4)}
 
-    for line in s.get("hail", []):
+    for line in s.get("extra_lines", []):
         line["src"] = url(ASSETS / line["src"])
     return e
 
@@ -285,6 +285,28 @@ def room_entry(mid: str) -> dict | None:
     files = {f: copy(d / f, ASSETS / "rooms" / mid / f) for f in need[:3]}
     return {"glb": url(files["room.glb"]), "env": url(files["env.hdr"]), "bg": url(files["bg.hdr"]),
             "bytes": sum(p.stat().st_size for p in files.values()), "info": info}
+
+
+VOICE = U / "voice" / "out"
+
+
+def voice_entry(mid: str) -> dict | None:
+    """ElevenLabs lines (select / ack / pissed) for a maker's pilot, from voice/out/manifest.json."""
+    mp = VOICE / "manifest.json"
+    if not mp.exists():
+        return None
+    m = json.loads(mp.read_text()).get(mid)
+    if not m:
+        return None
+    lines = []
+    for ln in m.get("lines", []):
+        src = VOICE / ln["file"]
+        if not src.exists():
+            log(f"  ! voice line missing: {src}")
+            continue
+        dst = copy(src, ASSETS / "voice" / mid / f"{ln['id']}.mp3")
+        lines.append({"id": ln["id"], "kind": ln["kind"], "ships": ln.get("ships") or None, "src": url(dst), "text": ln["text"]})
+    return {"voice": m.get("voice"), "character": m.get("character"), "lines": lines}
 
 
 def main() -> None:
@@ -319,6 +341,7 @@ def main() -> None:
             else:
                 e[name] = None
         e["room"] = room_entry(mid)
+        e["voice"] = voice_entry(mid)
         log(f"  {mid}: room {'yes' if e['room'] else 'not yet'}")
         makers.append(e)
 

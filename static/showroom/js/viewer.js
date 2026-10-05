@@ -13,7 +13,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { rigShip } from './rig.js?v=9fb807cba83085d0';
+import { rigShip } from './rig.js?v=153dec7100e24b34';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 const SCALES = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
@@ -43,7 +43,7 @@ function studioInfo() {
 }
 
 export class Viewer {
-  constructor(canvas, { onTap, onLost } = {}) {
+  constructor(canvas, { onTap, onLost, onDrag, onHover } = {}) {
     this.canvas = canvas;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     r.toneMapping = THREE.AgXToneMapping;
@@ -92,6 +92,37 @@ export class Viewer {
       const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
       if (ray.intersectObject(this.ship.holder, true).some((h) => h.object.isMesh)) onTap?.();
     });
+    // affordances: grab / grabbing cursor, pointer + rim highlight + "click to hail" over the hull
+    c.addEventListener('start', () => { this.dragging = true; canvas.style.cursor = 'grabbing'; onDrag?.(); });
+    c.addEventListener('end', () => { this.dragging = false; canvas.style.cursor = ''; });
+    let hoverAt = 0, hoverEv = null;
+    canvas.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
+      hoverEv = e;
+      const now = performance.now();
+      if (now - hoverAt < 90 || this.dragging || this.walk || !this.ship) return;
+      hoverAt = now;
+      const rect = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
+      const hit = ray.intersectObject(this.ship.holder, true).some((x) => x.object.isMesh && !x.object.material?.transparent);
+      this.ship.rig.setHighlight(hit ? 1 : 0);
+      canvas.style.cursor = hit ? 'pointer' : '';
+      onHover?.(hit, e.clientX - rect.left, e.clientY - rect.top);
+    });
+    canvas.addEventListener('pointerleave', () => { this.ship?.rig.setHighlight(0); canvas.style.cursor = ''; onHover?.(false); void hoverEv; });
+
+    // walk mode: drag to look (mouse or touch outside the virtual stick)
+    let look = null;
+    canvas.addEventListener('pointerdown', (e) => { if (this.walk) { look = [e.clientX, e.clientY]; canvas.setPointerCapture?.(e.pointerId); } });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!this.walk || !look) return;
+      const w = this.walk;
+      w.yaw -= (e.clientX - look[0]) * 0.0032;
+      w.pitch = THREE.MathUtils.clamp(w.pitch - (e.clientY - look[1]) * 0.0032, -1.25, 1.25);
+      look = [e.clientX, e.clientY];
+    });
+    for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, () => { look = null; });
     this.resize();
   }
 
@@ -116,6 +147,8 @@ export class Viewer {
 
   /** Load (if needed) room + ship; progress(fraction, label). Resolves when the ship is on the turntable. */
   async show(maker, ship, progress = () => {}) {
+    this.maker = maker;
+    if (this.walk) this.setWalk(false);
     const needRoom = this.room?.id !== maker.id;
     const total = (needRoom && maker.room ? maker.room.bytes : 0) + ship.glb.bytes;
     const got = {};
@@ -356,8 +389,10 @@ export class Viewer {
     const root = rig.root;
     root.position.set(0, 0, 0); root.scale.setScalar(1);
     holder.add(root);
-    const box = rig.bounds();
+    const box = rig.bounds();                          // root is at identity here: this is the ship's own frame
     const size = box.getSize(new THREE.Vector3());
+    s.localBox = box.clone();
+    s.plinthR = 0;
     let scale = 1, base = top;
     s.N = 1;
     if (!s.fits) {
@@ -367,6 +402,7 @@ export class Viewer {
       // dealer pedestal: satin plinth + slim stand, accent hairline on the top edge
       const mh = size.y * scale, ml = s.len * scale;
       const R = THREE.MathUtils.clamp(ml * 0.2, 0.9, 3.2), P = 0.9;
+      s.plinthR = R;
       const plinth = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.03, P, 96),
         new THREE.MeshStandardMaterial({ color: 0x17181b, roughness: 0.3, metalness: 0.15 }));
       plinth.position.y = top + P / 2; plinth.castShadow = true; plinth.receiveShadow = true;
@@ -392,6 +428,7 @@ export class Viewer {
       this.stage.rotation.y = this.heroAz + this.heroSide * THREE.MathUtils.degToRad(35) - Math.PI;
     }
     this.stage.add(holder);
+    s.pois = this.buildPois(s);
     this.frameShip(keepCamera);
   }
 
@@ -448,7 +485,7 @@ export class Viewer {
     const pos = target.clone().addScaledVector(dir, dist);
     pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
     const c = this.controls;
-    c.minDistance = Math.max(sphere.radius * 0.75, this.ship.fits ? cam.orbit_min_distance * 0.5 : 1.2);
+    c.minDistance = Math.max(0.4, sphere.radius * 0.12);   // close enough to read the stencils
     c.maxDistance = Math.max(dist * 1.2, Math.min(cam.orbit_max_distance, authored * 1.6));
     this.home = { pos: pos.clone(), target: target.clone() };
     // hall box in three.js coords (showroom.json "hall" is in Blender Y: z = -y), with a margin off the walls
@@ -463,6 +500,7 @@ export class Viewer {
       this.camera.position.copy(pos); c.target.copy(target); this.tween = null; c.update();
     } else {
       this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1400 };
+      this.onArrive = null;
     }
   }
 
@@ -479,6 +517,141 @@ export class Viewer {
 
   /** drop the ship (e.g. when the next one has no real-time model) and stop rendering */
   idle() { ++this.shipToken; this.disposeShip(); this.stop(); }
+
+  // ---------------------------------------------------------------- points of interest
+  /** POIs in the ship's own frame (nose -Z): derived from the hull bounds and the exported light anchors */
+  buildPois(s) {
+    const b = s.localBox, size = b.getSize(new THREE.Vector3()), ctr = b.getCenter(new THREE.Vector3());
+    const L = Math.max(size.x, size.z, size.y * 0.8);
+    const P = this.maker?.poi || {};
+    const at = (f) => new THREE.Vector3(b.min.x + f[0] * size.x, b.min.y + f[1] * size.y, b.min.z + f[2] * size.z);
+    const centroid = (list) => list.reduce((a, x) => a.add(x.pos), new THREE.Vector3()).divideScalar(list.length);
+    const anchors = s.rig.anchorsLocal || [];
+    const out = [];
+    const big = s.model.length > 150;
+    out.push({ key: 'cockpit', title: big ? 'Bridge' : 'Cockpit', text: P.cockpit, local: at([0.5, 0.72, 0.14]), dir: [0.6, 0.5, -1], dist: L * 0.3 });
+    if (P.signature) out.push({ key: 'signature', title: P.signature_title, text: P.signature_text, local: at(P.signature[0]), dir: P.signature[1], dist: L * 0.4 });
+    const dock = anchors.filter((a) => a.kind === 'docking');
+    if (dock.length) {
+      const p = centroid(dock), d = p.clone().sub(ctr); d.y = Math.max(d.y, 0) + size.y * 0.4;
+      out.push({ key: 'docking', title: 'Docking', text: P.docking, local: p, dir: d.toArray(), dist: L * 0.26 });
+    }
+    const weapons = anchors.filter((a) => /weapon|turret|gun|hardpoint|missile/.test(a.kind));
+    if (weapons.length) out.push({ key: 'weapons', title: 'Hardpoints', text: P.weapons || 'Hardpoints and turret barbettes.', local: centroid(weapons), dir: [0.6, 0.8, -0.2], dist: L * 0.3 });
+    if (s.rig.hasGear) out.push({ key: 'gear', title: 'Landing gear', text: P.gear, local: at([0.5, 0.08, 0.55]), dir: [1, 0.1, 0.45], dist: L * 0.42, action: 'gear' });
+    const eng = anchors.filter((a) => a.kind === 'engine');
+    let dl = at([0.5, 0.5, 1]), spread = size.x * 0.5;
+    if (eng.length) {
+      dl = centroid(eng);
+      spread = Math.max(...eng.map((a) => a.pos.distanceTo(dl)), 1);
+    }
+    out.push({ key: 'drives', title: 'Drives', text: P.drives, local: dl, dir: [0.5, 0.3, 1], dist: Math.max(L * 0.28, spread * 2.2) });
+    const fov = THREE.MathUtils.degToRad(this.camera.fov);
+    const hf = 2 * Math.atan(Math.tan(fov / 2) * this.camera.aspect);
+    const fit = (L * 0.55) / Math.tan(Math.min(fov, hf) / 2);
+    out.push({ key: 'profile', title: 'Profile', text: P.profile, local: ctr.clone(), dir: [1, 0.06, 0], dist: fit, flat: true });
+    out.push({ key: 'top', title: 'Plan view', text: P.top, local: ctr.clone(), dir: [0.05, 1, 0.12], dist: fit, flat: true });
+    for (const p of out) {
+      p.dir = new THREE.Vector3(...p.dir).normalize();
+      p.text ||= ({ cockpit: 'Where the crew sits.', drives: 'Main drives on the thrust axis.', gear: 'Landing gear.', docking: 'Docking collar.' })[p.key] || '';
+    }
+    return out;
+  }
+
+  /** fly to POI i (camera eases ~1.2 s); returns the POI */
+  flyTo(i) {
+    const s = this.ship;
+    if (!s?.pois?.[i]) return null;
+    const p = s.pois[i], root = s.rig.root;
+    root.updateMatrixWorld(true);
+    const target = root.localToWorld(p.local.clone());
+    const q = root.getWorldQuaternion(new THREE.Quaternion());
+    const dir = p.dir.clone().applyQuaternion(q);
+    let dist = p.dist * root.scale.x;
+    const b = this.bounds;
+    if (p.key === 'top' && b) dist = Math.min(dist, Math.max(2, (b.maxH - 0.5 - target.y) / Math.max(dir.y, 0.3)));
+    const pos = target.clone().addScaledVector(dir, dist);
+    if (b) pos.y = Math.max(pos.y, b.top + 0.35);
+    this.controls.minDistance = 0.3;
+    if (p.action === 'gear') { this.S.gearDir = 1; }
+    const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (instant) { this.camera.position.copy(pos); this.controls.target.copy(target); this.tween = null; this.controls.update(); }
+    else this.tween = { p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1200 };
+    return p;
+  }
+
+  /** screen positions of the hull hotspots (not the profile / plan views) */
+  hotspots(w, h) {
+    const s = this.ship;
+    if (!s?.pois || this.walk) return [];
+    const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
+    const cam = this.camera.position, out = [];
+    s.pois.forEach((p, i) => {
+      if (p.flat) return;
+      const wp = root.localToWorld(p.local.clone());
+      const facing = cam.clone().sub(wp).normalize().dot(p.dir.clone().applyQuaternion(q));
+      const v = wp.clone().project(this.camera);
+      if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) return;
+      out.push({ i, x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h, facing });
+    });
+    return out;
+  }
+
+  // ---------------------------------------------------------------- walk-around (first person)
+  setWalk(on) {
+    if (!!this.walk === on || !this.room) return;
+    const c = this.controls;
+    if (on) {
+      this.walkSaved = { spin: this.spin, fov: this.camera.fov };
+      this.spin = false; this.tween = null; c.enabled = false;
+      const p = this.camera.position, ctr = this.stage.position;
+      const flat = new THREE.Vector2(p.x - ctr.x, p.z - ctr.z);
+      const R = this.walkBlock() + 4;
+      if (flat.length() < R) flat.setLength(R);
+      p.set(ctr.x + flat.x, 1.7, ctr.z + flat.y);
+      const look = (this.ship ? this.ship.rig.bounds().getCenter(new THREE.Vector3()) : ctr.clone()).sub(p);
+      this.walk = { yaw: Math.atan2(-look.x, -look.z), pitch: Math.atan2(look.y, Math.hypot(look.x, look.z)) * 0.6,
+        vel: new THREE.Vector3(), keys: new Set(), stick: { x: 0, y: 0 } };
+      this.camera.fov = Math.max(this.camera.fov, 60); this.camera.updateProjectionMatrix();
+    } else {
+      this.walk = null;
+      this.spin = this.walkSaved?.spin ?? this.spin;
+      this.camera.fov = this.walkSaved?.fov ?? this.camera.fov; this.camera.updateProjectionMatrix();
+      if (this.ship) {
+        c.target.copy(this.ship.rig.bounds().getCenter(new THREE.Vector3()));
+        c.enabled = true; c.update();
+        this.frameShip(false);
+      } else c.enabled = true;
+    }
+  }
+  /** radius around the turntable centre a walker cannot enter: the turntable edge, or the pedestal for scale models */
+  walkBlock() {
+    const tt = this.room.info.turntable;
+    return this.ship && !this.ship.fits ? this.ship.plinthR + 0.6 : tt.radius + 0.6;
+  }
+  updateWalk(dt) {
+    const w = this.walk, p = this.camera.position, k = w.keys;
+    const f = (k.has('f') ? 1 : 0) - (k.has('b') ? 1 : 0) - w.stick.y;
+    const r = (k.has('r') ? 1 : 0) - (k.has('l') ? 1 : 0) + w.stick.x;
+    if (k.has('tl')) w.yaw += dt * 1.6;
+    if (k.has('tr')) w.yaw -= dt * 1.6;
+    const speed = k.has('run') ? 7 : 3.2;
+    const fwd = new THREE.Vector3(-Math.sin(w.yaw), 0, -Math.cos(w.yaw));
+    const right = new THREE.Vector3(Math.cos(w.yaw), 0, -Math.sin(w.yaw));
+    const want = fwd.multiplyScalar(f).add(right.multiplyScalar(r));
+    if (want.lengthSq() > 1) want.normalize();
+    w.vel.lerp(want.multiplyScalar(speed), 1 - Math.exp(-dt * 8));
+    p.addScaledVector(w.vel, dt);
+    // collide: keep off the turntable / pedestal, inside the hall
+    const ctr = this.stage.position, tt = this.room.info.turntable;
+    const flat = new THREE.Vector2(p.x - ctr.x, p.z - ctr.z), R = this.walkBlock();
+    if (flat.length() < R) { flat.setLength(R); p.x = ctr.x + flat.x; p.z = ctr.z + flat.y; }
+    const box = this.bounds?.box;
+    if (box) { p.x = THREE.MathUtils.clamp(p.x, -box.x + 0.5, box.x - 0.5); p.z = THREE.MathUtils.clamp(p.z, box.z0 + 0.5, box.z1 - 0.5); }
+    const floor = flat.length() < tt.radius ? tt.top : 0;
+    p.y += (floor + 1.7 - p.y) * Math.min(1, dt * 10);
+    this.camera.rotation.set(w.pitch, w.yaw, 0, 'YXZ');
+  }
 
   // ---------------------------------------------------------------- input helpers
   orbit(dAz, dPol) {
@@ -499,11 +672,16 @@ export class Viewer {
     if (this.spin) this.stage.rotation.y += dt * 0.1;
     this.ship?.rig.update(dt, t, this.S);
     const c = this.controls;
+    if (this.walk) {
+      this.updateWalk(dt);
+      this.composer.render();
+      return;
+    }
     if (this.tween) {
       const k = ease(Math.min(1, (performance.now() - this.tween.start) / this.tween.dur));
       this.camera.position.lerpVectors(this.tween.p0, this.tween.p1, k);
       c.target.lerpVectors(this.tween.t0, this.tween.t1, k);
-      if (k >= 1) this.tween = null;
+      if (k >= 1) { this.tween = null; this.onArrive?.(); }
     }
     c.enabled = !this.tween;
     c.update();

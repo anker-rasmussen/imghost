@@ -84,6 +84,29 @@ export default {
     "display_case": "uppercase",
     "display_track": "0.08em"
    },
+   "speaker": "Atlantia pilot",
+   "poi": {
+    "signature_title": "Blended wing-body",
+    "signature": [
+     [
+      0.85,
+      0.55,
+      0.6
+     ],
+     [
+      1,
+      0.9,
+      0.3
+     ]
+    ],
+    "cockpit": "Flush canopy, blended into the hull: no bubble, no seams, and the best visibility in its class.",
+    "signature_text": "One continuous lifting surface from nose to nacelles. It is the shape that lets an Atlantia land on Mars and still dock nose-first.",
+    "gear": "Tricycle gear rated for a full-load touchdown at Mars gravity. The doors close flush; you would never know it was there.",
+    "drives": "Nacelles folded into the hull, bare titanium bells blued by heat. The retros face forward for the braking burn.",
+    "docking": "Docking collar and alignment lights, standard across every Atlantia hull.",
+    "profile": "Continuous curvature end to end. Fins appear only where a radiator needs one.",
+    "top": "From above, the blended wing-body reads as a single arrowhead."
+   },
    "logo": "assets/brands/atlantia/logo.webp?v=6fee9db874e6c161",
    "mark": "assets/brands/atlantia/mark.webp?v=eb9712bce8f68ba8",
    "hero": {
@@ -253,6 +276,176 @@ export default {
       "exposure": 1.2311
      }
     }
+   },
+   "voice": {
+    "voice": "Callum",
+    "character": "Atlantia line pilot — calm, confident, a little cowboy, the guy who flew KRT-4471 home",
+    "lines": [
+     {
+      "id": "sel1",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/atlantia/sel1.mp3?v=f8f0946d842f6249",
+      "text": "Atlantia, standing by. Where are we headed?"
+     },
+     {
+      "id": "sel2",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/atlantia/sel2.mp3?v=8664dd92a542e72b",
+      "text": "Systems green. Coffee's hot. Let's go make some money."
+     },
+     {
+      "id": "sel3",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/atlantia/sel3.mp3?v=355b0b16058d67ea",
+      "text": "Kilo Romeo Tango, at your service. Again."
+     },
+     {
+      "id": "ack1",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/atlantia/ack1.mp3?v=4f1aeb88c271f95c",
+      "text": "Copy that. Smooth and steady."
+     },
+     {
+      "id": "ack2",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/atlantia/ack2.mp3?v=4540dcf24d1e0cca",
+      "text": "Gear's down. Don't scratch the paint."
+     },
+     {
+      "id": "ack3",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/atlantia/ack3.mp3?v=ba87251b89477295",
+      "text": "Lighting the mains. Hold on to something."
+     },
+     {
+      "id": "p1",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/atlantia/p1.mp3?v=9d80a5c8ef5c4d65",
+      "text": "Yes, it's still a Lightweight. I checked."
+     },
+     {
+      "id": "p2",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/atlantia/p2.mp3?v=91ee7bef76b26884",
+      "text": "You know, there's a whole showroom out there."
+     },
+     {
+      "id": "hw1",
+      "kind": "select",
+      "ships": [
+       "Heavyweight",
+       "SuperHeavyweight"
+      ],
+      "src": "assets/voice/atlantia/hw1.mp3?v=f642beca4411b187",
+      "text": "Heavy hauler, loaded and level. Six mains, no complaints."
+     },
+     {
+      "id": "ax00",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/atlantia/ax00.mp3?v=c121522a4ab652a5",
+      "text": "Retros armed. We stop where I say we stop."
+     },
+     {
+      "id": "ax01",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/atlantia/ax01.mp3?v=486b059f6966b3aa",
+      "text": "Nav lights on. Let 'em see us coming."
+     },
+     {
+      "id": "px02",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/atlantia/px02.mp3?v=21e271d603f9ec83",
+      "text": "Buddy, I've done eleven thousand dockings. You're not making it twelve."
+     },
+     {
+      "id": "px03",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/atlantia/px03.mp3?v=d56779b5d206f0f5",
+      "text": "Atlantia customer service. How can I ignore you today?"
+     },
+     {
+      "id": "px04",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/atlantia/px04.mp3?v=16a5ff123ff2439f",
+      "text": "Alright, alright, I'll sign the brochure."
+     },
+     {
+      "id": "sx05",
+      "kind": "select",
+      "ships": [
+       "SuperLightweight"
+      ],
+      "src": "assets/voice/atlantia/sx05.mp3?v=935276372ec414c1",
+      "text": "SuperLightweight. Small, quick, and twice as loud as it looks."
+     },
+     {
+      "id": "sx06",
+      "kind": "select",
+      "ships": [
+       "SuperLightweight"
+      ],
+      "src": "assets/voice/atlantia/sx06.mp3?v=0db26cd42f0c1899",
+      "text": "Strap in. This one doesn't do slow."
+     },
+     {
+      "id": "sx07",
+      "kind": "select",
+      "ships": [
+       "Lightweight"
+      ],
+      "src": "assets/voice/atlantia/sx07.mp3?v=91990cf18883f08b",
+      "text": "Lightweight. She brought me home to Bay forty-one."
+     },
+     {
+      "id": "sx08",
+      "kind": "select",
+      "ships": [
+       "Lightweight"
+      ],
+      "src": "assets/voice/atlantia/sx08.mp3?v=7a474a8dc7bc3fd4",
+      "text": "Kilo Romeo Tango four four seven one. Requesting a buyer."
+     },
+     {
+      "id": "sx09",
+      "kind": "select",
+      "ships": [
+       "Heavyweight"
+      ],
+      "src": "assets/voice/atlantia/sx09.mp3?v=2331df47a3b4d994",
+      "text": "Heavyweight. Six mains and a cargo spine full of somebody's problems."
+     },
+     {
+      "id": "sx10",
+      "kind": "select",
+      "ships": [
+       "SuperHeavyweight"
+      ],
+      "src": "assets/voice/atlantia/sx10.mp3?v=ff2e7390e96c5700",
+      "text": "SuperHeavyweight. Two Lightweights in the belly and room for a third."
+     },
+     {
+      "id": "sx11",
+      "kind": "select",
+      "ships": [
+       "SuperHeavyweight"
+      ],
+      "src": "assets/voice/atlantia/sx11.mp3?v=df1aa12ffc45c99c",
+      "text": "Big girl. Give her a minute to turn."
+     }
+    ]
    }
   },
   {
@@ -309,11 +502,34 @@ export default {
     "display_case": "none",
     "display_track": "0.06em"
    },
+   "speaker": "Helios concierge",
+   "poi": {
+    "signature_title": "Solar sails",
+    "signature": [
+     [
+      0.5,
+      0.75,
+      0.85
+     ],
+     [
+      0.8,
+      0.6,
+      0.6
+     ]
+    ],
+    "cockpit": "The lounge band: smoked glass wrapped around the forward third, dimmed to whatever the guests prefer.",
+    "signature_text": "Mirror-finish arrays on slim articulated booms, tracking the Sun like any working spacecraft. Never fins.",
+    "gear": "Chrome-and-pearl landing legs that fold away behind flush doors.",
+    "drives": "A clean ring of nozzles inside a faired, gold-foiled shroud. Nothing visible that does not need to be.",
+    "docking": "A gold iris docking collar ringed by soft alignment lights. Guests should never have to duck.",
+    "profile": "Two or three big shapes and one gold line. That is the whole design.",
+    "top": "From above: a pebble of pearl with wings of light."
+   },
    "logo": "assets/brands/helios/logo.webp?v=4f09be2fc66dcb33",
    "mark": "assets/brands/helios/mark.webp?v=81c05910731f8a83",
    "hero": {
-    "src": "assets/makers/helios-hero.webp?v=970822152b8a0967",
-    "small": "assets/makers/helios-hero-640.webp?v=549f247c07ac78cc",
+    "src": "assets/makers/helios-hero.webp?v=d106145ecf6ad4c8",
+    "small": "assets/makers/helios-hero-640.webp?v=fc10c9acaa3993dd",
     "w": 1280,
     "h": 720
    },
@@ -498,6 +714,157 @@ export default {
       "exposure": 0.7579
      }
     }
+   },
+   "voice": {
+    "voice": "Allison",
+    "character": "Helios concierge-captain — poised, warm, effortlessly luxurious, British",
+    "lines": [
+     {
+      "id": "sel1",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/helios/sel1.mp3?v=a3004a6ebc2f9de4",
+      "text": "Helios. Welcome aboard."
+     },
+     {
+      "id": "sel2",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/helios/sel2.mp3?v=7b69e663776cf66a",
+      "text": "The sails are out, and the champagne is chilled."
+     },
+     {
+      "id": "sel3",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/helios/sel3.mp3?v=56761669d8ec45bb",
+      "text": "Mercury sends its regards."
+     },
+     {
+      "id": "ack1",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/helios/ack1.mp3?v=0390766efe7cdf42",
+      "text": "We arrive when we intend to arrive."
+     },
+     {
+      "id": "ack2",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/helios/ack2.mp3?v=491176e636011ba2",
+      "text": "Ride the light."
+     },
+     {
+      "id": "ack3",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/helios/ack3.mp3?v=e9bd10def8e000ce",
+      "text": "Of course. Nothing is too much trouble."
+     },
+     {
+      "id": "p1",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/helios/p1.mp3?v=8b06d59bfc65502e",
+      "text": "Darling. The fingerprints."
+     },
+     {
+      "id": "p2",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/helios/p2.mp3?v=572692d97e8b9e6a",
+      "text": "One does not simply poke a yacht."
+     },
+     {
+      "id": "ax00",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/helios/ax00.mp3?v=8f64ec85a386a6ab",
+      "text": "Sails unfurled. Do enjoy the view."
+     },
+     {
+      "id": "ax01",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/helios/ax01.mp3?v=c8645b2a32603472",
+      "text": "Engines warming. You won't feel a thing."
+     },
+     {
+      "id": "px02",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/helios/px02.mp3?v=0a0c6ac7f6a59fa4",
+      "text": "I'm sure you mean well. Still. Please don't."
+     },
+     {
+      "id": "px03",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/helios/px03.mp3?v=3fffb035bca1b585",
+      "text": "Shall I have someone fetch you a chair? Further away?"
+     },
+     {
+      "id": "px04",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/helios/px04.mp3?v=80bba421da6d6ec8",
+      "text": "We polish these by hand, you know."
+     },
+     {
+      "id": "sx05",
+      "kind": "select",
+      "ships": [
+       "Corona"
+      ],
+      "src": "assets/voice/helios/sx05.mp3?v=6fb92d13eb70cb28",
+      "text": "Corona. Fast, bright, and frightfully expensive."
+     },
+     {
+      "id": "sx06",
+      "kind": "select",
+      "ships": [
+       "Corona"
+      ],
+      "src": "assets/voice/helios/sx06.mp3?v=4210ad0b2513938b",
+      "text": "Mercury to Earth before lunch. Shall we?"
+     },
+     {
+      "id": "sx07",
+      "kind": "select",
+      "ships": [
+       "Zenith"
+      ],
+      "src": "assets/voice/helios/sx07.mp3?v=71bcc9ef8969e5f9",
+      "text": "Zenith. Eighty metres of quiet."
+     },
+     {
+      "id": "sx08",
+      "kind": "select",
+      "ships": [
+       "Zenith"
+      ],
+      "src": "assets/voice/helios/sx08.mp3?v=93df3ccbd5bf3c55",
+      "text": "The light is lovely from the lounge this time of day."
+     },
+     {
+      "id": "sx09",
+      "kind": "select",
+      "ships": [
+       "Solstice"
+      ],
+      "src": "assets/voice/helios/sx09.mp3?v=79064c0a2b7d1239",
+      "text": "Solstice. The flagship. Everything else is a tender."
+     },
+     {
+      "id": "sx10",
+      "kind": "select",
+      "ships": [
+       "Solstice"
+      ],
+      "src": "assets/voice/helios/sx10.mp3?v=01a0cc68f52c8652",
+      "text": "Under the crown, the Sun is just a lamp."
+     }
+    ]
    }
   },
   {
@@ -553,6 +920,29 @@ export default {
     "body": "Barlow Condensed",
     "display_case": "uppercase",
     "display_track": "0.02em"
+   },
+   "speaker": "Daedalus hauler",
+   "poi": {
+    "signature_title": "Spine and pods",
+    "signature": [
+     [
+      0.5,
+      0.6,
+      0.5
+     ],
+     [
+      1,
+      0.35,
+      0.15
+     ]
+    ],
+    "cockpit": "The cab. Pressurised, cramped, and the only warm place aboard, if the heater is working.",
+    "signature_text": "A bare truss spine carrying pressurised pods in clamp rings. Swap a pod in an afternoon, rebuild the ship in a weekend.",
+    "gear": "Heavy landing struts on load-rated pads. Scuffed, re-welded, still holding.",
+    "drives": "A heavy thrust frame and honest bell nozzles, with the propellant tanks right on the spine where you can reach the valves.",
+    "docking": "Docking port and floodlights, with handholds everywhere: something always needs fixing outside.",
+    "profile": "Every pipe, tank and floodlight has a job, and you can see all of them.",
+    "top": "The spine sets the rhythm; pods and tanks repeat along it."
    },
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
@@ -745,6 +1135,166 @@ export default {
       "exposure": 3.249
      }
     }
+   },
+   "voice": {
+    "voice": "Charlie",
+    "character": "Daedalus hauler — gruff, tired, dry humour, been fixing this rig for thirty years",
+    "lines": [
+     {
+      "id": "sel1",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/daedalus/sel1.mp3?v=62dd273a5da3d24c",
+      "text": "Yeah, yeah. I'm on it."
+     },
+     {
+      "id": "sel2",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/daedalus/sel2.mp3?v=82673b34a30823ed",
+      "text": "Load's strapped down. Mostly."
+     },
+     {
+      "id": "sel3",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/daedalus/sel3.mp3?v=edda85f288424b1e",
+      "text": "Built to be rebuilt. Like me."
+     },
+     {
+      "id": "ack1",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/daedalus/ack1.mp3?v=cce79f49ef649350",
+      "text": "If it moves, we haul it. If it doesn't, we haul it anyway."
+     },
+     {
+      "id": "ack2",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/daedalus/ack2.mp3?v=ff6c01d3a9f0c2c8",
+      "text": "Ceres traffic, Daedalus heavy, coming through."
+     },
+     {
+      "id": "ack3",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/daedalus/ack3.mp3?v=6f36652f471291fb",
+      "text": "Burning now. Somebody hold the coffee."
+     },
+     {
+      "id": "p1",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/daedalus/p1.mp3?v=ad8056223f745a23",
+      "text": "You keep poking it, something's gonna fall off."
+     },
+     {
+      "id": "p2",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/daedalus/p2.mp3?v=e6c451cfabbefaf4",
+      "text": "And that one's coming out of your deposit."
+     },
+     {
+      "id": "ax00",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/daedalus/ax00.mp3?v=43fe42eeefcf11a9",
+      "text": "Clamps locked. Probably."
+     },
+     {
+      "id": "ax01",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/daedalus/ax01.mp3?v=db06375f7132e814",
+      "text": "Fine. I'll fix it with tape again."
+     },
+     {
+      "id": "px02",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/daedalus/px02.mp3?v=f8d4341c13f1186f",
+      "text": "Mate. I have a schedule. It's a bad one, but I have one."
+     },
+     {
+      "id": "px03",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/daedalus/px03.mp3?v=09983ae084fd628c",
+      "text": "Every time someone clicks me, a bolt falls off somewhere."
+     },
+     {
+      "id": "px04",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/daedalus/px04.mp3?v=2d10614f5df7e57c",
+      "text": "No, you can't take it for a test drive. It's a tug."
+     },
+     {
+      "id": "sx05",
+      "kind": "select",
+      "ships": [
+       "Mule"
+      ],
+      "src": "assets/voice/daedalus/sx05.mp3?v=5273925b076583f7",
+      "text": "Mule. Pulls anything. Complains about everything."
+     },
+     {
+      "id": "sx06",
+      "kind": "select",
+      "ships": [
+       "Mule"
+      ],
+      "src": "assets/voice/daedalus/sx06.mp3?v=93cf79a585386f59",
+      "text": "Got grapple arms and a bad attitude. What d'you need?"
+     },
+     {
+      "id": "sx07",
+      "kind": "select",
+      "ships": [
+       "Ox"
+      ],
+      "src": "assets/voice/daedalus/sx07.mp3?v=6ee05a39fe811557",
+      "text": "Ox. Twenty pods and nobody asks what's in 'em."
+     },
+     {
+      "id": "sx08",
+      "kind": "select",
+      "ships": [
+       "Titan"
+      ],
+      "src": "assets/voice/daedalus/sx08.mp3?v=f630f3845156e2cc",
+      "text": "Titan. Six hundred containers of honest rock."
+     },
+     {
+      "id": "sx09",
+      "kind": "select",
+      "ships": [
+       "Titan"
+      ],
+      "src": "assets/voice/daedalus/sx09.mp3?v=2bf90375cd0de248",
+      "text": "Takes a week to turn. Takes a month to stop."
+     },
+     {
+      "id": "sx10",
+      "kind": "select",
+      "ships": [
+       "Minotaur"
+      ],
+      "src": "assets/voice/daedalus/sx10.mp3?v=dd96b61a7e0bc8e3",
+      "text": "Minotaur. We eat asteroids. Literally."
+     },
+     {
+      "id": "sx11",
+      "kind": "select",
+      "ships": [
+       "Minotaur"
+      ],
+      "src": "assets/voice/daedalus/sx11.mp3?v=38d768b796b63cc7",
+      "text": "Got a whole refinery out back. And a ring for the crew to puke in."
+     }
+    ]
    }
   },
   {
@@ -807,6 +1357,29 @@ export default {
     "body": "Barlow Condensed",
     "display_case": "uppercase",
     "display_track": "0.12em"
+   },
+   "speaker": "Cydonia flight",
+   "poi": {
+    "signature_title": "Armour belts",
+    "signature": [
+     [
+      0.5,
+      0.75,
+      0.45
+     ],
+     [
+      0.7,
+      0.8,
+      -0.3
+     ]
+    ],
+    "cockpit": "The bridge sits deep inside an armoured citadel. Crews fight from screens, not windows.",
+    "signature_text": "Faceted armour with sheared edges: every plane is angled to send radar somewhere else.",
+    "gear": "Retractable struts stowed behind armoured doors. Small craft only; warships never land.",
+    "drives": "Drives recessed inside armoured skirts, so the hottest thing on the ship is the hardest to see.",
+    "docking": "An armoured docking collar that opens for Commonwealth codes and nothing else.",
+    "profile": "Arrowhead and wedge. No curves anywhere, except the gun barrels.",
+    "top": "The spear: thrust axis, spinal weapon and armour all on one line."
    },
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
@@ -1011,6 +1584,205 @@ export default {
       "exposure": 2.5491
      }
     }
+   },
+   "voice": {
+    "voice": "Roger",
+    "character": "Cydonia combat pilot — clipped, controlled, professional military, quietly dangerous",
+    "lines": [
+     {
+      "id": "sel1",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/cydonia/sel1.mp3?v=aab9f981b2eb11ea",
+      "text": "Cydonia. Weapons hot on your command."
+     },
+     {
+      "id": "sel2",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/cydonia/sel2.mp3?v=6275b2f9c5a17063",
+      "text": "Talon flight, airborne out of Phobos Deep."
+     },
+     {
+      "id": "sel3",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/cydonia/sel3.mp3?v=b59191d60de7dcb6",
+      "text": "Target designated. Awaiting release."
+     },
+     {
+      "id": "ack1",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/cydonia/ack1.mp3?v=1fb8624b77b515d4",
+      "text": "Mars stands ready."
+     },
+     {
+      "id": "ack2",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/cydonia/ack2.mp3?v=d92bae5e1a5d2f18",
+      "text": "Silent running. They won't see us coming."
+     },
+     {
+      "id": "ack3",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/cydonia/ack3.mp3?v=a09ee623bce5e542",
+      "text": "Affirmative. Moving to intercept."
+     },
+     {
+      "id": "p1",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/cydonia/p1.mp3?v=268b8ac5421071de",
+      "text": "That is a classified hull. Step back from the ship."
+     },
+     {
+      "id": "p2",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/cydonia/p2.mp3?v=29b7ef0c73b890cf",
+      "text": "Keep clicking, see what happens."
+     },
+     {
+      "id": "cap1",
+      "kind": "select",
+      "ships": [
+       "Ares",
+       "Olympus",
+       "Valles",
+       "Tharsis"
+      ],
+      "src": "assets/voice/cydonia/cap1.mp3?v=c61a35209cd91663",
+      "text": "Fleet, this is the flagship. Form on me."
+     },
+     {
+      "id": "ax00",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/cydonia/ax00.mp3?v=c57aade278bcea05",
+      "text": "Weapons free. Engaging."
+     },
+     {
+      "id": "ax01",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/cydonia/ax01.mp3?v=1d53c76191b904c4",
+      "text": "Radiators retracted. Going dark."
+     },
+     {
+      "id": "px02",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/cydonia/px02.mp3?v=20d9f39bd2ac1675",
+      "text": "Civilian. You're in a restricted bay."
+     },
+     {
+      "id": "px03",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/cydonia/px03.mp3?v=598220b231b52967",
+      "text": "Do that again and I'll log it."
+     },
+     {
+      "id": "px04",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/cydonia/px04.mp3?v=343be1caf5322648",
+      "text": "Sir, this is a warship, not a petting zoo."
+     },
+     {
+      "id": "sx05",
+      "kind": "select",
+      "ships": [
+       "Talon"
+      ],
+      "src": "assets/voice/cydonia/sx05.mp3?v=0e06b1b869968287",
+      "text": "Talon. Fast, faceted, and gone before you see it."
+     },
+     {
+      "id": "sx06",
+      "kind": "select",
+      "ships": [
+       "Talon"
+      ],
+      "src": "assets/voice/cydonia/sx06.mp3?v=6ee9894d82e594c7",
+      "text": "Claws out. Name the target."
+     },
+     {
+      "id": "sx07",
+      "kind": "select",
+      "ships": [
+       "Halberd"
+      ],
+      "src": "assets/voice/cydonia/sx07.mp3?v=99c6f340e286d411",
+      "text": "Halberd. Two seats, four torpedoes, zero mercy."
+     },
+     {
+      "id": "sx08",
+      "kind": "select",
+      "ships": [
+       "Halberd"
+      ],
+      "src": "assets/voice/cydonia/sx08.mp3?v=ee925e27bf46c3f4",
+      "text": "Bay doors ready. Something's about to have a very bad day."
+     },
+     {
+      "id": "sx09",
+      "kind": "select",
+      "ships": [
+       "Sabre"
+      ],
+      "src": "assets/voice/cydonia/sx09.mp3?v=bb7396839f6445f2",
+      "text": "Sabre. Escort on station."
+     },
+     {
+      "id": "sx10",
+      "kind": "select",
+      "ships": [
+       "Gladius"
+      ],
+      "src": "assets/voice/cydonia/sx10.mp3?v=957c572145b7ef9a",
+      "text": "Gladius. Holding the line."
+     },
+     {
+      "id": "sx11",
+      "kind": "select",
+      "ships": [
+       "Ares"
+      ],
+      "src": "assets/voice/cydonia/sx11.mp3?v=98143b1639dcb6bb",
+      "text": "Ares. Spinal gun charged."
+     },
+     {
+      "id": "sx12",
+      "kind": "select",
+      "ships": [
+       "Olympus"
+      ],
+      "src": "assets/voice/cydonia/sx12.mp3?v=06683658ad2c59f2",
+      "text": "Olympus. Guns run out. Give the word."
+     },
+     {
+      "id": "sx13",
+      "kind": "select",
+      "ships": [
+       "Valles"
+      ],
+      "src": "assets/voice/cydonia/sx13.mp3?v=a58858b046f3e856",
+      "text": "Valles. Launching the wing."
+     },
+     {
+      "id": "sx14",
+      "kind": "select",
+      "ships": [
+       "Tharsis"
+      ],
+      "src": "assets/voice/cydonia/sx14.mp3?v=32a63ff71fbdb9bd",
+      "text": "Tharsis. When this one fires, Mars hears it."
+     }
+    ]
    }
   },
   {
@@ -1067,6 +1839,29 @@ export default {
     "body": "Jost",
     "display_case": "none",
     "display_track": "0"
+   },
+   "speaker": "Kingsley pilot",
+   "poi": {
+    "signature_title": "Coachwork",
+    "signature": [
+     [
+      0.5,
+      0.65,
+      0.45
+     ],
+     [
+      1,
+      0.3,
+      -0.2
+     ]
+    ],
+    "cockpit": "A brass-ringed canopy over hand-stitched oxblood leather.",
+    "signature_text": "Riveted, stepped deco hull segments and gold coachlines laid by hand, one steady line at a time.",
+    "gear": "Polished landing struts with engine-turned covers. Yes, someone polishes them.",
+    "drives": "Polished copper drive bells and engine-turned shrouds: the jewellery of the ship.",
+    "docking": "A docking collar finished in brass. Clubhouse etiquette applies.",
+    "profile": "Rocket-age art deco, made to fly for real.",
+    "top": "Twin drive nacelles on swept struts: the heritage twin-boom, reborn as engines."
    },
    "logo": "assets/brands/kingsley/logo.webp?v=a49d124d82bd8399",
    "mark": "assets/brands/kingsley/mark.webp?v=4c2a3580cc3c268c",
@@ -1256,6 +2051,157 @@ export default {
       "exposure": 2.4623
      }
     }
+   },
+   "voice": {
+    "voice": "Daniel",
+    "character": "Kingsley gentleman racer — old-money British, charming, a twinkle of mischief",
+    "lines": [
+     {
+      "id": "sel1",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/kingsley/sel1.mp3?v=357d3b3ef4f5dfd1",
+      "text": "Kingsley. Since twenty-one thirty-one."
+     },
+     {
+      "id": "sel2",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/kingsley/sel2.mp3?v=a45dd5bf1e64967c",
+      "text": "Fancy a spin, old chap?"
+     },
+     {
+      "id": "sel3",
+      "kind": "select",
+      "ships": null,
+      "src": "assets/voice/kingsley/sel3.mp3?v=a897be4b09d24c12",
+      "text": "Every rivet set by hand."
+     },
+     {
+      "id": "ack1",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/kingsley/ack1.mp3?v=d267fea0685e9e22",
+      "text": "Do mind the brass. It's just been polished."
+     },
+     {
+      "id": "ack2",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/kingsley/ack2.mp3?v=eb832e2dd122991f",
+      "text": "Number seven, warming the copper."
+     },
+     {
+      "id": "ack3",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/kingsley/ack3.mp3?v=026a324c224d43d5",
+      "text": "Right then. Tally ho."
+     },
+     {
+      "id": "p1",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/kingsley/p1.mp3?v=00f1be79abb34cb0",
+      "text": "I say. Are you going to buy it, or simply fondle it?"
+     },
+     {
+      "id": "p2",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/kingsley/p2.mp3?v=ca8608bff0e17edd",
+      "text": "Gloves, please. This is a Kingsley."
+     },
+     {
+      "id": "ax00",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/kingsley/ax00.mp3?v=4087c8a69c79cdc8",
+      "text": "Coachlines straight, chaps. Off we go."
+     },
+     {
+      "id": "ax01",
+      "kind": "ack",
+      "ships": null,
+      "src": "assets/voice/kingsley/ax01.mp3?v=e712d60dbb94e6cf",
+      "text": "Engine-turned and gleaming. Splendid."
+     },
+     {
+      "id": "px02",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/kingsley/px02.mp3?v=05fb3740a33f8c04",
+      "text": "Steady on. That's hand-rubbed lacquer."
+     },
+     {
+      "id": "px03",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/kingsley/px03.mp3?v=6804a5347e9e9943",
+      "text": "We do have a waiting list, you know."
+     },
+     {
+      "id": "px04",
+      "kind": "pissed",
+      "ships": null,
+      "src": "assets/voice/kingsley/px04.mp3?v=147a0aadd20888c9",
+      "text": "In my day, one asked before touching a gentleman's rocket."
+     },
+     {
+      "id": "sx05",
+      "kind": "select",
+      "ships": [
+       "Sprite"
+      ],
+      "src": "assets/voice/kingsley/sx05.mp3?v=334c6d70455374df",
+      "text": "Sprite. Number seven. Fastest thing in the club."
+     },
+     {
+      "id": "sx06",
+      "kind": "select",
+      "ships": [
+       "Sprite"
+      ],
+      "src": "assets/voice/kingsley/sx06.mp3?v=47bc8ab732557632",
+      "text": "Shall we embarrass a Helios on the way home?"
+     },
+     {
+      "id": "sx07",
+      "kind": "select",
+      "ships": [
+       "Ascot"
+      ],
+      "src": "assets/voice/kingsley/sx07.mp3?v=11499338dc16b2af",
+      "text": "Ascot. For the long way round, in comfort."
+     },
+     {
+      "id": "sx08",
+      "kind": "select",
+      "ships": [
+       "Ascot"
+      ],
+      "src": "assets/voice/kingsley/sx08.mp3?v=ee79ce092cd50e01",
+      "text": "Luggage aboard? Then do take a seat."
+     },
+     {
+      "id": "sx09",
+      "kind": "select",
+      "ships": [
+       "Sovereign"
+      ],
+      "src": "assets/voice/kingsley/sx09.mp3?v=03d59f937df3424f",
+      "text": "Sovereign. The finest liner ever to spin."
+     },
+     {
+      "id": "sx10",
+      "kind": "select",
+      "ships": [
+       "Sovereign"
+      ],
+      "src": "assets/voice/kingsley/sx10.mp3?v=fe954052bc565180",
+      "text": "Promenade at eight. Black tie, naturally."
+     }
+    ]
    }
   }
  ],
@@ -1316,15 +2262,16 @@ export default {
    "role": "Multirole",
    "registration": "KRT-4471",
    "copy": "The multirole that flew the Aurelia approach. Four mains, four forward retros, sixteen RCS quads and a tricycle gear. KRT-4471 is the one you watched set down on Bay 41.",
-   "hail": [
+   "speaker": "KRT-4471",
+   "extra_lines": [
     {
+     "kind": "select",
      "src": "assets/audio/hail_L1.mp3?v=625a8d96010d706a",
-     "who": "KRT-4471",
      "text": "Aurelia Control. Atlantia Lightweight, Kilo Romeo Tango four four seven one… requesting docking."
     },
     {
+     "kind": "select",
      "src": "assets/audio/hail_L4.mp3?v=168bf1d333e3e780",
-     "who": "KRT-4471",
      "text": "Copy, Aurelia. Dock four one. Good to be home."
     }
    ],
@@ -1380,8 +2327,8 @@ export default {
    "class": "Medium",
    "crew": "4–30",
    "poster": {
-    "src": "assets/posters/atlantia/Heavyweight.webp?v=50dc3ac30fcd013b",
-    "small": "assets/posters/atlantia/Heavyweight-640.webp?v=741849d986a95104",
+    "src": "assets/posters/atlantia/Heavyweight.webp?v=476327f8f52fbaaa",
+    "small": "assets/posters/atlantia/Heavyweight-640.webp?v=4466e838e1dbf2e0",
     "w": 960,
     "h": 540
    },
@@ -1428,8 +2375,8 @@ export default {
    "class": "Heavy",
    "crew": "30–200",
    "poster": {
-    "src": "assets/posters/atlantia/SuperHeavyweight.webp?v=6f11cfd5d1f8db83",
-    "small": "assets/posters/atlantia/SuperHeavyweight-640.webp?v=f9b93c091fc63a9a",
+    "src": "assets/posters/atlantia/SuperHeavyweight.webp?v=60e8abf92118dbf9",
+    "small": "assets/posters/atlantia/SuperHeavyweight-640.webp?v=36029e0853f8b26e",
     "w": 960,
     "h": 540
    },

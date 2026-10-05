@@ -39,9 +39,25 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   const fxMeshes = [];
   const k = THREE.MathUtils.clamp(length / 43, 0.6, 4);       // glare size grows (gently) with the hull
 
+  // hover affordance: a soft fresnel rim on every solid hull material, driven by one shared uniform (no recompiles)
+  const rim = { value: 0 }, rimTarget = { v: 0 };
+  const rimColor = { value: new THREE.Color(1, 0.98, 0.94) };
+  const addRim = (m) => {
+    if (!m.isMeshStandardMaterial || m.userData.rim) return;
+    m.userData.rim = true;
+    const prev = m.onBeforeCompile;
+    m.onBeforeCompile = (sh, r) => {
+      prev?.call(m, sh, r);
+      sh.uniforms.uRim = rim; sh.uniforms.uRimColor = rimColor;
+      sh.fragmentShader = 'uniform float uRim;\nuniform vec3 uRimColor;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
+        '#include <dithering_fragment>\n  gl_FragColor.rgb += uRimColor * uRim * 0.55 * pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);');
+    };
+    m.customProgramCacheKey = () => 'rim';
+  };
   root.traverse((o) => {
     if (!o.isMesh) return;
     const m = o.material;
+    if (!isFx(m) && !m.transparent) addRim(m);
     if (!mats.has(m.name)) mats.set(m.name, []);
     if (!mats.get(m.name).includes(m)) {
       mats.get(m.name).push(m);
@@ -58,6 +74,9 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   // light anchors (glTF node extras -> userData)
   const anchors = [];
   root.traverse((o) => { if (o.name && o.name.startsWith('L_')) anchors.push(o); });
+  root.updateMatrixWorld(true);
+  // anchor positions in the ship's own frame (root is still at identity here): POIs are derived from these
+  const anchorsLocal = anchors.map((o) => ({ kind: o.userData?.kind || '', name: o.name, pos: o.getWorldPosition(new THREE.Vector3()) }));
   const glare = (parent, kind, color, phase, base) => {
     const sm = new THREE.SpriteMaterial({ map: starburst(), color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 });
     const sp = new THREE.Sprite(sm); sp.scale.setScalar(base * k); sp.renderOrder = 5;
@@ -125,6 +144,7 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   const hasRetro = mats.has('retro_glow') || mats.has('retro_plume') || retros.length > 0;
 
   function update(dt, t, S) {
+    rim.value += (rimTarget.v - rim.value) * Math.min(1, dt * 10);
     // gear
     if (gear) {
       S.gearT = THREE.MathUtils.clamp(S.gearT + S.gearDir * dt / gear.dur, 0, 1);
@@ -202,7 +222,8 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
   }
 
   return {
-    root, update, dispose, bounds,
+    root, update, dispose, bounds, anchorsLocal,
+    setHighlight(v) { rimTarget.v = v; },
     hasGear: !!gear, hasRetro,
     lightCount: Object.values(L).reduce((a, l) => a + l.length, 0),
   };
