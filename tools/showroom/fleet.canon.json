@@ -120,7 +120,7 @@
         "mark": "oneill/assets/brand/atlantia_mark.png"
       },
       "hero_render": "showroom_atlantia_hero.png",
-      "wide_render": "atlantia_v2_lineup.png",
+      "wide_render": "showroom_atlantia_wide.png",
       "speaker": "Atlantia pilot",
       "poi": {
         "signature_title": "Blended wing-body",
@@ -204,7 +204,7 @@
         "mark": "universe/brands/helios/mark.png"
       },
       "hero_render": "showroom_helios_hero.png",
-      "wide_render": "v2_helios_lineup.png",
+      "wide_render": "showroom_helios_wide.png",
       "speaker": "Helios concierge",
       "poi": {
         "signature_title": "Solar sails",
@@ -288,7 +288,7 @@
         "mark": "universe/brands/daedalus/mark.png"
       },
       "hero_render": "showroom_daedalus_hero.png",
-      "wide_render": "v2_daedalus_lineup.png",
+      "wide_render": "showroom_daedalus_wide.png",
       "speaker": "Daedalus hauler",
       "poi": {
         "signature_title": "Spine and pods",
@@ -379,7 +379,7 @@
         "mark": "universe/brands/cydonia/mark.png"
       },
       "hero_render": "showroom_cydonia_hero.png",
-      "wide_render": "v2_cydonia_capital_lineup.png",
+      "wide_render": "showroom_cydonia_wide.png",
       "speaker": "Cydonia flight",
       "poi": {
         "signature_title": "Armour belts",
@@ -464,7 +464,7 @@
         "mark": "universe/brands/kingsley/mark.png"
       },
       "hero_render": "showroom_kingsley_hero.png",
-      "wide_render": "v2_kingsley_lineup.png",
+      "wide_render": "showroom_kingsley_wide.png",
       "speaker": "Kingsley pilot",
       "poi": {
         "signature_title": "Coachwork",

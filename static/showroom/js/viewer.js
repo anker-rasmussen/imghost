@@ -156,7 +156,7 @@ export class Viewer {
     this.composer.setSize(w, h);
     this.camera.aspect = w / h;
     const fov = this.room?.info.camera.fov ?? 40;
-    this.camera.fov = w / h < 0.8 ? Math.min(62, fov * 1.25) : fov;
+    if (!this.ship?.outdoor && !this.walk) this.camera.fov = w / h < 0.8 ? Math.min(62, fov * 1.25) : fov;
     this.camera.updateProjectionMatrix();
   }
 
@@ -207,8 +207,15 @@ export class Viewer {
     this.disposeRoom();
     this.room = { id: maker.id, info, totem: maker.totem || null, ...built };
     this.room.floorMeshes = [];
-    this.room.group.traverse((o) => { if (o.isMesh && /floor/.test(o.name)) this.room.floorMeshes.push(o); });
     this.room.group.updateMatrixWorld(true);
+    this.room.group.traverse((o) => {
+      if (!o.isMesh) return;
+      if (/floor/.test(o.name)) this.room.floorMeshes.push(o);
+      if (/glass/.test(o.name)) {                       // window(s) onto the giants outside
+        const b = new THREE.Box3().setFromObject(o);
+        this.room.glassBox = this.room.glassBox ? this.room.glassBox.union(b) : b;
+      }
+    });
     this.scene.add(this.room.group);
     this.renderer.toneMappingExposure = info.tone_mapping?.exposure ?? 1;
     this.resize();
@@ -354,8 +361,8 @@ export class Viewer {
     const key = new THREE.DirectionalLight(new THREE.Color(...info.key_light.color), info.key_light.intensity);
     const kd = v3(info.key_light.direction).normalize();
     // the shadow camera covers the whole hall floor: every indoor bay gets a real-time contact shadow
-    const cz = hall ? -(hall.glass_y + hall.back_y) / 2 : 0;
-    const R = hall ? Math.max(hall.half_width, (hall.glass_y - hall.back_y) / 2) + 4 : tt.radius + 6;
+    const cz = 0;
+    const R = tt.radius + 8;                            // the turntable hull is the only real-time shadow caster
     key.position.copy(kd.clone().multiplyScalar(-(R * 3 + 40))).add(new THREE.Vector3(0, top, cz));
     key.target.position.set(0, top, cz);
     key.castShadow = true;
@@ -374,8 +381,7 @@ export class Viewer {
       m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; m.renderOrder = 2; group.add(m); return m;
     };
     mk(new THREE.CircleGeometry(tt.radius, 96), top + 0.012);
-    this.hallCatcher = hall ? mk(new THREE.PlaneGeometry(2 * hall.half_width, hall.glass_y - hall.back_y), top + 0.01) : null;
-    if (this.hallCatcher) this.hallCatcher.position.z = cz;
+    void hall;
   }
 
   /** floor height under (x, z): ray down onto the baked floor mesh (turntable top included) */
@@ -431,13 +437,13 @@ export class Viewer {
   /** silhouette card standing in the bay until the hull streams in */
   addGhost(e) {
     const sil = e.model.silhouette;
-    if (!sil) return;
+    if (!sil || e.outdoor) return;                      // giants outside just appear when ready
     const L = e.model.length, H = L * sil.aspect;
     const tex = new THREE.TextureLoader().load(sil.src);
-    const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide, color: 0xffffff });
+    const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide, color: 0xffffff });
     const g = new THREE.Mesh(new THREE.PlaneGeometry(L, H), m);
     g.rotation.y = Math.PI / 2;                       // side view along the hull's z axis
-    g.position.y = e.outdoor ? 0 : H / 2;
+    g.position.y = H / 2;
     e.ghost = g;
     e.holder.add(g);
   }
@@ -490,7 +496,12 @@ export class Viewer {
     e.fits = true; e.N = 1; e.plinthR = 0;
     const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, cy = (box.min.y + box.max.y) / 2;
     // indoor: stand on the bay floor (hover a little if the hull has no gear); outdoor: bay position is the hull centre
-    const y = e.outdoor ? -cy : -box.min.y + (e.rig.hasGear ? 0 : Math.max(0.6, size.y * 0.12));
+    // real bays: position is the ground contact point (lowest point of the hull, gear down); legacy stub bays put
+    // outdoor giants by their centre and float gearless indoor hulls a little
+    const real = e.bay.ground !== undefined || e.bay.length !== undefined;
+    const y = real ? -box.min.y : e.outdoor ? -cy : -box.min.y + (e.rig.hasGear ? 0 : Math.max(0.6, size.y * 0.12));
+    // only the turntable hull gets a real-time shadow: the other bays have theirs baked into the floor
+    if (real && !e.bay.turntable) root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
     root.position.set(-cx, y, -cz);
     e.holder.updateMatrixWorld(true);
     e.pois = this.buildPois(e);
@@ -528,13 +539,14 @@ export class Viewer {
 
   /** opening shot for a bay: 3/4 front-above from the side of the hull with the most floor, away from the totem */
   heroAzimuth(e) {
-    const info = this.room.info, hall = info.hall;
+    const info = this.room.info;
     const c = e.base;
     const nose = e.yaw + Math.PI;                       // hull nose is local -Z
+    const rb = this.roomBox();
     const avail = (x) => {
-      if (!hall) return 100;
-      const dx = Math.sin(x), dz = Math.cos(x), hw = hall.half_width - 2;
-      const z0 = -hall.glass_y + 1.5, z1 = -hall.back_y - 1.5;
+      if (!rb) return 100;
+      const dx = Math.sin(x), dz = Math.cos(x), hw = rb.x;
+      const z0 = rb.z0, z1 = rb.z1;
       const tx = dx > 0 ? (hw - c.x) / dx : dx < 0 ? (-hw - c.x) / dx : Infinity;
       const tz = dz > 0 ? (z1 - c.z) / dz : dz < 0 ? (z0 - c.z) / dz : Infinity;
       return Math.max(0, Math.min(tx, tz));
@@ -548,6 +560,15 @@ export class Viewer {
       const diff = Math.atan2(Math.sin(x - nose), Math.cos(x - nose));
       let score = 2 * Math.min(avail(x), need) / need + Math.cos(Math.abs(diff) - 0.7);
       if (tAz != null && Math.abs(Math.atan2(Math.sin(x - tAz), Math.cos(x - tAz))) < 0.6) score -= 1.5;
+      // don't look at this hull through another one: penalise sight lines crossing other indoor bays
+      const reach = Math.min(avail(x), need);
+      const cam2 = new THREE.Vector2(c.x + Math.sin(x) * reach, c.z + Math.cos(x) * reach), foc = new THREE.Vector2(c.x, c.z);
+      for (const o of this.fleet.values()) {
+        if (o === e || o.outdoor) continue;
+        const r = (o.bay.length || o.model.length) * 0.45, q = new THREE.Vector2(o.base.x, o.base.z);
+        const ab = foc.clone().sub(cam2), tt2 = THREE.MathUtils.clamp(q.clone().sub(cam2).dot(ab) / ab.lengthSq(), 0, 1);
+        if (cam2.clone().addScaledVector(ab, tt2).distanceTo(q) < r) score -= 2;
+      }
       if (score > best) { best = score; az = x; }
     }
     return { az, avail: avail(az) };
@@ -562,21 +583,50 @@ export class Viewer {
     const fit = 0.8 * sphere.radius / Math.tan(Math.min(vfov, hfov) / 2);
     const target = sphere.center.clone();
     let pos;
-    const box = hall ? { x: hall.half_width - 2, z0: -hall.glass_y + 1.5, z1: -hall.back_y - 1.5 } : null;
-    if (e.outdoor && hall) {
-      // giants outside: stand at the glass and look out at them
-      pos = new THREE.Vector3(THREE.MathUtils.clamp(target.x * 0.08, -box.x + 2, box.x - 2), tt.top + (cam.min_height ?? 1.2) + 2.5, box.z0 + 3);
-      target.y = Math.min(target.y, pos.y + 0.5);       // look level/out; orbit polar limit forbids looking up
+    const box = this.roomBox();
+    if (e.outdoor && box) {
+      // giants outside: the camera stays in the hall, a few metres inside the glass, on the line of sight that
+      // passes through the window (glass bounds come from the room's own glass mesh)
+      const g = this.room.glassBox, fb = this.roomBox();
+      const gz = g ? Math.max(g.min.z, fb.z0 - 1.5) : fb.z0;
+      const z = Math.min(gz + 4, fb.z1);
+      const gx0 = g ? g.min.x + 2 : -box.x, gx1 = g ? g.max.x - 2 : box.x;
+      // choose x so the ray to the giant crosses the glass plane inside the window
+      let x = THREE.MathUtils.clamp(target.x * 0.02, gx0 * 0.5, gx1 * 0.5);
+      const k = (gz - z) / (target.z - z);
+      const cross = x + (target.x - x) * k;
+      if (cross < gx0 || cross > gx1) x = THREE.MathUtils.clamp((THREE.MathUtils.clamp(cross, gx0, gx1) - target.x * k) / (1 - k), -box.x, box.x);
+      const gy = g ? THREE.MathUtils.clamp(g.min.y + (g.max.y - g.min.y) * 0.3, tt.top + 2, g.max.y - 2) : tt.top + 4;
+      pos = new THREE.Vector3(x, gy, z);
     } else {
       const { az, avail } = this.heroAzimuth(e);
-      const el = THREE.MathUtils.degToRad(20);
+      const dist = Math.max(Math.min(fit, avail - 0.5), sphere.radius * 0.9);
+      // 3/4 from above, but at a person's sense of scale: never more than ~a third of a hull length overhead
+      const el = Math.min(THREE.MathUtils.degToRad(20), Math.atan2(THREE.MathUtils.clamp(sphere.radius * 0.25, 2.5, 7), dist));
       const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
-      const dist = Math.max(Math.min(fit, avail / Math.cos(el) - 0.5), sphere.radius * 0.9);
       pos = target.clone().addScaledVector(dir, dist);
     }
     pos.y = THREE.MathUtils.clamp(pos.y, tt.top + (cam.min_height ?? 1), cam.max_height ?? 50);
     if (box) { pos.x = THREE.MathUtils.clamp(pos.x, -box.x, box.x); pos.z = THREE.MathUtils.clamp(pos.z, box.z0, box.z1); }
+    // giants are far away: a longer lens (narrower fov) frames them; indoor bays use the room's authored lens
+    const baseFov = (this.camera.aspect < 0.8 ? 1.25 : 1) * (cam.fov ?? 40);
+    if (e.outdoor) {
+      // fit the hull's own (oriented) box as seen from the glass, with ~15 % margin
+      const probe = this.camera.clone();
+      probe.position.copy(pos); probe.lookAt(target); probe.updateMatrixWorld(true);
+      const inv = probe.matrixWorldInverse, lb = e.localBox, m = e.rig.root.matrixWorld;
+      let need = 0.05;
+      for (let i = 0; i < 8; i++) {
+        const v = new THREE.Vector3(i & 1 ? lb.max.x : lb.min.x, i & 2 ? lb.max.y : lb.min.y, i & 4 ? lb.max.z : lb.min.z).applyMatrix4(m).applyMatrix4(inv);
+        const z = Math.max(1, -v.z);
+        need = Math.max(need, Math.abs(v.x) / z / this.camera.aspect, Math.abs(v.y) / z);
+      }
+      this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(need * 1.15)), 6, baseFov);
+    } else this.camera.fov = Math.min(62, baseFov);
+    this.camera.updateProjectionMatrix();
     const c = this.controls;
+    // looking out and up at a giant needs the camera below its target: lift the 'never under the floor' orbit limit
+    c.maxPolarAngle = e.outdoor ? Math.PI - 0.05 : THREE.MathUtils.degToRad(89);
     const d = pos.distanceTo(target);
     c.minDistance = e.outdoor ? d * 0.4 : Math.max(0.4, sphere.radius * 0.12);
     c.maxDistance = e.outdoor ? d * 1.05 : Math.max(d * 1.3, cam.orbit_max_distance);
@@ -587,6 +637,13 @@ export class Viewer {
     } else {
       this.tween = { p0: this.camera.position.clone(), t0: c.target.clone(), p1: pos, t1: target, start: performance.now(), dur: 1500 };
     }
+  }
+
+  /** camera box: the walkable floor rectangle (or the hall) with a margin, in three.js x / z */
+  roomBox() {
+    const info = this.room.info, fb = info.floor_bounds, hall = info.hall;
+    if (fb?.x && fb?.z) return { x: Math.min(-fb.x[0], fb.x[1]) - 1.5, z0: fb.z[0] + 1.5, z1: fb.z[1] - 1.5 };
+    return hall ? { x: hall.half_width - 2, z0: -hall.glass_y + 1.5, z1: -hall.back_y - 1.5 } : null;
   }
 
   resetView() { if (this.home && this.ship?.rig) this.frameShip(false); }
@@ -692,14 +749,13 @@ export class Viewer {
     const q = root.getWorldQuaternion(new THREE.Quaternion());
     const dir = p.dir.clone().applyQuaternion(q);
     let dist = p.dist * root.scale.x;
-    if (s.outdoor && this.bounds) {                     // a giant outside: the tour camera may leave the hall
-      this.bounds = { ...this.bounds, box: null, maxH: 1e5, minH: -1e5 };
-      this.controls.maxDistance = 1e5;
-    }
     const b = this.bounds;
     if (p.key === 'top' && b) dist = Math.min(dist, Math.max(2, (b.maxH - 0.5 - target.y) / Math.max(dir.y, 0.3)));
-    const pos = target.clone().addScaledVector(dir, dist);
-    if (b) pos.y = Math.max(pos.y, b.top + 0.35);
+    // the camera never leaves the room: giants outside are toured from the glass by turning to look
+    const pos = s.outdoor && this.home ? this.home.pos.clone() : target.clone().addScaledVector(dir, dist);
+    if (b) pos.y = THREE.MathUtils.clamp(pos.y, b.top + 0.35, b.maxH);
+    if (b?.box) { pos.x = THREE.MathUtils.clamp(pos.x, -b.box.x, b.box.x); pos.z = THREE.MathUtils.clamp(pos.z, b.box.z0, b.box.z1); }
+    if (s.outdoor) this.controls.maxDistance = Math.max(this.controls.maxDistance, pos.distanceTo(target) * 1.05);
     this.controls.minDistance = 0.3;
     if (p.action === 'gear') { this.S.gearDir = 1; }
     const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -769,9 +825,10 @@ export class Viewer {
     const info = this.room.info, hall = info.hall;
     const w = info.walk || info.walkable || info.floor || {};
     const b = w.bounds || info.floor_bounds;
-    const bounds = b && b.length === 4 ? { x0: b[0], z0: b[1], x1: b[2], z1: b[3] }
+    const bounds = b?.x && b?.z ? { x0: b.x[0] + 0.5, x1: b.x[1] - 0.5, z0: b.z[0] + 0.5, z1: b.z[1] - 0.5 }
+      : b && b.length === 4 ? { x0: b[0], z0: b[1], x1: b[2], z1: b[3] }
       : { x0: -hall.half_width + 1, x1: hall.half_width - 1, z0: -hall.glass_y + 1, z1: -hall.back_y - 1 };
-    const obstacles = (w.obstacles || info.obstacles || []).map((o) => (o.radius != null
+    const obstacles = (w.obstacles || info.obstacles || []).filter((o) => !o.type || o.type === 'circle' || o.type === 'box' || o.min).map((o) => (o.radius != null
       ? { c: new THREE.Vector2(o.center[0], o.center[o.center.length === 3 ? 2 : 1]), r: o.radius }
       : { min: new THREE.Vector2(o.min[0], o.min[o.min.length === 3 ? 2 : 1]), max: new THREE.Vector2(o.max[0], o.max[o.max.length === 3 ? 2 : 1]) }));
     this._walkSpace = { room: this.room, bounds, obstacles };
