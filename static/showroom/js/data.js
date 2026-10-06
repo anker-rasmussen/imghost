@@ -2683,8 +2683,8 @@ export default {
     "aspect": 0.2475
    },
    "glb": {
-    "src": "assets/ships/SuperLightweight.glb?v=6e220a577f43d77a",
-    "bytes": 3175428,
+    "src": "assets/ships/SuperLightweight.glb?v=e4b2248f5a253571",
+    "bytes": 13501504,
     "tris": 77080,
     "draw_calls": 11,
     "has_gear": true,
@@ -2745,8 +2745,8 @@ export default {
     "aspect": 0.1783
    },
    "glb": {
-    "src": "assets/ships/Lightweight.glb?v=de194b9652601645",
-    "bytes": 3383268,
+    "src": "assets/ships/Lightweight.glb?v=f876dea0d023a4d6",
+    "bytes": 14356216,
     "tris": 80346,
     "draw_calls": 11,
     "has_gear": true,
@@ -2793,8 +2793,8 @@ export default {
     "aspect": 0.1992
    },
    "glb": {
-    "src": "assets/ships/Heavyweight.glb?v=bf6130db681e9699",
-    "bytes": 8088944,
+    "src": "assets/ships/Heavyweight.glb?v=bfbef2289317a153",
+    "bytes": 35349900,
     "tris": 190266,
     "draw_calls": 11,
     "has_gear": true,
@@ -2841,8 +2841,8 @@ export default {
     "aspect": 0.2143
    },
    "glb": {
-    "src": "assets/ships/SuperHeavyweight.glb?v=5d2348da4633908a",
-    "bytes": 8548012,
+    "src": "assets/ships/SuperHeavyweight.glb?v=c9726d955b59f674",
+    "bytes": 26229656,
     "tris": 359448,
     "draw_calls": 9,
     "has_gear": false,
@@ -2889,8 +2889,8 @@ export default {
     "aspect": 0.2129
    },
    "glb": {
-    "src": "assets/ships/Corona.glb?v=4a81eefe79d877b0",
-    "bytes": 1761976,
+    "src": "assets/ships/Corona.glb?v=afc163f682340974",
+    "bytes": 6979388,
     "tris": 81392,
     "draw_calls": 8,
     "has_gear": true,
@@ -2931,8 +2931,8 @@ export default {
     "aspect": 0.255
    },
    "glb": {
-    "src": "assets/ships/Zenith.glb?v=0f0ad88953506d17",
-    "bytes": 2397616,
+    "src": "assets/ships/Zenith.glb?v=2e381ac2572f8604",
+    "bytes": 11231192,
     "tris": 107412,
     "draw_calls": 6,
     "has_gear": false,
@@ -2973,8 +2973,8 @@ export default {
     "aspect": 0.1726
    },
    "glb": {
-    "src": "assets/ships/Solstice.glb?v=2fa5b8972f68c191",
-    "bytes": 4842760,
+    "src": "assets/ships/Solstice.glb?v=981e6d700f48c3b4",
+    "bytes": 21148348,
     "tris": 105339,
     "draw_calls": 6,
     "has_gear": false,
@@ -3015,8 +3015,8 @@ export default {
     "aspect": 0.2317
    },
    "glb": {
-    "src": "assets/ships/Mule.glb?v=e8001cf2619200da",
-    "bytes": 5023952,
+    "src": "assets/ships/Mule.glb?v=27cac6bd11c259fb",
+    "bytes": 33444540,
     "tris": 57364,
     "draw_calls": 7,
     "has_gear": true,
@@ -3059,8 +3059,8 @@ export default {
     "aspect": 0.1583
    },
    "glb": {
-    "src": "assets/ships/Ox.glb?v=f76a5da4dd2f84d8",
-    "bytes": 6754208,
+    "src": "assets/ships/Ox.glb?v=45f6150fd1ecb0c6",
+    "bytes": 29588652,
     "tris": 169998,
     "draw_calls": 6,
     "has_gear": false,
@@ -3102,8 +3102,8 @@ export default {
     "aspect": 0.1708
    },
    "glb": {
-    "src": "assets/ships/Titan.glb?v=e6e998a64fcc5e65",
-    "bytes": 6313660,
+    "src": "assets/ships/Titan.glb?v=bf4b1aa4cf898d0a",
+    "bytes": 13359116,
     "tris": 319997,
     "draw_calls": 6,
     "has_gear": false,
@@ -3146,8 +3146,8 @@ export default {
     "aspect": 0.3517
    },
    "glb": {
-    "src": "assets/ships/Minotaur.glb?v=c233490e41150d90",
-    "bytes": 7242912,
+    "src": "assets/ships/Minotaur.glb?v=6e9e2e1e66874711",
+    "bytes": 22598864,
     "tris": 319997,
     "draw_calls": 6,
     "has_gear": false,
@@ -3188,8 +3188,8 @@ export default {
     "aspect": 0.2427
    },
    "glb": {
-    "src": "assets/ships/Talon.glb?v=ec38ff3e70e04611",
-    "bytes": 6640340,
+    "src": "assets/ships/Talon.glb?v=e9b4a1852960f1dc",
+    "bytes": 31682044,
     "tris": 101118,
     "draw_calls": 9,
     "has_gear": true,
@@ -3230,8 +3230,8 @@ export default {
     "aspect": 0.2008
    },
    "glb": {
-    "src": "assets/ships/Halberd.glb?v=efe6d06ecfa631ea",
-    "bytes": 6662268,
+    "src": "assets/ships/Halberd.glb?v=86dfe8a6db90ad4c",
+    "bytes": 30590356,
     "tris": 101154,
     "draw_calls": 9,
     "has_gear": true,
@@ -3272,8 +3272,8 @@ export default {
     "aspect": 0.2125
    },
    "glb": {
-    "src": "assets/ships/Sabre.glb?v=c430fa427766ce1a",
-    "bytes": 7030736,
+    "src": "assets/ships/Sabre.glb?v=e1a074ee9a0dcebc",
+    "bytes": 21951016,
     "tris": 170670,
     "draw_calls": 7,
     "has_gear": false,
@@ -3313,8 +3313,8 @@ export default {
     "aspect": 0.1693
    },
    "glb": {
-    "src": "assets/ships/Gladius.glb?v=1cd8c8f7631c7a77",
-    "bytes": 6892876,
+    "src": "assets/ships/Gladius.glb?v=1925caea6f37258a",
+    "bytes": 19138588,
     "tris": 174114,
     "draw_calls": 7,
     "has_gear": false,
@@ -3354,8 +3354,8 @@ export default {
     "aspect": 0.1317
    },
    "glb": {
-    "src": "assets/ships/Ares.glb?v=b6d62e4d87b562ec",
-    "bytes": 10294872,
+    "src": "assets/ships/Ares.glb?v=8419497bc55bfece",
+    "bytes": 21340896,
     "tris": 325764,
     "draw_calls": 7,
     "has_gear": false,
@@ -3395,8 +3395,8 @@ export default {
     "aspect": 0.145
    },
    "glb": {
-    "src": "assets/ships/Olympus.glb?v=075c034fbf6d5476",
-    "bytes": 10257216,
+    "src": "assets/ships/Olympus.glb?v=3bd890c6810058a6",
+    "bytes": 18042052,
     "tris": 329454,
     "draw_calls": 7,
     "has_gear": false,
@@ -3437,8 +3437,8 @@ export default {
     "aspect": 0.1183
    },
    "glb": {
-    "src": "assets/ships/Valles.glb?v=cdf0329a958b57fd",
-    "bytes": 6018932,
+    "src": "assets/ships/Valles.glb?v=ffbe289993e4630d",
+    "bytes": 10116544,
     "tris": 310378,
     "draw_calls": 7,
     "has_gear": false,
@@ -3486,12 +3486,12 @@ export default {
     "aspect": 0.1041
    },
    "glb": {
-    "src": "assets/ships/Tharsis.glb?v=8349ce7fef55e1ba",
-    "bytes": 9023844,
-    "tris": 324298,
+    "src": "assets/ships/Tharsis.glb?v=d573a3854bda42fd",
+    "bytes": 14649912,
+    "tris": 694548,
     "draw_calls": 7,
     "has_gear": false,
-    "export_length": null,
+    "export_length": 2400.0,
     "lights": {
      "beacon": 1,
      "engine": 9,
@@ -3528,8 +3528,8 @@ export default {
     "aspect": 0.1983
    },
    "glb": {
-    "src": "assets/ships/Sprite.glb?v=99068e2f1a7106ec",
-    "bytes": 5805372,
+    "src": "assets/ships/Sprite.glb?v=35e5aa3edfe862e1",
+    "bytes": 27977272,
     "tris": 106910,
     "draw_calls": 9,
     "has_gear": true,
@@ -3570,8 +3570,8 @@ export default {
     "aspect": 0.1442
    },
    "glb": {
-    "src": "assets/ships/Ascot.glb?v=fa6f32a4fdbb7b35",
-    "bytes": 5816188,
+    "src": "assets/ships/Ascot.glb?v=011b561fb5358d95",
+    "bytes": 27089308,
     "tris": 108317,
     "draw_calls": 9,
     "has_gear": true,
@@ -3612,8 +3612,8 @@ export default {
     "aspect": 0.445
    },
    "glb": {
-    "src": "assets/ships/Sovereign.glb?v=8ef2815900b21e1d",
-    "bytes": 6478468,
+    "src": "assets/ships/Sovereign.glb?v=641bb46ed9191543",
+    "bytes": 12171680,
     "tris": 350555,
     "draw_calls": 8,
     "has_gear": false,

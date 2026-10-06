@@ -239,6 +239,21 @@ def scan_glb(p: Path) -> dict:
             "has_gear": "gear_deploy" in anims, "materials": [{"name": m.get("name", "")} for m in j.get("materials", [])]}
 
 
+KTX_BIN = Path.home() / ".local" / "opt" / "ktx" / "bin" / "ktx"
+
+
+def ship_glb(src: Path, dst: Path) -> Path:
+    """Ship glbs are served with KTX2 (Basis UASTC + zstd) textures: ~3x less GPU memory than WebP, at ~3x the
+    download. Re-encoded only when the export is newer. SHOWROOM_KTX2=0 (or no KTX-Software) copies the WebP glb.
+    Rooms stay WebP: their baked lightmaps visibly shifted under UASTC (identical-camera diff), ships did not."""
+    if os.environ.get("SHOWROOM_KTX2", "1") == "0" or not KTX_BIN.exists():
+        return copy(src, dst)
+    if not fresh(src, dst):
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([sys.executable, str(TOOLS / "ktx2_encode.py"), str(src), str(dst)], check=True)
+    return dst
+
+
 def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
     mk, M = s["maker"], s["model"]
     c = size_class(canon["size_classes"], s["length"])
@@ -262,7 +277,7 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
     if meta is None and glb_src.exists() and time.time() - glb_src.stat().st_mtime > 60:
         meta = scan_glb(glb_src)                       # no meta / manifest entry: read what we need from the glb
     if meta and glb_src.exists():
-        glb = copy(glb_src, ASSETS / "ships" / f"{M}.glb")
+        glb = ship_glb(glb_src, ASSETS / "ships" / f"{M}.glb")
         kinds = {}
         for a in meta.get("light_anchors", []):
             k = a.get("extras", {}).get("kind", "")

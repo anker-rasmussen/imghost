@@ -14,9 +14,9 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=886d45a05c4f8e20';
-import { SafeKTX2Loader } from './ktx2.js?v=71c8dcbff4fe4bb4';
+import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=34c6ef3537bffb4a';
+import data from './data.js?v=b673cf598b337f13';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
@@ -98,7 +98,7 @@ export class Viewer {
 
     this.pmrem = new THREE.PMREMGenerator(r);
     // KTX2 (Basis UASTC) hull and room textures stay GPU-compressed in VRAM; WebP glbs still load as before
-    this.ktx2 = new SafeKTX2Loader().setWorkerLimit(2).detectSupport(r);
+    this.ktx2 = new SafeKTX2Loader().setWorkerLimit(1).detectSupport(r);   // one in-page transcoder instance
     this.gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(this.ktx2);
     this.rgbe = new RGBELoader();
     this.clock = new THREE.Clock();

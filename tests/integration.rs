@@ -671,7 +671,7 @@ async fn test_showroom_static_serving_is_inert() {
             "application/wasm",
         ),
         (
-            "/showroom/vendor/three/addons/libs/basis/ktx2_worker.js",
+            "/showroom/vendor/three/addons/libs/basis/ktx2_inline.js",
             "text/javascript",
         ),
         ("/showroom/js/main.js", "text/javascript"),
