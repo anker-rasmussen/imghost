@@ -457,7 +457,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=9a73f4c83e9d0ed6');
+        const { Viewer } = await import('./viewer.js?v=442976fefce367ea');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),
@@ -466,7 +466,7 @@ export class Showroom {
           onHover: (hit, x, y) => this.hover(hit, x, y),
         });
         this.viewer.spin = !reduceMotion();
-        if (/[?&]debug\b/.test(location.search)) window.__viewer = this.viewer;   // console poking, opt-in only
+        if (/[?&](debug|perf=1)\b/.test(location.search)) window.__viewer = this.viewer;   // console poking, opt-in only
       }
       await this.viewer.show(m, s, (p, label) => {
         if (token !== this.token) return;

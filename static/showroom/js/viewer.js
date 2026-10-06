@@ -18,6 +18,9 @@ import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
 import data from './data.js?v=34c6ef3537bffb4a';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+/** raycaster that also sees layer 1 (the giants outside) */
+function mkRay(...a) { const r = new THREE.Raycaster(...a); r.layers.enableAll(); return r; }
+const IDLE_MS = 45000;                                 // loop sleeps after this long without input (wakes on any)
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 function disposeTree(root) {
@@ -69,13 +72,16 @@ export class Viewer {
       logarithmicDepthBuffer: true });   // 5 cm close-ups and 5 km giants in one depth buffer
     r.toneMapping = THREE.AgXToneMapping;
     r.shadowMap.enabled = true;
+    r.shadowMap.autoUpdate = false;                     // re-rendered only when a caster moves (see tick)
+    this.shadowDirty = 8;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.dprMax = Math.min(devicePixelRatio || 1, matchMedia('(max-width: 760px)').matches ? 1.5 : 1.75);
+    this.dprMax = Math.min(devicePixelRatio || 1, 2);   // native resolution; adaptive scaling only when over budget
     this.dpr = this.dprMax;
     r.setPixelRatio(this.dpr);
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.05, 20000);
+    this.camera.layers.enable(1);
     const c = this.controls = new OrbitControls(this.camera, canvas);
     c.enableDamping = true; c.dampingFactor = 0.06; c.rotateSpeed = 0.7;
     c.enablePan = true; c.screenSpacePanning = true; c.panSpeed = 0.7;
@@ -99,6 +105,7 @@ export class Viewer {
     this.roomToken = 0; this.fleetToken = 0; this.fleet = null;
     this.running = false;
     this.slow = 0;
+    this.perf = /[?&]perf=1\b/.test(location.search) ? { ms: [], shown: 0 } : null;
 
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas);
@@ -113,6 +120,10 @@ export class Viewer {
     });
     // affordances: grab / grabbing cursor, pointer + rim highlight + "click to hail" over the hull
     c.addEventListener('start', () => { this.dragging = true; canvas.style.cursor = 'grabbing'; onDrag?.(); });
+    for (const ev of ['pointerdown', 'pointermove', 'wheel', 'touchstart']) canvas.addEventListener(ev, () => this.poke(), { passive: true });
+    addEventListener('keydown', () => this.poke());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.poke(); });
+    canvas.parentElement?.addEventListener('click', () => this.poke());   // HUD buttons (gear, lights, tour...)
     c.addEventListener('end', () => { this.dragging = false; canvas.style.cursor = ''; });
     let hoverAt = 0, hoverEv = null;
     canvas.addEventListener('pointermove', (e) => {
@@ -148,11 +159,19 @@ export class Viewer {
 
   // ---------------------------------------------------------------- lifecycle
   start() {
+    this.lastInput = performance.now();
+    this.sleeping = false;
     if (this.running) return;
     this.running = true; this.clock.getDelta();
     this.renderer.setAnimationLoop(() => this.tick());
   }
   stop() { this.running = false; this.renderer.setAnimationLoop(null); }
+
+  /** any visitor input keeps the loop alive; after IDLE_MS at rest the loop stops on a full-resolution frame */
+  poke() {
+    this.lastInput = performance.now();
+    if (this.sleeping && this.room) { this.sleeping = false; this.start(); }
+  }
 
   resize() {
     const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
@@ -163,6 +182,7 @@ export class Viewer {
     const fov = this.room?.info.camera.fov ?? 40;
     if (!this.ship?.outdoor && !this.walk) this.camera.fov = w / h < 0.8 ? Math.min(62, fov * 1.25) : fov;
     this.camera.updateProjectionMatrix();
+    if (this.sleeping) this.redraw();
   }
 
   /** Open a maker's hall (if not already) and focus `ship`; progress(fraction, label) covers the room and the
@@ -190,6 +210,7 @@ export class Viewer {
       if (e) e.prefetch = early;
     }
     await this.focus(ship, tick('ship', `Loading ${ship.name}`), needRoom);
+    this.readyAt ??= performance.now();
     this.start();
   }
 
@@ -519,7 +540,7 @@ export class Viewer {
   floorAt(x, z) {
     const r = this.room;
     if (!r?.floorMeshes?.length) return r?.info.turntable.top ?? 0;
-    const ray = new THREE.Raycaster(new THREE.Vector3(x, 60, z), new THREE.Vector3(0, -1, 0), 0, 200);
+    const ray = mkRay(new THREE.Vector3(x, 60, z), new THREE.Vector3(0, -1, 0), 0, 200);
     const hit = ray.intersectObjects(r.floorMeshes, false)[0];
     return hit ? hit.point.y : r.info.turntable.top;
   }
@@ -611,6 +632,7 @@ export class Viewer {
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
       if (this.outside && e !== this.ship) e.holder.visible = false;   // arrived while the hall is faded out
+      this.redraw();
       e.state = 'ready';
       return e;
     })();
@@ -619,8 +641,9 @@ export class Viewer {
 
   placeEntry(e) {
     const root = e.rig.root;
-    // decimated giants have open/flipped faces at some angles: draw both sides so they never look shredded
-    if (e.outdoor) root.traverse((o) => { if (o.isMesh && !o.material.transparent) o.material.side = THREE.DoubleSide; });
+    // decimated giants have open/flipped faces at some angles: draw both sides so they never look shredded.
+    // Giants live on layer 1: the main camera sees them, the floor-reflection camera (layer 0) skips them
+    if (e.outdoor) root.traverse((o) => { if (o.isMesh && !o.material.transparent) o.material.side = THREE.DoubleSide; if (o.isMesh || o.isSprite) o.layers.set(1); });
     // grazing-angle hull plating stays crisp at distance
     const aniso = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
     root.traverse((o) => { if (o.isMesh) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap']) { const tx = o.material[k]; if (tx && tx.anisotropy !== aniso) { tx.anisotropy = aniso; tx.needsUpdate = true; } } });
@@ -646,6 +669,7 @@ export class Viewer {
     e.holder.updateMatrixWorld(true);
     e.pois = this.buildPois(e);
     this.snapPois(e);
+    this.shadowDirty = Math.max(this.shadowDirty || 0, 2);
   }
 
   /** swap a giant's quarter-res copy for the full-resolution hull (the glb is in the HTTP cache by now) */
@@ -673,16 +697,34 @@ export class Viewer {
     if (e.lowres) await this.upgrade(e, progress);
     if (this.ship !== e) return;
     this.frameShip(instant);
-    this.streamRest();
+    this.shadowDirty = 4;
+    // the rest of the line-up streams in once the browser is idle: the focused hull gets the bandwidth first
+    const kick = () => this.streamRest();
+    if ('requestIdleCallback' in window) requestIdleCallback(kick, { timeout: 1500 }); else setTimeout(kick, 300);
   }
 
-  /** load the remaining hulls in the background: indoor first, then the giants outside */
+  /** is a bay (its hull's bounding sphere, before the hull exists) inside the camera frustum? */
+  bayInView(e) {
+    const fr = this._fr ||= new THREE.Frustum(), m = this._fm ||= new THREE.Matrix4();
+    this.camera.updateMatrixWorld();
+    fr.setFromProjectionMatrix(m.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+    const r = (e.bay.length || e.model.length) * 0.6;
+    return fr.intersectsSphere(new THREE.Sphere(e.base.clone().add(new THREE.Vector3(0, r * 0.3, 0)), r));
+  }
+
+  /** nothing is downloading or waiting to (giants out of view are fetched when they come into view) */
+  settled() {
+    return !!this.fleet && !this.streaming && ![...this.fleet.values()].some((e) => e.state === 'loading' || (e.state === 'pending' && (!e.outdoor || this.bayInView(e))));
+  }
+
+  /** load the remaining hulls in the background: indoor first, then the giants outside that the camera can see
+   *  (a giant out of view costs nothing until the visitor turns toward it or focuses it) */
   async streamRest() {
     if (this.streaming) return;
     this.streaming = true;
     const token = this.fleetToken;
     try {
-      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending')
+      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending' && (!x.outdoor || this.bayInView(x)))
         .sort((a, b) => (a.outdoor - b.outdoor) || (a.model.length - b.model.length));
       for (const e of rest) {
         if (token !== this.fleetToken) break;
@@ -817,7 +859,7 @@ export class Viewer {
     if (!this.fleet) return null;
     const rect = this.canvas.getBoundingClientRect();
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
-    const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
+    const ray = mkRay(); ray.setFromCamera(ndc, this.camera);
     const holders = [...this.fleet.values()].filter((e) => e.state === 'ready').map((e) => e.holder);
     const hit = ray.intersectObjects(holders, true).find((x) => x.object.isMesh && !/plume|rcs_glow/.test(x.object.material?.name || '') && x.object.material?.opacity > 0.05 && x.object.visible);
     if (!hit) return null;
@@ -876,7 +918,7 @@ export class Viewer {
     root.traverse((o) => { if (o.isMesh && !/plume|rcs_glow/.test(o.material.name || '') && !o.material.transparent) e.meshes.push(o); });
     const PROBES = { cockpit: [[0, 1, -0.35], [0.4, 0.6, -1]], drives: [[0, 0.15, 1], [0.4, 0.3, 1]], gear: [[1, -0.1, 0.2], [0, -1, 0]],
       weapons: [[0, 1, 0]], signature: [], docking: [] };
-    const ray = new THREE.Raycaster();
+    const ray = mkRay();
     const reach = e.len * 2 + 10;
     for (const p of e.pois) {
       if (p.flat) continue;
@@ -933,7 +975,7 @@ export class Viewer {
     const s = this.ship;
     if (!s?.pois || !s.rig || s.state !== 'ready' || this.walk) return [];
     const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
-    const now = performance.now(), ray = this._occRay ||= new THREE.Raycaster();
+    const now = performance.now(), ray = this._occRay ||= mkRay();
     const cam = this.camera.position, out = [];
     s.pois.forEach((p, i) => {
       if (p.flat || p.nodot) return;
@@ -1083,15 +1125,20 @@ export class Viewer {
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
     if (this.roomFade) this.stepFade(performance.now());
+    if (this.fleet && !this.streaming && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
+      [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayInView(e))) this.streamRest();
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
-    if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; }
+    if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; this.shadowDirty = 1; }
+    // only the turntable hull casts a real-time shadow: re-render the map when it (or its gear) actually moves
+    for (const e of this.fleet?.values() || []) if (e.bay?.turntable && e.rig && e.S.gearT > 0 && e.S.gearT < 1) this.shadowDirty = 1;
+    if (this.shadowDirty > 0) { this.renderer.shadowMap.needsUpdate = true; this.shadowDirty--; }
     const expo = 1 / (this.renderer.toneMappingExposure || 1);
     if (this.fleet) for (const e of this.fleet.values()) if (e.rig) { e.S.expo = expo; e.rig.update(dt, t, e.S); }
     const c = this.controls;
     if (this.walk) {
       this.updateWalk(dt);
-      this.composer.render();
+      this.render();
       return;
     }
     if (this.tween) {
@@ -1108,13 +1155,82 @@ export class Viewer {
       if (b.box) { p.x = THREE.MathUtils.clamp(p.x, -b.box.x, b.box.x); p.z = THREE.MathUtils.clamp(p.z, b.box.z0, b.box.z1); }
       if (!b.focus?.outdoor) c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
     }
-    this.composer.render();
-    // adaptive resolution: step the pixel ratio down if frames stay slow
-    if (dt > 0.034) this.slow++; else this.slow = Math.max(0, this.slow - 1);
-    if (this.slow > 90 && this.dpr > 1) {
-      this.dpr = Math.max(1, this.dpr - 0.25); this.slow = 0;
-      this.renderer.setPixelRatio(this.dpr); this.resize();
+    this.render();
+    // adaptive resolution, only while over budget: ~1 s above 20 ms steps down; ~3 s of headroom steps back up
+    if (dt > 0.022) { this.slow++; this.fast = 0; } else { this.slow = Math.max(0, this.slow - 1); if (dt < 0.0135) this.fast = (this.fast || 0) + 1; }
+    if (this.slow > 60 && this.dpr > 1) { this.setDpr(this.dpr - 0.25); this.slow = 0; }
+    else if (this.fast > 180 && this.dpr < this.dprMax) { this.setDpr(this.dpr + 0.25); this.fast = 0; }
+    // at rest: no input for a while and nothing animating that the visitor asked for -> one full-res frame, then sleep
+    const resting = !this.tween && !this.roomFade && !this.walk && !this.dragging;
+    if (resting && performance.now() - this.lastInput > IDLE_MS) {
+      if (this.dpr !== this.dprMax) { this.setDpr(this.dprMax); this.render(); }
+      this.sleeping = true; this.stop();
     }
+  }
+
+  /** a single frame while the loop sleeps (a hull streamed in, the window resized) */
+  redraw() {
+    if (!this.sleeping || !this.room) return;
+    this.renderer.shadowMap.needsUpdate = true;
+    this.render();
+  }
+
+  setDpr(v) {
+    this.dpr = THREE.MathUtils.clamp(v, 1, this.dprMax);
+    this.renderer.setPixelRatio(this.dpr); this.resize();
+  }
+
+  /** one frame through the composer; with ?perf=1 it is timed (gl.finish, so GPU work counts) and reported */
+  render() {
+    this.frameCount = (this.frameCount || 0) + 1;
+    if (!this.perf) { this.composer.render(); return; }
+    const info0 = this.renderer.info;
+    info0.autoReset = false; info0.reset();               // count every pass of the frame (reflection, bloom, output)
+    const t0 = performance.now();
+    this.composer.render();
+    this.renderer.getContext().finish();
+    this.perf.ms.push(performance.now() - t0);
+    if (this.perf.ms.length > 120) this.perf.ms.shift();
+    const info = this.renderer.info;
+    this.perf.calls = info.render.calls; this.perf.tris = info.render.triangles;
+    if (performance.now() - this.perf.shown > 500) this.showPerf();
+  }
+
+  /** ?perf=1 HUD: frame time, draw calls, triangles, GPU resources, estimated texture memory, load cost */
+  perfStats() {
+    const p = this.perf, info = this.renderer.info;
+    const seen = new Set(); let bytes = 0;
+    const add = (tex) => {
+      if (!tex || seen.has(tex)) return; seen.add(tex);
+      const img = tex.image; if (!img) return;
+      const w = img.width || img.data?.width || 0, h = img.height || img.data?.height || 0;
+      const bpp = tex.type === THREE.HalfFloatType ? 8 : tex.type === THREE.FloatType ? 16 : 4;
+      bytes += w * h * bpp * (tex.generateMipmaps !== false ? 1.333 : 1) * (tex.isCubeTexture ? 6 : 1);
+    };
+    this.scene.traverse((o) => {
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      for (const m of ms) for (const k of Object.keys(m)) if (m[k]?.isTexture) add(m[k]);
+    });
+    if (this.scene.background?.isTexture) add(this.scene.background);
+    const ms = p.ms.slice().sort((a, b) => a - b);
+    const res = performance.getEntriesByType('resource');
+    const loadMB = res.reduce((a, r) => a + (r.transferSize || r.encodedBodySize || 0), 0) / 1e6;
+    return {
+      frame_ms_p50: +(ms[Math.floor(ms.length / 2)] || 0).toFixed(1), frame_ms_p90: +(ms[Math.floor(ms.length * 0.9)] || 0).toFixed(1),
+      calls: p.calls, tris: p.tris, geometries: info.memory.geometries, textures: info.memory.textures,
+      tex_MB: +(bytes / 1e6).toFixed(0), dpr: this.dpr, frames: this.frameCount || 0,
+      load_MB: +loadMB.toFixed(1), ready_s: this.readyAt ? +(this.readyAt / 1000).toFixed(1) : null,
+    };
+  }
+  showPerf() {
+    this.perf.shown = performance.now();
+    if (!this.perf.el) {
+      this.perf.el = document.createElement('pre');
+      this.perf.el.style.cssText = 'position:absolute;right:8px;bottom:8px;z-index:50;margin:0;padding:8px 10px;background:rgba(0,0,0,.72);color:#9f9;font:11px/1.4 monospace;pointer-events:none;border-radius:4px';
+      this.canvas.parentElement.append(this.perf.el);
+    }
+    const s = this.perfStats();
+    this.perf.el.textContent = Object.entries(s).map(([k, v]) => `${k.padEnd(13)} ${v}`).join('\n');
   }
 
   dispose() {
