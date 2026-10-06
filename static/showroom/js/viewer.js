@@ -50,7 +50,9 @@ function studioInfo() {
 export class Viewer {
   constructor(canvas, { onTap, onLost, onDrag, onHover } = {}) {
     this.canvas = canvas;
-    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance',
+    // antialias off on the canvas: everything is drawn through the composer's 4x MSAA target, the canvas only receives
+    // the final full-screen pass (a multisampled backbuffer there is pure resolve cost)
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance',
       logarithmicDepthBuffer: true });   // 5 cm close-ups and 5 km giants in one depth buffer
     r.toneMapping = THREE.AgXToneMapping;
     r.shadowMap.enabled = true;
@@ -89,7 +91,7 @@ export class Viewer {
     this.roomToken = 0; this.fleetToken = 0; this.fleet = null;
     this.running = false;
     this.slow = 0;
-    this.perf = /[?&]perf=1\b/.test(location.search) ? { ms: [], shown: 0 } : null;
+    this.perf = /[?&]perf=1\b/.test(location.search) ? { ms: [], submit: [], gpu: [], cpu: [], shown: 0 } : null;
     this.lodAll = /[?&]lod=full\b/.test(location.search);   // reference renders: every hull at full texture res
 
     this.ro = new ResizeObserver(() => this.resize());
@@ -490,7 +492,7 @@ export class Viewer {
       }
       r.setRenderTarget(prev);
     };
-    return { dispose() { refl.dispose(); tmp.dispose(); mat.dispose(); quad.dispose(); } };
+    return { refl, tmp, dispose() { refl.dispose(); tmp.dispose(); mat.dispose(); quad.dispose(); } };
   }
 
   addLights(group, info) {
@@ -615,6 +617,7 @@ export class Viewer {
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
       if (this.outside && e !== this.ship) e.holder.visible = false;   // arrived while the hall is faded out
+      else if (e.outdoor && e !== this.ship && !this.bayVisible(e)) e.holder.visible = false;   // behind a wall: never uploaded
       this.redraw();
       e.state = 'ready';
       return e;
@@ -786,9 +789,45 @@ export class Viewer {
     return fr.intersectsSphere(new THREE.Sphere(e.base.clone().add(new THREE.Vector3(0, r * 0.3, 0)), r));
   }
 
+  /** Can the camera see any part of an outdoor bay past the hall's walls (through glass / doors)? Rays from the
+   *  camera to a few points of the hull's bounding sphere, tested against the room's opaque meshes. */
+  bayVisible(e) {
+    if (!this.bayInView(e)) return false;
+    if (this.outside || !this.room) return true;
+    const occ = this.room.occ ||= (() => { const a = []; this.room.group.traverse((o) => { if (o.isMesh && !/glass|floor/.test(o.name) && !o.material.transparent) a.push(o); }); return a; })();
+    if (!occ.length) return true;
+    let c, r;
+    if (e.rig) { const s = e.rig.bounds().getBoundingSphere(new THREE.Sphere()); c = s.center; r = s.radius; }
+    else { r = (e.bay.length || e.model.length) * 0.5; c = e.base.clone().add(new THREE.Vector3(0, r * 0.25, 0)); }
+    const cam = this.camera.position, ray = this._visRay ||= mkRay();
+    const pts = [c, ...[[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map((d) => c.clone().addScaledVector(new THREE.Vector3(...d), r * 0.7))];
+    for (const p of pts) {
+      const d = p.clone().sub(cam), len = d.length();
+      ray.set(cam, d.divideScalar(len)); ray.far = len;
+      if (!ray.intersectObjects(occ, false).length) return true;
+    }
+    return false;
+  }
+
+  /** outdoor giants nobody can see: hidden, and their textures leave the GPU (images stay; showing re-uploads) */
+  updateGiantVisibility(now) {
+    if (!this.fleet || this.outside || now - (this.visAt || 0) < 1000 || now - (this.lastInput || 0) > 3000 && this.visAt) return;
+    this.visAt = now;
+    for (const e of this.fleet.values()) {
+      if (!e.outdoor || e === this.ship || e.state !== 'ready') continue;
+      const vis = this.bayVisible(e);
+      if (vis) { e.hiddenSince = 0; if (!e.holder.visible) { e.holder.visible = true; this.redraw(); } }
+      else if (!e.hiddenSince) e.hiddenSince = now;
+      else if (e.holder.visible && now - e.hiddenSince > 2000) {
+        e.holder.visible = false;
+        e.rig.root.traverse((o) => { if (!o.isMesh) return; for (const m of Array.isArray(o.material) ? o.material : [o.material]) for (const k of Object.keys(m)) if (m[k]?.isTexture) m[k].dispose(); });
+      }
+    }
+  }
+
   /** nothing is downloading or waiting to (giants out of view are fetched when they come into view) */
   settled() {
-    return !!this.fleet && !this.streaming && ![...this.fleet.values()].some((e) => e.state === 'loading' || (e.state === 'pending' && (!e.outdoor || this.bayInView(e))));
+    return !!this.fleet && !this.streaming && ![...this.fleet.values()].some((e) => e.state === 'loading' || (e.state === 'pending' && (!e.outdoor || this.bayVisible(e))));
   }
 
   /** load the remaining hulls in the background: indoor first, then the giants outside that the camera can see
@@ -798,7 +837,7 @@ export class Viewer {
     this.streaming = true;
     const token = this.fleetToken;
     try {
-      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending' && (!x.outdoor || this.bayInView(x)))
+      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending' && (!x.outdoor || this.bayVisible(x)))
         .sort((a, b) => (a.outdoor - b.outdoor) || (a.model.length - b.model.length));
       for (const e of rest) {
         if (token !== this.fleetToken) break;
@@ -1198,10 +1237,12 @@ export class Viewer {
   // ---------------------------------------------------------------- frame
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+    const tick0 = this.perf ? performance.now() : 0;
     if (this.roomFade) this.stepFade(performance.now());
     this.updateLods(performance.now());
+    this.updateGiantVisibility(performance.now());
     if (this.fleet && !this.streaming && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
-      [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayInView(e))) this.streamRest();
+      [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayVisible(e))) this.streamRest();
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
     if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; this.shadowDirty = 1; }
@@ -1213,6 +1254,7 @@ export class Viewer {
     const c = this.controls;
     if (this.walk) {
       this.updateWalk(dt);
+      if (this.perf) this.perf.cpu.push(performance.now() - tick0);
       this.render();
       return;
     }
@@ -1230,6 +1272,7 @@ export class Viewer {
       if (b.box) { p.x = THREE.MathUtils.clamp(p.x, -b.box.x, b.box.x); p.z = THREE.MathUtils.clamp(p.z, b.box.z0, b.box.z1); }
       if (!b.focus?.outdoor) c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
     }
+    if (this.perf) this.perf.cpu.push(performance.now() - tick0);
     this.render();
     // adaptive resolution, only while over budget: ~1 s above 20 ms steps down; ~3 s of headroom steps back up
     if (dt > 0.022) { this.slow++; this.fast = 0; } else { this.slow = Math.max(0, this.slow - 1); if (dt < 0.0135) this.fast = (this.fast || 0) + 1; }
@@ -1263,12 +1306,57 @@ export class Viewer {
     info0.autoReset = false; info0.reset();               // count every pass of the frame (reflection, bloom, output)
     const t0 = performance.now();
     this.composer.render();
+    const t1 = performance.now();
     this.renderer.getContext().finish();
-    this.perf.ms.push(performance.now() - t0);
-    if (this.perf.ms.length > 120) this.perf.ms.shift();
+    const t2 = performance.now();
+    this.perf.ms.push(t2 - t0); this.perf.submit.push(t1 - t0); this.perf.gpu.push(t2 - t1);
+    for (const k of ['ms', 'submit', 'gpu', 'cpu']) if (this.perf[k].length > 300) this.perf[k].shift();
     const info = this.renderer.info;
     this.perf.calls = info.render.calls; this.perf.tris = info.render.triangles;
     if (performance.now() - this.perf.shown > 500) this.showPerf();
+  }
+
+  /** ?perf=1: every GPU texture / render target with its owner, size, format and estimated bytes (largest first) */
+  perfTextures() {
+    const items = [], seen = new Set();
+    const BPP = { [THREE.FloatType]: 4, [THREE.HalfFloatType]: 2, [THREE.UnsignedByteType]: 1, [THREE.UnsignedIntType]: 4, [THREE.UnsignedInt248Type]: 4 };
+    const CH = { [THREE.RGBAFormat]: 4, [THREE.RGBFormat]: 3, [THREE.RedFormat]: 1, [THREE.RGFormat]: 2, [THREE.DepthFormat]: 1, [THREE.DepthStencilFormat]: 1 };
+    const fmt = (tex) => `${{ [THREE.FloatType]: 'f32', [THREE.HalfFloatType]: 'f16', [THREE.UnsignedByteType]: 'u8' }[tex.type] || tex.type}x${CH[tex.format] || '?'}`;
+    const props = this.renderer.properties;
+    // only what the GPU actually holds: three allocates textures / targets on first use
+    const addTex = (tex, owner, name) => {
+      if (!tex?.isTexture || seen.has(tex)) return; seen.add(tex);
+      if (!props.get(tex).__webglTexture) return;
+      if (tex.isCompressedTexture) { items.push({ owner, name: name || tex.name, size: '-', fmt: 'compressed', mip: true, bytes: (tex.mipmaps || []).reduce((a, m) => a + (m.data?.byteLength || 0), 0) }); return; }
+      const img = tex.image || {}; const w = img.width || 0, h = img.height || 0;
+      const mip = tex.generateMipmaps !== false && tex.minFilter !== THREE.LinearFilter && tex.minFilter !== THREE.NearestFilter;
+      const bytes = w * h * (BPP[tex.type] || 1) * (CH[tex.format] || 4) * (mip ? 4 / 3 : 1) * (tex.isCubeTexture ? 6 : 1);
+      items.push({ owner, name: name || tex.name || '', size: `${w}x${h}`, fmt: fmt(tex), mip, bytes });
+    };
+    const addRT = (rt, owner, name) => {
+      if (!rt || seen.has(rt)) return; seen.add(rt);
+      if (!props.get(rt).__webglFramebuffer) return;
+      const tex = rt.texture; seen.add(tex);
+      const px = rt.width * rt.height * (rt.isWebGLCubeRenderTarget ? 6 : 1);
+      const color = px * (BPP[tex.type] || 1) * (CH[tex.format] || 4) * (tex.generateMipmaps ? 4 / 3 : 1);
+      const msaa = rt.samples ? px * (BPP[tex.type] || 1) * 4 * rt.samples : 0;
+      const depth = rt.depthBuffer ? px * 4 * (rt.samples || 1) : 0;
+      items.push({ owner, name, size: `${rt.width}x${rt.height}${rt.samples ? ' msaa' + rt.samples : ''}`, fmt: fmt(tex), mip: !!tex.generateMipmaps, bytes: color + msaa + depth });
+    };
+    // scene textures, attributed to the hull / room / exterior that owns them
+    const ownerOf = (o) => { for (let p = o; p; p = p.parent) { if (p.userData?.entry) return 'ship:' + p.userData.entry.model.model; if (p === this.room?.group) return 'room'; if (p === this.extGroup) return 'exterior'; } return 'scene'; };
+    this.scene.traverse((o) => {
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      for (const m of ms) for (const k of Object.keys(m)) if (m[k]?.isTexture) addTex(m[k], ownerOf(o), `${m.name || m.type}.${k}`);
+      if (o.isLight && o.shadow?.map) addRT(o.shadow.map, 'shadow', o.type + '.shadow');
+    });
+    for (const e of this.fleet?.values() || []) for (const s of e.lodSlots || []) if (s.base !== s.cur) addTex(s.base, 'ship:' + e.model.model, 'lod base');
+    if (this.room?.envRT) addRT(this.room.envRT, 'env', 'PMREM');
+    if (this.scene.background?.isTexture) addTex(this.scene.background, 'env', 'background');
+    if (this.room?.floor?.refl) { addRT(this.room.floor.refl.getRenderTarget(), 'reflection', 'reflector'); addRT(this.room.floor.tmp, 'reflection', 'blur tmp'); }
+    const c = this.composer; addRT(c.renderTarget1, 'postfx', 'composer 1'); addRT(c.renderTarget2, 'postfx', 'composer 2');
+    const b = this.bloom; if (b) { addRT(b.renderTargetBright, 'postfx', 'bloom bright'); (b.renderTargetsHorizontal || []).forEach((r, i) => addRT(r, 'postfx', 'bloom h' + i)); (b.renderTargetsVertical || []).forEach((r, i) => addRT(r, 'postfx', 'bloom v' + i)); }
+    return items.sort((a, b2) => b2.bytes - a.bytes).map((x) => ({ ...x, MB: +(x.bytes / 1e6).toFixed(1) }));
   }
 
   /** ?perf=1 HUD: frame time, draw calls, triangles, GPU resources, estimated texture memory, load cost */

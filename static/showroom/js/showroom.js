@@ -457,7 +457,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=2ce09de7d540c961');
+        const { Viewer } = await import('./viewer.js?v=9d6b8683b2180e2a');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),
@@ -543,7 +543,9 @@ export class Showroom {
       if (this.sGear.textContent !== g) this.sGear.textContent = g;
       const r = S.retro > 0.05 ? 'BURNING' : 'SAFE';
       if (this.sRetro.textContent !== r) this.sRetro.textContent = r;
+      const h0 = performance.now();
       this.drawDots();
+      if (window.__hudMs) { window.__hudMs.push(performance.now() - h0); if (window.__hudMs.length > 300) window.__hudMs.shift(); }
     };
     status();
   }
