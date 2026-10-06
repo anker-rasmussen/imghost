@@ -16,7 +16,7 @@ from pathlib import Path
 
 SITE = Path(__file__).resolve().parents[2] / "static" / "showroom"
 # relative refs inside JS (static + dynamic imports) and CSS (url())
-JS_REF = re.compile(r"""(['"])(\.{1,2}/[\w./-]+\.(?:js|css|json))(?:\?v=[0-9a-f]{16})?\1""")
+JS_REF = re.compile(r"""(['"])(\.{1,2}/[\w./-]+\.(?:js|css|json|wasm))(?:\?v=[0-9a-f]{16})?\1""")
 CSS_REF = re.compile(r"""url\((['"]?)((?!data:|https?:|/)[^'")?]+)(?:\?v=[0-9a-f]{16})?\1\)""")
 HTML_REF = re.compile(r"""((?:src|href)=")((?!https?:|/|#)[\w./-]+\.(?:js|css|webp|png|svg|ico|woff2))(?:\?v=[0-9a-f]{16})?(")""")
 
@@ -59,7 +59,8 @@ def main() -> None:
         for d in refs(p):
             if not d.exists():
                 sys.exit(f"{p.relative_to(SITE)} references missing {d}")
-            if d.suffix in (".js", ".css"):
+            # our own modules/stylesheets are stamped in dependency order; vendored files are pinned, never edited
+            if d.suffix in (".js", ".css") and (SITE / "js" in d.parents or SITE / "css" in d.parents):
                 visit(d, stack + (p,))
         done.add(p)
         order.append(p)

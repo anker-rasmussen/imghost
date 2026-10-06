@@ -14,6 +14,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=886d45a05c4f8e20';
+import { SafeKTX2Loader } from './ktx2.js?v=71c8dcbff4fe4bb4';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
 import data from './data.js?v=34c6ef3537bffb4a';
 
@@ -42,7 +43,7 @@ async function downscaleTextures(root, f) {
     const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
     for (const m of ms) for (const k of Object.keys(m)) {
       const tex = m[k];
-      if (!tex?.isTexture || seen.has(tex) || !tex.image || tex.image.width <= 256) continue;
+      if (!tex?.isTexture || tex.isCompressedTexture || seen.has(tex) || !tex.image || tex.image.width <= 256) continue;   // KTX2: mipmaps do this
       seen.add(tex);
       const img = tex.image;
       jobs.push(createImageBitmap(img, { resizeWidth: Math.max(64, Math.round(img.width / f)), resizeHeight: Math.max(64, Math.round(img.height / f)), resizeQuality: 'medium', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })   // keep normal / ORM data intact
@@ -96,7 +97,9 @@ export class Viewer {
     this.composer.addPass(new OutputPass());
 
     this.pmrem = new THREE.PMREMGenerator(r);
-    this.gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    // KTX2 (Basis UASTC) hull and room textures stay GPU-compressed in VRAM; WebP glbs still load as before
+    this.ktx2 = new SafeKTX2Loader().setWorkerLimit(2).detectSupport(r);
+    this.gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(this.ktx2);
     this.rgbe = new RGBELoader();
     this.clock = new THREE.Clock();
     this.room = null; this.ship = null; this.tween = null;
@@ -1202,6 +1205,7 @@ export class Viewer {
     const seen = new Set(); let bytes = 0;
     const add = (tex) => {
       if (!tex || seen.has(tex)) return; seen.add(tex);
+      if (tex.isCompressedTexture) { for (const mm of tex.mipmaps || []) bytes += mm.data?.byteLength || 0; return; }
       const img = tex.image; if (!img) return;
       const w = img.width || img.data?.width || 0, h = img.height || img.data?.height || 0;
       const bpp = tex.type === THREE.HalfFloatType ? 8 : tex.type === THREE.FloatType ? 16 : 4;

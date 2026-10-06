@@ -614,3 +614,83 @@ async fn test_showroom_served_with_csp() {
         .expect("send");
     assert_ne!(r.status(), 200);
 }
+
+/// Send a request line verbatim (HTTP clients normalise `..` away before it reaches the server).
+async fn raw_get(base: &str, path: &str) -> (u16, String, String) {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let addr = base.trim_start_matches("http://");
+    let mut s = tokio::net::TcpStream::connect(addr).await.expect("connect");
+    let req = format!("GET {path} HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\n\r\n");
+    s.write_all(req.as_bytes()).await.expect("write");
+    let mut buf = Vec::new();
+    s.read_to_end(&mut buf).await.expect("read");
+    let text = String::from_utf8_lossy(&buf).to_string();
+    let status = text
+        .split_whitespace()
+        .nth(1)
+        .and_then(|c| c.parse().ok())
+        .unwrap_or(0);
+    let (head, body) = text.split_once("\r\n\r\n").unwrap_or((&text, ""));
+    (status, head.to_lowercase(), body.to_string())
+}
+
+#[tokio::test]
+async fn test_showroom_static_serving_is_inert() {
+    let (base, _tmp) = spawn_app(1024).await;
+
+    // path traversal, raw and percent-encoded, must never reach files outside static/showroom
+    for p in [
+        "/showroom/../Cargo.toml",
+        "/showroom/%2e%2e/Cargo.toml",
+        "/showroom/%2E%2E/Cargo.toml",
+        "/showroom/..%2fCargo.toml",
+        "/showroom/%2e%2e%2fCargo.toml",
+        "/showroom/js/..%2f..%2f..%2fCargo.toml",
+        "/showroom/%252e%252e/Cargo.toml",
+        "/showroom/..\\Cargo.toml",
+        "/showroom/%2e%2e%5cCargo.toml",
+        "/showroom//etc/passwd",
+    ] {
+        let (status, _, body) = raw_get(&base, p).await;
+        assert_ne!(status, 200, "{p} was served");
+        assert!(
+            !body.contains("[package]") && !body.contains("root:"),
+            "{p} leaked a file"
+        );
+    }
+
+    // no directory listings
+    let (status, _, body) = raw_get(&base, "/showroom/assets/").await;
+    assert_ne!(status, 200);
+    assert!(!body.contains("href="), "directory listing");
+
+    // assets are data, typed correctly and never sniffed into something executable
+    for (p, ct) in [
+        (
+            "/showroom/vendor/three/addons/libs/basis/basis_transcoder.wasm",
+            "application/wasm",
+        ),
+        (
+            "/showroom/vendor/three/addons/libs/basis/ktx2_worker.js",
+            "text/javascript",
+        ),
+        ("/showroom/js/main.js", "text/javascript"),
+    ] {
+        let (status, head, _) = raw_get(&base, p).await;
+        assert_eq!(status, 200, "{p}");
+        assert!(head.contains(&format!("content-type: {ct}")), "{p}: {head}");
+        assert!(
+            head.contains("x-content-type-options: nosniff"),
+            "{p}: {head}"
+        );
+        // the worker inherits its own response CSP: same strict policy, no new origins
+        assert!(
+            head.contains("script-src 'self' 'wasm-unsafe-eval'"),
+            "{p}: {head}"
+        );
+        assert!(
+            !head.contains("blob:") || !head.contains("worker-src"),
+            "{p}: worker-src widened"
+        );
+    }
+}
