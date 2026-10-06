@@ -2683,8 +2683,8 @@ export default {
     "aspect": 0.2475
    },
    "glb": {
-    "src": "assets/ships/SuperLightweight.glb?v=6e220a577f43d77a",
-    "bytes": 3175428,
+    "src": "assets/ships/SuperLightweight.glb?v=2bdfd1d0595351a1",
+    "bytes": 2219400,
     "tris": 77080,
     "draw_calls": 11,
     "has_gear": true,
@@ -2701,7 +2701,41 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperLightweight/00_decals_color@full.webp?v=ce4c7f49930c371a"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperLightweight/09_hull_normal@full.webp?v=6da4c53be88da602"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperLightweight/10_hull_orm@full.webp?v=86096081ac811c07"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperLightweight/11_hull_color@full.webp?v=d842a43090c2c794"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/SuperLightweight.webp?v=9c06d05b5b071df5",
@@ -2745,8 +2779,8 @@ export default {
     "aspect": 0.1783
    },
    "glb": {
-    "src": "assets/ships/Lightweight.glb?v=de194b9652601645",
-    "bytes": 3383268,
+    "src": "assets/ships/Lightweight.glb?v=1f51f5b0cb94c82f",
+    "bytes": 2329608,
     "tris": 80346,
     "draw_calls": 11,
     "has_gear": true,
@@ -2763,7 +2797,41 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Lightweight/00_decals_color@full.webp?v=ce4c7f49930c371a"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Lightweight/09_hull_normal@full.webp?v=df765edf1eadc639"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Lightweight/10_hull_orm@full.webp?v=c7246fd8b72d0669"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Lightweight/11_hull_color@full.webp?v=80c7a427e2a04eb5"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Lightweight.webp?v=47c847f75a9d39d2",
@@ -2793,8 +2861,8 @@ export default {
     "aspect": 0.1992
    },
    "glb": {
-    "src": "assets/ships/Heavyweight.glb?v=bf6130db681e9699",
-    "bytes": 8088944,
+    "src": "assets/ships/Heavyweight.glb?v=ccfef2c7b2fcdc37",
+    "bytes": 4541648,
     "tris": 190266,
     "draw_calls": 11,
     "has_gear": true,
@@ -2811,7 +2879,100 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/00_decals_color@full.webp?v=3bab73b67061e7a8"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/01_detail_emissive@full.webp?v=9b6680c0bda637e2"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/02_detail_normal@full.webp?v=82018373e6279345"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/03_detail_orm@full.webp?v=0539b2e470314685"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/04_detail_color@full.webp?v=182f6e0470811c36"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/06_gear_normal@full.webp?v=c37b0528d16a6296"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/07_gear_orm@full.webp?v=225a0aba37aa9a52"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Heavyweight/08_gear_color@full.webp?v=9df0e6b9ae4bf21d"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Heavyweight/09_hull_normal@2048.webp?v=27e7233be611b62d",
+       "full": "assets/tex/Heavyweight/09_hull_normal@full.webp?v=05f074bff4e34d65"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Heavyweight/10_hull_orm@2048.webp?v=d4478c69d6aa2219",
+       "full": "assets/tex/Heavyweight/10_hull_orm@full.webp?v=6fb2c17bc17a4cbf"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Heavyweight/11_hull_color@2048.webp?v=a2897be78edf5f88",
+       "full": "assets/tex/Heavyweight/11_hull_color@full.webp?v=5a71caaed2520f74"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Heavyweight.webp?v=781a55af537c87b6",
@@ -2841,8 +3002,8 @@ export default {
     "aspect": 0.2143
    },
    "glb": {
-    "src": "assets/ships/SuperHeavyweight.glb?v=5d2348da4633908a",
-    "bytes": 8548012,
+    "src": "assets/ships/SuperHeavyweight.glb?v=0f9a24a3e5b9c656",
+    "bytes": 6018692,
     "tris": 359448,
     "draw_calls": 9,
     "has_gear": false,
@@ -2859,7 +3020,76 @@ export default {
      "strobe": 2,
      "tail": 1
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/00_decals_color@full.webp?v=2e82093f3ea62d4f"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/01_detail_emissive@full.webp?v=d81e719ba952b3c9"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/02_detail_normal@full.webp?v=f30a04f4efdee454"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/03_detail_orm@full.webp?v=a3347d2006e38b18"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/04_detail_color@full.webp?v=3f67d7f46822de9e"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/06_hull_normal@2048.webp?v=353a0ea7453bbfab",
+       "full": "assets/tex/SuperHeavyweight/06_hull_normal@full.webp?v=b76c83cd97504bd3"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/07_hull_orm@2048.webp?v=9c4bdf8cef120b83",
+       "full": "assets/tex/SuperHeavyweight/07_hull_orm@full.webp?v=c5a3fd7a70be4d51"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/SuperHeavyweight/08_hull_color@2048.webp?v=5ae356709028f1bf",
+       "full": "assets/tex/SuperHeavyweight/08_hull_color@full.webp?v=d1f3fb66fd0bed67"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/SuperHeavyweight.webp?v=2d70cc6cdf068302",
@@ -2889,8 +3119,8 @@ export default {
     "aspect": 0.2129
    },
    "glb": {
-    "src": "assets/ships/Corona.glb?v=4a81eefe79d877b0",
-    "bytes": 1761976,
+    "src": "assets/ships/Corona.glb?v=873032b4434f5d35",
+    "bytes": 1199912,
     "tris": 81392,
     "draw_calls": 8,
     "has_gear": true,
@@ -2901,7 +3131,33 @@ export default {
      "nav": 2,
      "strobe": 4
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 8,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Corona/08_hull_normal@full.webp?v=25e08ca3a057d8aa"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Corona/09_hull_orm@full.webp?v=796711a9ddd98501"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Corona/10_hull_color@full.webp?v=7ecb3ce9cadc9c63"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Corona.webp?v=aaf85092fcb10ca8",
@@ -2931,8 +3187,8 @@ export default {
     "aspect": 0.255
    },
    "glb": {
-    "src": "assets/ships/Zenith.glb?v=0f0ad88953506d17",
-    "bytes": 2397616,
+    "src": "assets/ships/Zenith.glb?v=3a408d899f70b35d",
+    "bytes": 1204252,
     "tris": 107412,
     "draw_calls": 6,
     "has_gear": false,
@@ -2943,7 +3199,65 @@ export default {
      "nav": 2,
      "strobe": 4
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/00_detail_emissive@full.webp?v=c2a68e37226ece33"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/01_detail_normal@full.webp?v=83f3cd994979d4dc"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/02_detail_orm@full.webp?v=b891d985f0478d85"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/03_detail_color@full.webp?v=c0d79ed4c4aba0a7"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/05_hull_normal@full.webp?v=0477e0dde0dc3c6e"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/06_hull_orm@full.webp?v=46e53cd908fe11e6"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Zenith/07_hull_color@full.webp?v=7f340175ae6e6875"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Zenith.webp?v=2b1d15d225cca826",
@@ -2973,8 +3287,8 @@ export default {
     "aspect": 0.1726
    },
    "glb": {
-    "src": "assets/ships/Solstice.glb?v=2fa5b8972f68c191",
-    "bytes": 4842760,
+    "src": "assets/ships/Solstice.glb?v=d9e64ff52347e598",
+    "bytes": 1872072,
     "tris": 105339,
     "draw_calls": 6,
     "has_gear": false,
@@ -2985,7 +3299,77 @@ export default {
      "nav": 4,
      "strobe": 13
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Solstice/00_detail_emissive@full.webp?v=846341f8eb7b74a1"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Solstice/01_detail_normal@full.webp?v=5a4fac142de74070"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Solstice/02_detail_orm@full.webp?v=7adc6c2e01d38721"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Solstice/03_detail_color@full.webp?v=5d8e8ca0e37d8bf5"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Solstice/05_hull_emissive@2048.webp?v=1b4f8b0fd679ffe0",
+       "full": "assets/tex/Solstice/05_hull_emissive@full.webp?v=58128febbb196540"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Solstice/06_hull_normal@2048.webp?v=9d4b83d77118f1bb",
+       "full": "assets/tex/Solstice/06_hull_normal@full.webp?v=e245365a4037e89d"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Solstice/07_hull_orm@2048.webp?v=7f9effc8a2c98d42",
+       "full": "assets/tex/Solstice/07_hull_orm@full.webp?v=afac31bf95362cb8"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Solstice/08_hull_color@2048.webp?v=d4c12d8ced4e3204",
+       "full": "assets/tex/Solstice/08_hull_color@full.webp?v=c31d52b65e83ddd7"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Solstice.webp?v=fd359e42a878d5fc",
@@ -3015,8 +3399,8 @@ export default {
     "aspect": 0.2317
    },
    "glb": {
-    "src": "assets/ships/Mule.glb?v=e8001cf2619200da",
-    "bytes": 5023952,
+    "src": "assets/ships/Mule.glb?v=e14c02a65a25af42",
+    "bytes": 1979416,
     "tris": 57364,
     "draw_calls": 7,
     "has_gear": true,
@@ -3029,7 +3413,92 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/00_detail_emissive@full.webp?v=84ce5ace4346814f"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/01_detail_normal@full.webp?v=3856a6b5722c10f8"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/02_detail_orm@full.webp?v=98fd8ca2961cc755"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/03_detail_color@full.webp?v=667c812cdf88cd97"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/05_gear_normal@full.webp?v=19ede26b3c3345c3"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/06_gear_orm@full.webp?v=2718bb1472e5fbc7"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Mule/07_gear_color@full.webp?v=822e25ac5e41cd07"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Mule/08_hull_normal@2048.webp?v=e30f7072642b7d57",
+       "full": "assets/tex/Mule/08_hull_normal@full.webp?v=7fe380be5c97534d"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Mule/09_hull_orm@2048.webp?v=3e7556d24a45af62",
+       "full": "assets/tex/Mule/09_hull_orm@full.webp?v=2ab94a702a50bf59"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Mule/10_hull_color@2048.webp?v=9c72c3abbcb1b8f0",
+       "full": "assets/tex/Mule/10_hull_color@full.webp?v=1a7a3d2903be3bec"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Mule.webp?v=31a945b12188fdce",
@@ -3059,8 +3528,8 @@ export default {
     "aspect": 0.1583
    },
    "glb": {
-    "src": "assets/ships/Ox.glb?v=f76a5da4dd2f84d8",
-    "bytes": 6754208,
+    "src": "assets/ships/Ox.glb?v=f35da3471eacb5b8",
+    "bytes": 3444992,
     "tris": 169998,
     "draw_calls": 6,
     "has_gear": false,
@@ -3072,7 +3541,68 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ox/00_detail_emissive@full.webp?v=d4f9ac65049f61ca"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ox/01_detail_normal@full.webp?v=cf00ee43a92edd6e"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ox/02_detail_orm@full.webp?v=da4c14d21beba045"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ox/03_detail_color@full.webp?v=95dea624ce175bc7"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ox/05_hull_normal@2048.webp?v=78165d3c489141dc",
+       "full": "assets/tex/Ox/05_hull_normal@full.webp?v=a65c47d46b9f6c5a"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ox/06_hull_orm@2048.webp?v=a5a889d6b7eb5b37",
+       "full": "assets/tex/Ox/06_hull_orm@full.webp?v=abfc209e57cff744"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ox/07_hull_color@2048.webp?v=f1ebb86960fe7968",
+       "full": "assets/tex/Ox/07_hull_color@full.webp?v=48d7ada8ab467427"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Ox.webp?v=02348e293685e034",
@@ -3102,8 +3632,8 @@ export default {
     "aspect": 0.1708
    },
    "glb": {
-    "src": "assets/ships/Titan.glb?v=e6e998a64fcc5e65",
-    "bytes": 6313660,
+    "src": "assets/ships/Titan.glb?v=e00ed085204d1adc",
+    "bytes": 5279564,
     "tris": 319997,
     "draw_calls": 6,
     "has_gear": false,
@@ -3116,7 +3646,68 @@ export default {
      "nav": 4,
      "strobe": 4
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Titan/00_detail_emissive@full.webp?v=9bb00d843510895d"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Titan/01_detail_normal@full.webp?v=f0789e96a4ab399f"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Titan/02_detail_orm@full.webp?v=c21880bba400aea4"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Titan/03_detail_color@full.webp?v=5e6edab998f4e84f"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Titan/05_hull_normal@2048.webp?v=39a57051e9e0bbad",
+       "full": "assets/tex/Titan/05_hull_normal@full.webp?v=947324cb0c0c4257"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Titan/06_hull_orm@2048.webp?v=4b440899be0a442e",
+       "full": "assets/tex/Titan/06_hull_orm@full.webp?v=b11ec9f2485c1b55"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Titan/07_hull_color@2048.webp?v=932583212b683453",
+       "full": "assets/tex/Titan/07_hull_color@full.webp?v=7ec6abee11619973"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Titan.webp?v=ea9ea5b97a812d79",
@@ -3146,8 +3737,8 @@ export default {
     "aspect": 0.3517
    },
    "glb": {
-    "src": "assets/ships/Minotaur.glb?v=c233490e41150d90",
-    "bytes": 7242912,
+    "src": "assets/ships/Minotaur.glb?v=2ebecb1fb487fae1",
+    "bytes": 4995064,
     "tris": 319997,
     "draw_calls": 6,
     "has_gear": false,
@@ -3158,7 +3749,68 @@ export default {
      "nav": 2,
      "strobe": 1
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Minotaur/00_detail_emissive@full.webp?v=939c9e69ce0a71dd"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Minotaur/01_detail_normal@full.webp?v=cbea1136378d57d3"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Minotaur/02_detail_orm@full.webp?v=99e89a2c6bb8bedd"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Minotaur/03_detail_color@full.webp?v=686ddc95baeb2720"
+      }
+     },
+     {
+      "image": 5,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Minotaur/05_hull_normal@2048.webp?v=74a94233c003e202",
+       "full": "assets/tex/Minotaur/05_hull_normal@full.webp?v=ddde5f2b6b33e630"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Minotaur/06_hull_orm@2048.webp?v=d22c8fe9881bf191",
+       "full": "assets/tex/Minotaur/06_hull_orm@full.webp?v=5e8b3cead34e7f07"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Minotaur/07_hull_color@2048.webp?v=4a7b2bd5c7d35ea6",
+       "full": "assets/tex/Minotaur/07_hull_color@full.webp?v=990c7b75e345dc3e"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Minotaur.webp?v=7906fd067f462905",
@@ -3188,8 +3840,8 @@ export default {
     "aspect": 0.2427
    },
    "glb": {
-    "src": "assets/ships/Talon.glb?v=ec38ff3e70e04611",
-    "bytes": 6640340,
+    "src": "assets/ships/Talon.glb?v=e37c0ad2208ace61",
+    "bytes": 3930492,
     "tris": 101118,
     "draw_calls": 9,
     "has_gear": true,
@@ -3200,7 +3852,100 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/00_decals_color@full.webp?v=44841de8873ee2d0"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/01_detail_emissive@full.webp?v=707db12d3d9496e8"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/02_detail_normal@full.webp?v=be1cb12c6166644b"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/03_detail_orm@full.webp?v=d64cd33999579343"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/04_detail_color@full.webp?v=02f4ee9550d82f63"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/06_gear_normal@full.webp?v=5993896bbb690a88"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/07_gear_orm@full.webp?v=d7191093816308c0"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Talon/08_gear_color@full.webp?v=7c4b5308a2a57a23"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Talon/09_hull_normal@2048.webp?v=6c27f6e5b0aaf2e7",
+       "full": "assets/tex/Talon/09_hull_normal@full.webp?v=33e2d3485ad047da"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Talon/10_hull_orm@2048.webp?v=39e5ac3b05512ae3",
+       "full": "assets/tex/Talon/10_hull_orm@full.webp?v=2554df7467913462"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Talon/11_hull_color@2048.webp?v=0e2c09e5ffd42d85",
+       "full": "assets/tex/Talon/11_hull_color@full.webp?v=765e995d374aa0c8"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Talon.webp?v=815667371c87e9ec",
@@ -3230,8 +3975,8 @@ export default {
     "aspect": 0.2008
    },
    "glb": {
-    "src": "assets/ships/Halberd.glb?v=efe6d06ecfa631ea",
-    "bytes": 6662268,
+    "src": "assets/ships/Halberd.glb?v=ee0519b73a725b08",
+    "bytes": 3990968,
     "tris": 101154,
     "draw_calls": 9,
     "has_gear": true,
@@ -3242,7 +3987,100 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/00_decals_color@full.webp?v=44841de8873ee2d0"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/01_detail_emissive@full.webp?v=c920e17ec5c6b924"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/02_detail_normal@full.webp?v=45c207217c99591a"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/03_detail_orm@full.webp?v=050bafc77511a057"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/04_detail_color@full.webp?v=645d3d1d88699bd9"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/06_gear_normal@full.webp?v=1c252bab2ba1f8c6"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/07_gear_orm@full.webp?v=bd0a681f9de19103"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Halberd/08_gear_color@full.webp?v=198aa6a2aef3b9d0"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Halberd/09_hull_normal@2048.webp?v=f39f685106313bcc",
+       "full": "assets/tex/Halberd/09_hull_normal@full.webp?v=b9f97388d6384768"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Halberd/10_hull_orm@2048.webp?v=605788f6a4d06b6f",
+       "full": "assets/tex/Halberd/10_hull_orm@full.webp?v=52be0995ba3c2683"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Halberd/11_hull_color@2048.webp?v=bd3e760967635d7e",
+       "full": "assets/tex/Halberd/11_hull_color@full.webp?v=9549e0e06a72309e"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Halberd.webp?v=20787f6c93d93393",
@@ -3272,8 +4110,8 @@ export default {
     "aspect": 0.2125
    },
    "glb": {
-    "src": "assets/ships/Sabre.glb?v=c430fa427766ce1a",
-    "bytes": 7030736,
+    "src": "assets/ships/Sabre.glb?v=963c61b71fcfc074",
+    "bytes": 5159128,
     "tris": 170670,
     "draw_calls": 7,
     "has_gear": false,
@@ -3283,7 +4121,76 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sabre/00_decals_color@full.webp?v=d7c9733f61819a3b"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sabre/01_detail_emissive@full.webp?v=e254b558bb81034c"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sabre/02_detail_normal@full.webp?v=567e7aba69a64151"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sabre/03_detail_orm@full.webp?v=ea638c4af1e0964d"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sabre/04_detail_color@full.webp?v=6174da5fea5e86c2"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sabre/06_hull_normal@2048.webp?v=c6929936300d6dd2",
+       "full": "assets/tex/Sabre/06_hull_normal@full.webp?v=70be8830c5146155"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sabre/07_hull_orm@2048.webp?v=7ab745282f935b14",
+       "full": "assets/tex/Sabre/07_hull_orm@full.webp?v=32ade8b789c2e5df"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sabre/08_hull_color@2048.webp?v=e76dc3406edd1c42",
+       "full": "assets/tex/Sabre/08_hull_color@full.webp?v=a5d9d61f67b29c14"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Sabre.webp?v=0aef5efb1f750cb7",
@@ -3313,8 +4220,8 @@ export default {
     "aspect": 0.1693
    },
    "glb": {
-    "src": "assets/ships/Gladius.glb?v=1cd8c8f7631c7a77",
-    "bytes": 6892876,
+    "src": "assets/ships/Gladius.glb?v=993d5253f3aa2a6c",
+    "bytes": 5127384,
     "tris": 174114,
     "draw_calls": 7,
     "has_gear": false,
@@ -3324,7 +4231,76 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Gladius/00_decals_color@full.webp?v=686f3bfd2b380c60"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Gladius/01_detail_emissive@full.webp?v=504895d27d317ebd"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Gladius/02_detail_normal@full.webp?v=5b3c7ea11f0aecfc"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Gladius/03_detail_orm@full.webp?v=01059703d770fde8"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Gladius/04_detail_color@full.webp?v=d86945d415e82386"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Gladius/06_hull_normal@2048.webp?v=9c80c80e0bec4382",
+       "full": "assets/tex/Gladius/06_hull_normal@full.webp?v=e5c8bac3ec62409b"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Gladius/07_hull_orm@2048.webp?v=b82fe60cd26707fd",
+       "full": "assets/tex/Gladius/07_hull_orm@full.webp?v=a51229790501c8ae"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Gladius/08_hull_color@2048.webp?v=e62765fa69d40852",
+       "full": "assets/tex/Gladius/08_hull_color@full.webp?v=58e3b60f8c939a0c"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Gladius.webp?v=c65969a2185de99f",
@@ -3354,8 +4330,8 @@ export default {
     "aspect": 0.1317
    },
    "glb": {
-    "src": "assets/ships/Ares.glb?v=b6d62e4d87b562ec",
-    "bytes": 10294872,
+    "src": "assets/ships/Ares.glb?v=e46b80db1d0f8a85",
+    "bytes": 8822532,
     "tris": 325764,
     "draw_calls": 7,
     "has_gear": false,
@@ -3365,7 +4341,76 @@ export default {
      "nav": 2,
      "strobe": 3
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ares/00_decals_color@full.webp?v=40b81ddc0af320dc"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ares/01_detail_emissive@full.webp?v=0d5a8c25bb82467a"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ares/02_detail_normal@full.webp?v=9ad7042405b067c0"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ares/03_detail_orm@full.webp?v=1e87ead63ac4c87a"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ares/04_detail_color@full.webp?v=54671d6cb9892fa6"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ares/06_hull_normal@2048.webp?v=bc2667dbeea96867",
+       "full": "assets/tex/Ares/06_hull_normal@full.webp?v=40fe58ce629e1a46"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ares/07_hull_orm@2048.webp?v=ca9c9cbaa227c4ef",
+       "full": "assets/tex/Ares/07_hull_orm@full.webp?v=6bfcf347e0bb345b"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ares/08_hull_color@2048.webp?v=845d4bb30342d793",
+       "full": "assets/tex/Ares/08_hull_color@full.webp?v=730abc010265e3f0"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Ares.webp?v=a27538b3a968ab8d",
@@ -3395,8 +4440,8 @@ export default {
     "aspect": 0.145
    },
    "glb": {
-    "src": "assets/ships/Olympus.glb?v=075c034fbf6d5476",
-    "bytes": 10257216,
+    "src": "assets/ships/Olympus.glb?v=1fa96bc2a08696f5",
+    "bytes": 9135920,
     "tris": 329454,
     "draw_calls": 7,
     "has_gear": false,
@@ -3407,7 +4452,76 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Olympus/00_decals_color@full.webp?v=c356096cd95fd99c"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Olympus/01_detail_emissive@full.webp?v=03a3cbdf70b6af18"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Olympus/02_detail_normal@full.webp?v=b047c4f9b7274219"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Olympus/03_detail_orm@full.webp?v=474935113a90cdad"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Olympus/04_detail_color@full.webp?v=aafe76f1f4ca2cb5"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Olympus/06_hull_normal@2048.webp?v=7546f7df3843a930",
+       "full": "assets/tex/Olympus/06_hull_normal@full.webp?v=83eab0fa1dfd4240"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Olympus/07_hull_orm@2048.webp?v=623a8898a3c75197",
+       "full": "assets/tex/Olympus/07_hull_orm@full.webp?v=8aee1c5b4638a3bc"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Olympus/08_hull_color@2048.webp?v=51759cd3d70c20c7",
+       "full": "assets/tex/Olympus/08_hull_color@full.webp?v=b7b576e1755c0c05"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Olympus.webp?v=ea969928739c895d",
@@ -3437,8 +4551,8 @@ export default {
     "aspect": 0.1183
    },
    "glb": {
-    "src": "assets/ships/Valles.glb?v=cdf0329a958b57fd",
-    "bytes": 6018932,
+    "src": "assets/ships/Valles.glb?v=c38c1fd62fb8f8fb",
+    "bytes": 5496520,
     "tris": 310378,
     "draw_calls": 7,
     "has_gear": false,
@@ -3449,7 +4563,73 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/00_decals_color@full.webp?v=537205aee3da0b49"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/01_detail_emissive@full.webp?v=c2ee9a4248d300fa"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/02_detail_normal@full.webp?v=03953887ec1af90f"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/03_detail_orm@full.webp?v=0909093b9716b382"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/04_detail_color@full.webp?v=f644e5ad01458875"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/06_hull_normal@full.webp?v=cb58d0768d3aaf0b"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/07_hull_orm@full.webp?v=f985eb5724e9531a"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Valles/08_hull_color@full.webp?v=fab44384e494f941"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Valles.webp?v=2cb888213bb2b232",
@@ -3486,8 +4666,8 @@ export default {
     "aspect": 0.1041
    },
    "glb": {
-    "src": "assets/ships/Tharsis.glb?v=d5d97f0bd1b41133",
-    "bytes": 12020140,
+    "src": "assets/ships/Tharsis.glb?v=312ebcf322251451",
+    "bytes": 11277108,
     "tris": 694548,
     "draw_calls": 7,
     "has_gear": false,
@@ -3498,7 +4678,73 @@ export default {
      "nav": 2,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/00_decals_color@full.webp?v=537205aee3da0b49"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/01_detail_emissive@full.webp?v=0c51d66cb633cd1a"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/02_detail_normal@full.webp?v=2d9081cc2ad1246c"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/03_detail_orm@full.webp?v=3409678a4a2780a8"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/04_detail_color@full.webp?v=10514aaaa2392f22"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/06_hull_normal@full.webp?v=411f3ff8fc574513"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/07_hull_orm@full.webp?v=9f34923278267a61"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Tharsis/08_hull_color@full.webp?v=49e6c2599c11d2bd"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Tharsis.webp?v=451051055137488c",
@@ -3528,8 +4774,8 @@ export default {
     "aspect": 0.1983
    },
    "glb": {
-    "src": "assets/ships/Sprite.glb?v=99068e2f1a7106ec",
-    "bytes": 5805372,
+    "src": "assets/ships/Sprite.glb?v=baad37ca2ee423af",
+    "bytes": 3059224,
     "tris": 106910,
     "draw_calls": 9,
     "has_gear": true,
@@ -3540,7 +4786,109 @@ export default {
      "nav": 3,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/00_decals_color@full.webp?v=9027e69a587cf5ca"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/01_detail_emissive@full.webp?v=3aa0a327997f5a1b"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/02_detail_normal@full.webp?v=307fc43b6e504963"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/03_detail_orm@full.webp?v=469a58ae920b1fe9"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/04_detail_color@full.webp?v=a771b0fc871648c6"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/06_gear_normal@full.webp?v=dc0c474d8e3bc4f4"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/07_gear_orm@full.webp?v=df62114d23255522"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sprite/08_gear_color@full.webp?v=6119dd3df027d1a7"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sprite/09_hull_emissive@2048.webp?v=15920e8cc5093287",
+       "full": "assets/tex/Sprite/09_hull_emissive@full.webp?v=e0bde309ff708aba"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sprite/10_hull_normal@2048.webp?v=e9abd34486f95b86",
+       "full": "assets/tex/Sprite/10_hull_normal@full.webp?v=e07979158fe9a718"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sprite/11_hull_orm@2048.webp?v=d31539b28b369aa7",
+       "full": "assets/tex/Sprite/11_hull_orm@full.webp?v=60147c6b7d58831e"
+      }
+     },
+     {
+      "image": 12,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Sprite/12_hull_color@2048.webp?v=0cad07016655553c",
+       "full": "assets/tex/Sprite/12_hull_color@full.webp?v=ab061b2ac6c8647e"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Sprite.webp?v=54b6658d00439b0b",
@@ -3570,8 +4918,8 @@ export default {
     "aspect": 0.1442
    },
    "glb": {
-    "src": "assets/ships/Ascot.glb?v=fa6f32a4fdbb7b35",
-    "bytes": 5816188,
+    "src": "assets/ships/Ascot.glb?v=a5d724cc887426b1",
+    "bytes": 3079128,
     "tris": 108317,
     "draw_calls": 9,
     "has_gear": true,
@@ -3582,7 +4930,100 @@ export default {
      "nav": 3,
      "strobe": 2
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/00_decals_color@full.webp?v=b50e646a67372721"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/01_detail_emissive@full.webp?v=ac4cb8febbd81012"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/02_detail_normal@full.webp?v=6facd21f8eae6bcd"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/03_detail_orm@full.webp?v=a42bd074b8f17544"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/04_detail_color@full.webp?v=8ac0f4b4f2f80729"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/06_gear_normal@full.webp?v=d421c4e49c11d722"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/07_gear_orm@full.webp?v=533d2c7392973c84"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Ascot/08_gear_color@full.webp?v=300cedda9fe83741"
+      }
+     },
+     {
+      "image": 9,
+      "kind": "normal",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ascot/09_hull_normal@2048.webp?v=5495376572c62b50",
+       "full": "assets/tex/Ascot/09_hull_normal@full.webp?v=50a74e5e66d59c7a"
+      }
+     },
+     {
+      "image": 10,
+      "kind": "data",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ascot/10_hull_orm@2048.webp?v=feb8da00ab9fe613",
+       "full": "assets/tex/Ascot/10_hull_orm@full.webp?v=6fa72e4b8c9e3349"
+      }
+     },
+     {
+      "image": 11,
+      "kind": "color",
+      "size": 3072,
+      "files": {
+       "2048": "assets/tex/Ascot/11_hull_color@2048.webp?v=0f1c5dc5595ea819",
+       "full": "assets/tex/Ascot/11_hull_color@full.webp?v=b39c50c008888e55"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Ascot.webp?v=3ebb25505b395230",
@@ -3612,8 +5053,8 @@ export default {
     "aspect": 0.445
    },
    "glb": {
-    "src": "assets/ships/Sovereign.glb?v=8ef2815900b21e1d",
-    "bytes": 6478468,
+    "src": "assets/ships/Sovereign.glb?v=57228933e535de02",
+    "bytes": 5756296,
     "tris": 350555,
     "draw_calls": 8,
     "has_gear": false,
@@ -3624,7 +5065,73 @@ export default {
      "nav": 11,
      "strobe": 4
     },
-    "retro": false
+    "retro": false,
+    "lods": [
+     {
+      "image": 0,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/00_decals_color@full.webp?v=0a9008ac64f76275"
+      }
+     },
+     {
+      "image": 1,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/01_detail_emissive@full.webp?v=0a88f06d71cc0a9d"
+      }
+     },
+     {
+      "image": 2,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/02_detail_normal@full.webp?v=0f333ad327796508"
+      }
+     },
+     {
+      "image": 3,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/03_detail_orm@full.webp?v=cf617fdb44051cae"
+      }
+     },
+     {
+      "image": 4,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/04_detail_color@full.webp?v=22426d3e0d6217e7"
+      }
+     },
+     {
+      "image": 6,
+      "kind": "normal",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/06_hull_normal@full.webp?v=24f8a0f1343cb161"
+      }
+     },
+     {
+      "image": 7,
+      "kind": "data",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/07_hull_orm@full.webp?v=6b2b68dc2a89d863"
+      }
+     },
+     {
+      "image": 8,
+      "kind": "color",
+      "size": 2048,
+      "files": {
+       "2048": "assets/tex/Sovereign/08_hull_color@full.webp?v=96f9d7f6c32faad3"
+      }
+     }
+    ]
    },
    "thumb": {
     "src": "assets/thumbs/Sovereign.webp?v=883ca22d526cbb61",

@@ -1,0 +1,77 @@
+[
+ {
+  "image": 0,
+  "name": "decals_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "00_decals_color@full.webp"
+  }
+ },
+ {
+  "image": 1,
+  "name": "detail_emissive",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "01_detail_emissive@full.webp"
+  }
+ },
+ {
+  "image": 2,
+  "name": "detail_normal",
+  "kind": "normal",
+  "size": 2048,
+  "files": {
+   "2048": "02_detail_normal@full.webp"
+  }
+ },
+ {
+  "image": 3,
+  "name": "detail_orm",
+  "kind": "data",
+  "size": 2048,
+  "files": {
+   "2048": "03_detail_orm@full.webp"
+  }
+ },
+ {
+  "image": 4,
+  "name": "detail_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "04_detail_color@full.webp"
+  }
+ },
+ {
+  "image": 6,
+  "name": "hull_normal",
+  "kind": "normal",
+  "size": 3072,
+  "files": {
+   "2048": "06_hull_normal@2048.webp",
+   "full": "06_hull_normal@full.webp"
+  }
+ },
+ {
+  "image": 7,
+  "name": "hull_orm",
+  "kind": "data",
+  "size": 3072,
+  "files": {
+   "2048": "07_hull_orm@2048.webp",
+   "full": "07_hull_orm@full.webp"
+  }
+ },
+ {
+  "image": 8,
+  "name": "hull_color",
+  "kind": "color",
+  "size": 3072,
+  "files": {
+   "2048": "08_hull_color@2048.webp",
+   "full": "08_hull_color@full.webp"
+  }
+ }
+]

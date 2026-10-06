@@ -1,0 +1,104 @@
+[
+ {
+  "image": 0,
+  "name": "decals_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "00_decals_color@full.webp"
+  }
+ },
+ {
+  "image": 1,
+  "name": "detail_emissive",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "01_detail_emissive@full.webp"
+  }
+ },
+ {
+  "image": 2,
+  "name": "detail_normal",
+  "kind": "normal",
+  "size": 2048,
+  "files": {
+   "2048": "02_detail_normal@full.webp"
+  }
+ },
+ {
+  "image": 3,
+  "name": "detail_orm",
+  "kind": "data",
+  "size": 2048,
+  "files": {
+   "2048": "03_detail_orm@full.webp"
+  }
+ },
+ {
+  "image": 4,
+  "name": "detail_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "04_detail_color@full.webp"
+  }
+ },
+ {
+  "image": 6,
+  "name": "gear_normal",
+  "kind": "normal",
+  "size": 2048,
+  "files": {
+   "2048": "06_gear_normal@full.webp"
+  }
+ },
+ {
+  "image": 7,
+  "name": "gear_orm",
+  "kind": "data",
+  "size": 2048,
+  "files": {
+   "2048": "07_gear_orm@full.webp"
+  }
+ },
+ {
+  "image": 8,
+  "name": "gear_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "08_gear_color@full.webp"
+  }
+ },
+ {
+  "image": 9,
+  "name": "hull_normal",
+  "kind": "normal",
+  "size": 3072,
+  "files": {
+   "2048": "09_hull_normal@2048.webp",
+   "full": "09_hull_normal@full.webp"
+  }
+ },
+ {
+  "image": 10,
+  "name": "hull_orm",
+  "kind": "data",
+  "size": 3072,
+  "files": {
+   "2048": "10_hull_orm@2048.webp",
+   "full": "10_hull_orm@full.webp"
+  }
+ },
+ {
+  "image": 11,
+  "name": "hull_color",
+  "kind": "color",
+  "size": 3072,
+  "files": {
+   "2048": "11_hull_color@2048.webp",
+   "full": "11_hull_color@full.webp"
+  }
+ }
+]

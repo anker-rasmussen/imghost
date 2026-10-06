@@ -1,0 +1,65 @@
+[
+ {
+  "image": 0,
+  "name": "detail_emissive",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "00_detail_emissive@full.webp"
+  }
+ },
+ {
+  "image": 1,
+  "name": "detail_normal",
+  "kind": "normal",
+  "size": 2048,
+  "files": {
+   "2048": "01_detail_normal@full.webp"
+  }
+ },
+ {
+  "image": 2,
+  "name": "detail_orm",
+  "kind": "data",
+  "size": 2048,
+  "files": {
+   "2048": "02_detail_orm@full.webp"
+  }
+ },
+ {
+  "image": 3,
+  "name": "detail_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "03_detail_color@full.webp"
+  }
+ },
+ {
+  "image": 5,
+  "name": "hull_normal",
+  "kind": "normal",
+  "size": 2048,
+  "files": {
+   "2048": "05_hull_normal@full.webp"
+  }
+ },
+ {
+  "image": 6,
+  "name": "hull_orm",
+  "kind": "data",
+  "size": 2048,
+  "files": {
+   "2048": "06_hull_orm@full.webp"
+  }
+ },
+ {
+  "image": 7,
+  "name": "hull_color",
+  "kind": "color",
+  "size": 2048,
+  "files": {
+   "2048": "07_hull_color@full.webp"
+  }
+ }
+]

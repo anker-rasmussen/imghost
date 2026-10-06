@@ -5,7 +5,7 @@
 // Same layout and icons for every maker; brands theme colour and type only. First visit gets three coach marks.
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=cc2867cb2e04c2d2';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=e9eedb6af1d93c2e';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -457,7 +457,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=a02ef8be847b00d3');
+        const { Viewer } = await import('./viewer.js?v=2ce09de7d540c961');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),

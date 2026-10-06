@@ -242,12 +242,43 @@ def scan_glb(p: Path) -> dict:
 KTX_BIN = Path.home() / ".local" / "opt" / "ktx" / "bin" / "ktx"
 
 
+def texture_lods(src: Path, dst: Path) -> Path:
+    """Base glb (textures capped at 1024 px) + 2048 / full-resolution WebP LODs in assets/tex/<Model>/, streamed by
+    the viewer for hulls that are big on screen. Rebuilt only when the export is newer (see texlod.py)."""
+    import shutil as _sh
+    sys.path.insert(0, str(TOOLS))
+    import texlod
+    lod_dir = ASSETS / "tex" / src.stem
+    side = lod_dir / "lods.json"
+    if fresh(src, dst) and side.exists() and side.stat().st_mtime >= src.stat().st_mtime:
+        return dst
+    if lod_dir.exists():
+        _sh.rmtree(lod_dir)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    lods = texlod.build(src, dst, lod_dir)
+    side.write_text(json.dumps([{**r, "files": {k: Path(v).name for k, v in r["files"].items()}} for r in lods], indent=1))
+    log(f"  lods {src.name}: base {dst.stat().st_size / 1e6:.1f} MB (was {src.stat().st_size / 1e6:.1f}), "
+        f"{sum(f.stat().st_size for f in lod_dir.glob('*.webp')) / 1e6:.1f} MB of 2048/full textures")
+    return dst
+
+
+def lod_entries(model: str) -> list:
+    side = ASSETS / "tex" / model / "lods.json"
+    if not side.exists():
+        return []
+    out = []
+    for r in json.loads(side.read_text()):
+        out.append({"image": r["image"], "kind": r["kind"], "size": r["size"],
+                    "files": {k: url(ASSETS / "tex" / model / v) for k, v in r["files"].items()}})
+    return out
+
+
 def ship_glb(src: Path, dst: Path) -> Path:
     """WebP glbs by default. SHOWROOM_KTX2=1 serves KTX2 (Basis UASTC + zstd) instead: ~55-70 % less GPU memory,
     but ~2.5x the download (UASTC is 6-9x a WebP texture; RDO only trims ~20 %), so it is opt-in. Rooms always stay
     WebP: their baked lightmaps visibly shifted under UASTC (identical-camera diff)."""
     if os.environ.get("SHOWROOM_KTX2", "0") != "1" or not KTX_BIN.exists():
-        return copy(src, dst)
+        return texture_lods(src, dst)
     if not fresh(src, dst):
         dst.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run([sys.executable, str(TOOLS / "ktx2_encode.py"), str(src), str(dst)], check=True)
@@ -286,7 +317,7 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
         e["glb"] = {"src": url(glb), "bytes": glb.stat().st_size, "tris": meta.get("tris"),
                     "draw_calls": meta.get("draw_calls"), "has_gear": bool(meta.get("has_gear")),
                     "export_length": meta.get("length"), "lights": kinds,
-                    "retro": "retro_glow" in mats or "retro_plume" in mats}
+                    "retro": "retro_glow" in mats or "retro_plume" in mats, "lods": lod_entries(M)}
 
     # exporter thumbnail (small turntable still): shown where no studio poster exists yet
     th = SHIPS_SRC / M / "thumb.png"

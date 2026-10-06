@@ -16,7 +16,7 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=886d45a05c4f8e20';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=c2409cff6093999c';
+import data from './data.js?v=6eccc3943f11efc8';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
@@ -33,25 +33,6 @@ function disposeTree(root) {
       m.dispose();
     }
   });
-}
-
-/** Replace every texture image in a loaded glTF with a 1/f-resolution copy before it is ever uploaded. */
-async function downscaleTextures(root, f) {
-  const seen = new Set();
-  const jobs = [];
-  root.traverse((o) => {
-    const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
-    for (const m of ms) for (const k of Object.keys(m)) {
-      const tex = m[k];
-      if (!tex?.isTexture || tex.isCompressedTexture || seen.has(tex) || !tex.image || tex.image.width <= 256) continue;   // KTX2: mipmaps do this
-      seen.add(tex);
-      const img = tex.image;
-      jobs.push(createImageBitmap(img, { resizeWidth: Math.max(64, Math.round(img.width / f)), resizeHeight: Math.max(64, Math.round(img.height / f)), resizeQuality: 'medium', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })   // keep normal / ORM data intact
-        .then((bmp) => { tex.image = bmp; tex.needsUpdate = true; img.close?.(); })
-        .catch(() => {}));
-    }
-  });
-  await Promise.all(jobs);
 }
 
 /** room description used when a maker has no baked room yet (same schema as showroom.json) */
@@ -109,6 +90,7 @@ export class Viewer {
     this.running = false;
     this.slow = 0;
     this.perf = /[?&]perf=1\b/.test(location.search) ? { ms: [], shown: 0 } : null;
+    this.lodAll = /[?&]lod=full\b/.test(location.search);   // reference renders: every hull at full texture res
 
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas);
@@ -610,13 +592,15 @@ export class Viewer {
     for (const e of this.fleet.values()) {
       this.scene.remove(e.holder);
       if (e.ghost) disposeTree(e.ghost);
+      for (const s of e.lodSlots || []) { if (s.base !== s.cur) { s.base.dispose(); s.base.image?.close?.(); } }
+      e.lodSlots = null;
       e.rig?.dispose();
     }
     this.fleet = null;
     this.ship = null;
   }
 
-  async loadEntry(e, onProgress, { full = false } = {}) {
+  async loadEntry(e, onProgress) {
     if (e.state === 'ready') return e;
     if (e.promise) return e.promise;
     e.state = 'loading';
@@ -625,12 +609,8 @@ export class Viewer {
       const gl = (e.prefetch && await e.prefetch) || await this.gltf.loadAsync(e.model.glb.src, onProgress);
       e.prefetch = null;
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
-      // giants seen through the glass from hundreds of metres: quarter-resolution textures keep GPU memory sane
-      // (the focused giant is upgraded to full resolution)
-      e.lowres = e.outdoor && !full;
-      if (e.lowres) await downscaleTextures(gl.scene, 4);
-      if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
       const rig = rigShip(gl, { realLights: false, length: e.model.length });
+      this.indexLods(e, gl);
       e.rig = rig;
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
@@ -675,18 +655,6 @@ export class Viewer {
     this.shadowDirty = Math.max(this.shadowDirty || 0, 2);
   }
 
-  /** swap a giant's quarter-res copy for the full-resolution hull (the glb is in the HTTP cache by now) */
-  async upgrade(e, progress) {
-    const token = this.fleetToken;
-    const gl = await this.gltf.loadAsync(e.model.glb.src, progress);
-    if (token !== this.fleetToken || this.ship !== e) { disposeTree(gl.scene); return; }
-    const old = e.rig;
-    e.holder.remove(old.root); old.dispose();
-    e.rig = rigShip(gl, { realLights: false, length: e.model.length });
-    e.lowres = false;
-    this.placeEntry(e);
-  }
-
   /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
   async focus(ship, progress, instant) {
     const e = this.fleet?.get(ship.id);
@@ -694,16 +662,119 @@ export class Viewer {
     const prev = this.ship;
     if (prev && prev !== e) { prev.holder.rotation.y = prev.yaw; prev.spinYaw = 0; prev.rig?.setHighlight(0); }
     this.ship = e;
-    if (prev && prev !== e && prev.outdoor && !prev.lowres && prev.rig) { prev.lowres = true; downscaleTextures(prev.rig.root, 4); }
-    if (e.state !== 'ready') await this.loadEntry(e, progress, { full: true });
+    if (e.state !== 'ready') await this.loadEntry(e, progress);
     if (this.ship !== e) return;
-    if (e.lowres) await this.upgrade(e, progress);
+    // the focused hull never shows its 1024 px base: 2048 is in place before it is revealed, full res follows
+    await this.setLod(e, 2048);
     if (this.ship !== e) return;
+    this.setLod(e, 'full');
     this.frameShip(instant);
     this.shadowDirty = 4;
     // the rest of the line-up streams in once the browser is idle: the focused hull gets the bandwidth first
     const kick = () => this.streamRest();
     if ('requestIdleCallback' in window) requestIdleCallback(kick, { timeout: 1500 }); else setTimeout(kick, 300);
+  }
+
+  // ---------------------------------------------------------------- texture LOD streaming
+  /** find, per LOD'd image, the texture GLTFLoader made for it and every material slot that uses it */
+  indexLods(e, gl) {
+    e.level = 1024; e.lodSlots = [];
+    const lods = e.model.glb.lods || [];
+    if (!lods.length) return;
+    const json = gl.parser.json, byImage = new Map(lods.map((l) => [l.image, { lod: l, base: null, cur: null, refs: [] }]));
+    gl.scene.traverse((o) => {
+      if (!o.isMesh) return;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+        for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap']) {
+          const tex = m[key]; if (!tex) continue;
+          const ti = gl.parser.associations.get(tex)?.textures; if (ti == null) continue;
+          const td = json.textures[ti], img = td.source ?? td.extensions?.EXT_texture_webp?.source;
+          const slot = byImage.get(img); if (!slot) continue;
+          slot.base ||= tex; slot.cur ||= tex;
+          if (!slot.refs.some((r) => r.m === m && r.key === key)) slot.refs.push({ m, key });
+        }
+      }
+    });
+    e.lodSlots = [...byImage.values()].filter((s) => s.base);
+  }
+
+  /** move a hull's textures to `level` (1024 | 2048 | 'full'), decoded and uploaded before the swap */
+  async setLod(e, level) {
+    if (!e.lodSlots?.length) return;
+    e.lodTarget = level;
+    if (e.lodBusy) return e.lodBusy;
+    e.lodBusy = (async () => {
+      const rank = (l) => (l === 1024 ? 0 : l === 2048 ? 1 : 2);
+      while (e.lodSlots && rank(e.level) !== rank(e.lodTarget)) {
+        // step through 2048 on the way up (sharper sooner); straight back down to the 1024 base
+        const want = rank(e.lodTarget) > rank(e.level) ? (rank(e.level) === 0 ? 2048 : 'full') : 1024;
+        if (want === 1024) {
+          for (const s of e.lodSlots) this.lodAssign(s, s.base);
+          e.level = 1024;
+          continue;
+        }
+        const token = this.fleetToken;
+        const loaded = await Promise.all(e.lodSlots.map(async (s) => {
+          const url = s.lod.files[want === 'full' ? 'full' : '2048'] || s.lod.files['2048'];
+          if (!url) return null;
+          const blob = await (await fetch(url)).blob();
+          const bmp = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+          const t = new THREE.Texture(bmp);
+          const b = s.base;
+          Object.assign(t, { flipY: false, colorSpace: b.colorSpace, wrapS: b.wrapS, wrapT: b.wrapT, magFilter: b.magFilter,
+            minFilter: b.minFilter, generateMipmaps: b.generateMipmaps, anisotropy: b.anisotropy, channel: b.channel, name: b.name });
+          t.needsUpdate = true;
+          return [s, t];
+        })).catch((err) => { console.warn('texture LOD failed', err); return []; });
+        if (token !== this.fleetToken || !e.lodSlots) { for (const x of loaded) if (x) { x[1].dispose(); x[1].image.close?.(); } break; }
+        for (const x of loaded) if (x) this.renderer.initTexture(x[1]);   // upload now: the swap itself never shows a gap
+        for (const x of loaded) if (x) this.lodAssign(x[0], x[1]);
+        e.level = want;
+        this.redraw();
+      }
+      e.lodBusy = null;
+    })();
+    return e.lodBusy;
+  }
+
+  lodAssign(s, tex) {
+    const old = s.cur;
+    for (const r of s.refs) r.m[r.key] = tex;
+    s.cur = tex;
+    if (old && old !== s.base && old !== tex) { old.dispose(); old.image?.close?.(); }
+    // the 1024 base leaves the GPU while a larger level is shown (its bitmap stays, so stepping back re-uploads it)
+    if (old === s.base && tex !== s.base) s.base.dispose();
+  }
+
+  /** on-screen size picks the level: anything big on screen gets full res; the focused hull always does */
+  updateLods(now) {
+    if (!this.fleet || now - (this.lodAt || 0) < 400) return;
+    this.lodAt = now;
+    const H = this.canvas.clientHeight * this.dpr, k = 1 / Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+    const fr = this._lfr ||= new THREE.Frustum(), m = this._lfm ||= new THREE.Matrix4();
+    fr.setFromProjectionMatrix(m.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+    for (const e of this.fleet.values()) {
+      if (e.state !== 'ready' || !e.lodSlots?.length) continue;
+      let want = 1024;
+      if (e === this.ship || this.lodAll) want = 'full';
+      else if (e.holder.visible) {
+        const sph = e.rig.bounds().getBoundingSphere(new THREE.Sphere());
+        if (fr.intersectsSphere(sph)) {
+          const px = (sph.radius / Math.max(1, sph.center.distanceTo(this.camera.position))) * k * H;   // on-screen diameter
+          want = px > 1800 ? 'full' : px > 900 ? 2048 : 1024;   // thresholds checked: SSIM >= 0.999 vs all-full renders
+        }
+      }
+      // up at once; down only after a few seconds of not needing it (no thrash while orbiting)
+      const rank = (l) => (l === 1024 ? 0 : l === 2048 ? 1 : 2);
+      if (rank(want) >= rank(e.level)) { e.lodLow = 0; if (want !== e.level) this.setLod(e, want); }
+      else if (!e.lodLow) e.lodLow = now;
+      else if (now - e.lodLow > 4000) { e.lodLow = 0; this.setLod(e, want); }
+    }
+  }
+
+  /** every hull is at the level its screen size asks for, nothing decoding */
+  lodSettled() {
+    return !!this.fleet && [...this.fleet.values()].every((e) => !e.lodBusy);
   }
 
   /** is a bay (its hull's bounding sphere, before the hull exists) inside the camera frustum? */
@@ -1128,6 +1199,7 @@ export class Viewer {
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
     if (this.roomFade) this.stepFade(performance.now());
+    this.updateLods(performance.now());
     if (this.fleet && !this.streaming && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
       [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayInView(e))) this.streamRest();
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
@@ -1216,6 +1288,7 @@ export class Viewer {
       for (const m of ms) for (const k of Object.keys(m)) if (m[k]?.isTexture) add(m[k]);
     });
     if (this.scene.background?.isTexture) add(this.scene.background);
+
     const ms = p.ms.slice().sort((a, b) => a - b);
     const res = performance.getEntriesByType('resource');
     const loadMB = res.reduce((a, r) => a + (r.transferSize || r.encodedBodySize || 0), 0) / 1e6;
