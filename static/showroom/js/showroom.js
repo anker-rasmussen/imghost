@@ -5,7 +5,7 @@
 // Same layout and icons for every maker; brands theme colour and type only. First visit gets three coach marks.
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion } from './util.js?v=e9eedb6af1d93c2e';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=7ed997b35f5bd852';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -253,6 +253,7 @@ export class Showroom {
     let text = '';
     if (this.viewer?.walk) text = 'Walking · Esc to exit';
     else if (this.tourIdx >= 0) text = `Touring ${this.tourIdx + 1} / ${n} · Esc to exit`;
+    this.root.classList.toggle('touring', this.tourIdx >= 0);
     this.chip.textContent = text;
     this.chip.hidden = !text;
   }
@@ -411,12 +412,13 @@ export class Showroom {
     // where am I: Fleet › Maker › Ship
     this.crumbs.replaceChildren(
       h('a', { href: '#/' }, 'Fleet'), h('span', { 'aria-hidden': 'true' }, '›'),
-      h('a', { href: `#/${m.id}` }, m.name), h('span', { 'aria-hidden': 'true' }, '›'),
+      h('a.crumb-mid', { href: `#/${m.id}`, title: m.name }, h('span.full', m.name), h('span.short', { 'aria-hidden': 'true' }, '…')),
+      h('span', { 'aria-hidden': 'true' }, '›'),
       h('span', { 'aria-current': 'page' }, s.name));
     this.backBtn.href = `#/${m.id}`;
     this.backBtn.setAttribute('aria-label', `Back to ${m.full}`);
     this.title.textContent = s.name;
-    this.title.classList.toggle('long', s.name.length > 11);
+    if (!this.title.__fit) fitText(this.title, 18); else this.title.__fit();
     this.sub.replaceChildren(h('b', s.role), ` · ${s.class} · ${fmtLen(s.length)}`);
     this.specHead.textContent = `${m.name} ${s.name}`;
     const rows = [['Maker', m.full], ['Length', fmtLen(s.length)], ['Class', s.class], ['Crew', s.crew], ['Role', s.role]];
@@ -433,6 +435,12 @@ export class Showroom {
         h('span', x.name))));
     }
     for (const a of this.switcher.children) a.setAttribute('aria-current', a.dataset.id === s.id ? 'true' : 'false');
+    requestAnimationFrame(() => {
+      const sw = this.switcher, over = sw.scrollWidth > sw.clientWidth + 1;
+      sw.classList.toggle('overflowing', over);
+      const cur = over && sw.querySelector('[aria-current="true"]');   // keep the current ship's pill fully in view
+      if (cur) sw.scrollLeft = cur.offsetLeft - (sw.clientWidth - cur.offsetWidth) / 2;
+    });
     this.switcher.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'auto' });
     this.caption.classList.remove('on');
     this.tag.hidden = true;
@@ -457,7 +465,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=9d6b8683b2180e2a');
+        const { Viewer } = await import('./viewer.js?v=863697fa3a48c3d1');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),

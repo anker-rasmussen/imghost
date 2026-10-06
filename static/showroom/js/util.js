@@ -126,3 +126,24 @@ export function showroomShip(makerId) {
   return list.find((s) => s.glb && s.length <= (maker(makerId).room?.info?.turntable?.max_ship_length ?? 40)) ||
     list.find((s) => s.glb) || list[0];
 }
+
+/** Shrink a one-line heading's font until it fits its box (long names like SUPERHEAVYWEIGHT scale down instead of
+ *  breaking or overflowing). Re-fits on resize and once webfonts are ready. */
+let fitRO = null;
+export function fitText(el, min = 12) {
+  const fit = () => {
+    if (!el.isConnected || !el.clientWidth) return;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    for (let i = 0; i < 8 && el.scrollWidth > el.clientWidth + 1 && size > min; i++) {
+      size = Math.max(min, Math.floor(size * (el.clientWidth / el.scrollWidth) * 0.98 * 10) / 10);
+      el.style.fontSize = `${size}px`;
+    }
+  };
+  el.__fit = fit;
+  fitRO ||= new ResizeObserver((entries) => { for (const e of entries) e.target.__fit?.(); });
+  fitRO.observe(el);
+  requestAnimationFrame(fit);
+  document.fonts?.ready.then(fit);
+  return el;
+}

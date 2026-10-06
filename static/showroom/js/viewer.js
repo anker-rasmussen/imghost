@@ -22,7 +22,60 @@ const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
 function mkRay(...a) { const r = new THREE.Raycaster(...a); r.layers.enableAll(); return r; }
 const IDLE_MS = 45000;                                 // loop sleeps after this long without input (wakes on any)
+const CAM_MARGIN = 0.35;                                  // camera keeps this far from any hull box, wall or pillar
+const _v = new THREE.Vector3();
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+
+// ---------------------------------------------------------------- plan-view geometry (spin clearance)
+/** convex hull of [x, z] points (monotone chain), counter-clockwise */
+export function hull2(pts) {
+  const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (p.length < 3) return p;
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+/** smallest enclosing circle of [x, z] points (Welzl, iterative): the spin axis of a hull and its swept radius */
+export function minCircle(pts) {
+  const P = pts.slice();
+  for (let i = P.length - 1; i > 0; i--) { const j = (i * 7919) % (i + 1); [P[i], P[j]] = [P[j], P[i]]; }   // deterministic shuffle
+  const in_ = (c, q) => Math.hypot(q[0] - c.x, q[1] - c.z) <= c.r + 1e-7;
+  const two = (a, b) => ({ x: (a[0] + b[0]) / 2, z: (a[1] + b[1]) / 2, r: Math.hypot(a[0] - b[0], a[1] - b[1]) / 2 });
+  const three = (a, b, c) => {
+    const d = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
+    if (Math.abs(d) < 1e-12) { const cs = [two(a, b), two(a, c), two(b, c)]; return cs.sort((u, v) => v.r - u.r)[0]; }
+    const A = a[0] ** 2 + a[1] ** 2, B = b[0] ** 2 + b[1] ** 2, C = c[0] ** 2 + c[1] ** 2;
+    const x = (A * (b[1] - c[1]) + B * (c[1] - a[1]) + C * (a[1] - b[1])) / d, z = (A * (c[0] - b[0]) + B * (a[0] - c[0]) + C * (b[0] - a[0])) / d;
+    return { x, z, r: Math.hypot(a[0] - x, a[1] - z) };
+  };
+  let c = { x: 0, z: 0, r: -1 };
+  for (let i = 0; i < P.length; i++) {
+    if (c.r >= 0 && in_(c, P[i])) continue;
+    c = { x: P[i][0], z: P[i][1], r: 0 };
+    for (let j = 0; j < i; j++) {
+      if (in_(c, P[j])) continue;
+      c = two(P[i], P[j]);
+      for (let k = 0; k < j; k++) if (!in_(c, P[k])) c = three(P[i], P[j], P[k]);
+    }
+  }
+  return c;
+}
+/** distance from (x, z) to segment a-b */
+function segDist(x, z, a, b) {
+  const dx = b[0] - a[0], dz = b[1] - a[1], L = dx * dx + dz * dz;
+  const k = L ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / L)) : 0;
+  return Math.hypot(x - a[0] - k * dx, z - a[1] - k * dz);
+}
+/** is (x, z) inside the convex counter-clockwise polygon? */
+export function inHull(x, z, H) {
+  for (let i = 0, n = H.length; i < n; i++) {
+    const a = H[i], b = H[(i + 1) % n];
+    if ((b[0] - a[0]) * (z - a[1]) - (b[1] - a[1]) * (x - a[0]) < 0) return false;
+  }
+  return H.length > 2;
+}
 
 function disposeTree(root) {
   root.traverse((o) => {
@@ -555,6 +608,7 @@ export class Viewer {
     const info = this.room.info;
     const byModel = new Map((info.bays || []).map((b) => [b.model, b]));
     this.fleet = new Map();
+    this.spinCache = null;
     for (const s of this.lineup) {
       // a room without bays (legacy export): only the focused hull, on the turntable
       const bay = byModel.get(s.model) || (byModel.size || s.id !== focused.id ? null
@@ -643,7 +697,10 @@ export class Viewer {
     e.localBox = box.clone();
     e.len = Math.max(size.x, size.z);
     e.fits = true; e.N = 1; e.plinthR = 0;
-    const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, cy = (box.min.y + box.max.y) / 2;
+    // spin axis: the centre of the hull's smallest plan-view enclosing circle sits on the bay centre, so a turn
+    // about the bay sweeps exactly that circle (an AABB centre would swing the long end out further)
+    const plan = this.planOf(root);
+    const cx = plan.c.x, cz = plan.c.z, cy = (box.min.y + box.max.y) / 2;
     // indoor: stand on the bay floor (hover a little if the hull has no gear); outdoor: bay position is the hull centre
     // real bays: position is the ground contact point (lowest point of the hull, gear down); legacy stub bays put
     // outdoor giants by their centre and float gearless indoor hulls a little
@@ -652,10 +709,63 @@ export class Viewer {
     // only the turntable hull gets a real-time shadow: the other bays have theirs baked into the floor
     if (real && !e.bay.turntable) root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
     root.position.set(-cx, y, -cz);
+    // the plan in the bay's frame (axis at the origin): hull outline, sampled points, swept radius, height band
+    e.plan = { hull: plan.hull.map((q) => [q[0] - cx, q[1] - cz]), pts: plan.pts.map((q) => [q[0] - cx, q[1] - cz, q[2] + y]),
+      r: Math.max(plan.c.r, e.bay.spin_radius || 0), y0: box.min.y + y, y1: box.max.y + y };
     e.holder.updateMatrixWorld(true);
+    this.spinCache = null;
     e.pois = this.buildPois(e);
     this.snapPois(e);
     this.shadowDirty = Math.max(this.shadowDirty || 0, 2);
+  }
+
+  /** plan-view footprint of a hull in its own frame: sampled vertices [x, z, y], their convex hull, enclosing circle */
+  planOf(root) {
+    const pts = [], v = new THREE.Vector3();
+    root.updateMatrixWorld(true);
+    let total = 0;
+    root.traverse((o) => { if (o.isMesh && o.geometry?.attributes.position) total += o.geometry.attributes.position.count; });
+    const step = Math.max(1, Math.floor(total / 6000));
+    root.traverse((o) => {
+      if (!o.isMesh || !o.geometry?.attributes.position || o.material?.transparent && o.material.depthWrite === false) return;
+      const pa = o.geometry.attributes.position;
+      for (let i = 0; i < pa.count; i += step) { v.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); pts.push([v.x, v.z, v.y]); }
+    });
+    const hull = hull2(pts.map((q) => [q[0], q[1]]));
+    return { pts, hull, c: minCircle(hull) };
+  }
+
+  /** world-space plan outline of a ready hull at extra yaw `dyaw` about its bay axis */
+  worldHull(e, dyaw = 0) {
+    const a = e.yaw + (e === this.ship ? e.spinYaw : 0) + dyaw, cs = Math.cos(a), sn = Math.sin(a), b = e.base;
+    // three.js yaw: x' = x cos + z sin, z' = -x sin + z cos
+    return e.plan.hull.map(([x, z]) => [b.x + x * cs + z * sn, b.z - x * sn + z * cs]);
+  }
+
+  /** Can this hull turn a full circle about its bay centre without touching a neighbour, a pillar, a wall or the
+   *  turntable? (the swept disc of radius plan.r + margin against everything else's real outline) */
+  spinClear(e, margin = 0.5) {
+    if (!e?.plan) return false;
+    this.spinCache ||= new Map();
+    if (this.spinCache.has(e)) return this.spinCache.get(e);
+    const R = e.plan.r + margin, x = e.base.x, z = e.base.z, info = this.room?.info || {};
+    let ok = true;
+    const fb = info.floor_bounds;
+    if (!e.outdoor && fb) ok &&= x - R >= fb.x[0] && x + R <= fb.x[1] && z - R >= fb.z[0] && z + R <= fb.z[1];
+    const bayAt = (c) => [...this.fleet.values()].some((f) => Math.hypot(f.base.x - c[0], f.base.z - c[1]) < 1.5);
+    if (!e.outdoor) for (const o of info.obstacles || []) if (o.type === 'circle' && !bayAt(o.center) && Math.hypot(o.center[0] - x, o.center[1] - z) < R + o.radius) ok = false;
+    const tt = info.turntable;
+    if (tt && !e.outdoor && !e.bay.turntable && e.plan.y0 < tt.top + 0.05 && Math.hypot(tt.center[0] - x, tt.center[2] - z) < R + tt.radius) ok = false;
+    for (const f of this.fleet.values()) {
+      if (f === e || f.outdoor !== e.outdoor) continue;
+      if (!f.plan) { if (f.state !== 'ready') { this.spinCache.delete(e); return false; } continue; }   // decide once neighbours are in
+      if (f.plan.y1 < e.plan.y0 || f.plan.y0 > e.plan.y1) continue;
+      const H = this.worldHull(f);
+      if (inHull(x, z, H)) ok = false;
+      for (let i = 0; i < H.length && ok; i++) if (segDist(x, z, H[i], H[(i + 1) % H.length]) < R) ok = false;
+    }
+    if ([...this.fleet.values()].every((f) => f.state === 'ready' || f.outdoor !== e.outdoor)) this.spinCache.set(e, ok);
+    return ok;
   }
 
   /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
@@ -946,6 +1056,7 @@ export class Viewer {
     c.maxDistance = e.outdoor ? d * 1.8 : Math.max(d * 1.3, cam.orbit_max_distance);
     this.home = { pos: pos.clone(), target: target.clone() };
     { const cur = this.camera.position.clone(); this.camera.position.copy(pos); this.setOutside(!!e.outdoor, target); this.camera.position.copy(cur); }
+    this.lastClear = null;
     this.bounds = e.outdoor ? { r: Infinity, top: -1e5, minH: 0, maxH: 1e5, box: null, focus: e }
       : { r: Infinity, top: tt.top, minH: cam.min_height ?? 1, maxH: cam.max_height ?? 50, box, focus: e };
     if (instant || !this.running || matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -1074,6 +1185,7 @@ export class Viewer {
     const pos = target.clone().addScaledVector(dir, dist);
     if (b && !s.outdoor) pos.y = THREE.MathUtils.clamp(pos.y, b.top + 0.35, b.maxH);
     if (b?.box) { pos.x = THREE.MathUtils.clamp(pos.x, -b.box.x, b.box.x); pos.z = THREE.MathUtils.clamp(pos.z, b.box.z0, b.box.z1); }
+    if (b && !s.outdoor) { this.clampRoom(pos); for (let k = 0; k < 3 && this.hullAt(pos); k++) { this.pushOut(pos, target); this.clampRoom(pos); } }
     if (s.outdoor) this.controls.maxDistance = Math.max(this.controls.maxDistance, pos.distanceTo(target) * 1.05);
     this.controls.minDistance = 0.3;
     if (p.action === 'gear') { this.S.gearDir = 1; }
@@ -1245,7 +1357,13 @@ export class Viewer {
       [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayVisible(e))) this.streamRest();
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
-    if (f?.rig && this.spin && !f.outdoor) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; this.shadowDirty = 1; }
+    // turntable motion: only the focused hull on the turntable turns, and only if its swept circle is clear;
+    // otherwise the camera orbits the hull at the same rate (same effect, nothing ever passes through anything)
+    const turn = !!(f?.rig && this.spin && !f.outdoor && !this.walk);
+    const shipTurns = turn && f.bay.turntable && this.spinClear(f);
+    if (shipTurns) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; this.shadowDirty = 1; }
+    this.controls.autoRotate = turn && !shipTurns && !this.tween;
+    this.controls.autoRotateSpeed = 60 * 0.1 / (2 * Math.PI);   // 0.1 rad/s, the turntable's rate
     // only the turntable hull casts a real-time shadow: re-render the map when it (or its gear) actually moves
     for (const e of this.fleet?.values() || []) if (e.bay?.turntable && e.rig && e.S.gearT > 0 && e.S.gearT < 1) this.shadowDirty = 1;
     if (this.shadowDirty > 0) { this.renderer.shadowMap.needsUpdate = true; this.shadowDirty--; }
@@ -1265,13 +1383,8 @@ export class Viewer {
       if (k >= 1) { this.tween = null; this.onArrive?.(); }
     }
     c.enabled = !this.tween;
-    c.update();
-    if (this.bounds) {                                   // keep the camera inside the hall, the pivot on the turntable
-      const b = this.bounds, p = this.camera.position;
-      p.y = THREE.MathUtils.clamp(p.y, b.top + b.minH, b.maxH);
-      if (b.box) { p.x = THREE.MathUtils.clamp(p.x, -b.box.x, b.box.x); p.z = THREE.MathUtils.clamp(p.z, b.box.z0, b.box.z1); }
-      if (!b.focus?.outdoor) c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
-    }
+    c.update(dt);
+    this.constrainCamera();
     if (this.perf) this.perf.cpu.push(performance.now() - tick0);
     this.render();
     // adaptive resolution, only while over budget: ~1 s above 20 ms steps down; ~3 s of headroom steps back up
@@ -1284,6 +1397,68 @@ export class Viewer {
       if (this.dpr !== this.dprMax) { this.setDpr(this.dprMax); this.render(); }
       this.sleeping = true; this.stop();
     }
+  }
+
+  /** Orbit-mode camera rules, every frame: inside the hall (floor box, floor to ceiling, out of pillars) and never
+   *  inside any hull's box (+ margin, far more than the 5 cm near plane): a camera that would end up inside one is
+   *  pushed out along the target->camera ray; if no clear spot exists it stays where it last was clear. */
+  constrainCamera() {
+    const b = this.bounds, c = this.controls, p = this.camera.position;
+    if (!b) return;
+    this.clampRoom(p);
+    if (!b.focus?.outdoor) c.target.y = THREE.MathUtils.clamp(c.target.y, b.top + 0.2, b.maxH - 0.5);
+    if (b.focus?.outdoor) return;
+    for (let k = 0; k < 3 && this.hullAt(p); k++) { this.pushOut(p, c.target); this.clampRoom(p); }
+    if (this.hullAt(p) && this.lastClear) p.copy(this.lastClear);
+    else (this.lastClear ||= new THREE.Vector3()).copy(p);
+  }
+
+  clampRoom(p) {
+    const b = this.bounds;
+    p.y = THREE.MathUtils.clamp(p.y, b.top + b.minH, b.maxH);
+    if (b.box) { p.x = THREE.MathUtils.clamp(p.x, -b.box.x, b.box.x); p.z = THREE.MathUtils.clamp(p.z, b.box.z0, b.box.z1); }
+    if (!b.focus?.outdoor) for (const o of this.pillars()) {
+      const dx = p.x - o.center[0], dz = p.z - o.center[1], d = Math.hypot(dx, dz), r = o.radius + CAM_MARGIN;
+      if (d < r) { const k = d > 1e-6 ? r / d : 1; p.x = o.center[0] + (d > 1e-6 ? dx : r) * k; p.z = o.center[1] + dz * k; }
+    }
+  }
+
+  /** room obstacles that are not ship bays (pillars, totems) */
+  pillars() {
+    if (this._pillars?.room === this.room) return this._pillars.list;
+    const ents = [...(this.fleet?.values() || [])];
+    const list = (this.room?.info.obstacles || []).filter((o) => o.type === 'circle' && !ents.some((f) => Math.hypot(f.base.x - o.center[0], f.base.z - o.center[1]) < 1.5));
+    this._pillars = { room: this.room, list };
+    return list;
+  }
+
+  /** the ready indoor hull whose box (grown by the camera margin) contains p, if any */
+  hullAt(p, margin = CAM_MARGIN) {
+    for (const e of this.fleet?.values() || []) {
+      if (e.outdoor || !e.localBox || !e.rig) continue;
+      const l = e.rig.root.worldToLocal(_v.copy(p)), bx = e.localBox;
+      if (l.x > bx.min.x - margin && l.x < bx.max.x + margin && l.y > bx.min.y - margin && l.y < bx.max.y + margin &&
+        l.z > bx.min.z - margin && l.z < bx.max.z + margin) return e;
+    }
+    return null;
+  }
+
+  /** move p out of the hull box it is in: along target->p to where that ray leaves the box (target inside the box,
+   *  e.g. the focused hull), or back to where it enters it (another hull between target and camera) */
+  pushOut(p, target) {
+    const e = this.hullAt(p);
+    if (!e) return;
+    const root = e.rig.root, bx = e.localBox.clone().expandByScalar(CAM_MARGIN + 0.02);
+    const lp = root.worldToLocal(p.clone()), lt = root.worldToLocal(target.clone());
+    const dir = lp.clone().sub(lt);
+    if (dir.lengthSq() < 1e-8) dir.set(0, 1, 0);
+    dir.normalize();
+    const ray = new THREE.Ray(lt, dir), hit = new THREE.Vector3();
+    if (bx.containsPoint(lt)) {
+      ray.origin.addScaledVector(dir, 1e4); ray.direction.negate();          // exit point = entry from the far side
+      if (ray.intersectBox(bx, hit)) lp.copy(hit);
+    } else if (ray.intersectBox(bx, hit)) lp.copy(hit).addScaledVector(dir, -0.02);
+    p.copy(root.localToWorld(lp));
   }
 
   /** a single frame while the loop sleeps (a hull streamed in, the window resized) */

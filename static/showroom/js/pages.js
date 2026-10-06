@@ -1,8 +1,8 @@
 // Landing (fleet) and maker pages. Each page is { title, theme, nodes, mount(), unmount() }.
 import {
   h, fleet, makers, ships, shipsOf, maker, logo, picture, themeVars, fmtLen, pad2, cssUrl, reveal, reduceMotion,
-  showroomShip, FLEET_THEME,
-} from './util.js?v=e9eedb6af1d93c2e';
+  showroomShip, FLEET_THEME, fitText,
+} from './util.js?v=7ed997b35f5bd852';
 
 const range = (list) => `${fmtLen(list[0].length)} – ${fmtLen(list[list.length - 1].length)}`;
 const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
@@ -212,7 +212,7 @@ export function makerPage(id) {
       h('p', `One scale for the whole line: the ${list[list.length - 1].name} sets the width, and everything else is drawn against it.`)),
     h('div.ladder.reveal', list.map((s, i) => h('a.rung', { href: `#/${id}/${s.id}`, 'aria-label': `${s.name}, ${s.role}, ${fmtLen(s.length)}` },
       h('span.micro', pad2(i + 1)),
-      h('span.rung-name', h('b', s.name), h('span.micro', s.role)),
+      h('span.rung-name', fitText(h('b', s.name), 11), h('span.micro', s.role)),
       h('span.rung-track', h('span.sil', {
         class: s.silhouette ? null : 'ghost',
         style: s.silhouette
@@ -228,7 +228,7 @@ export function makerPage(id) {
       h('div.card-media', picture(s.poster, `${m.name} ${s.name}`, { sizes: '(max-width: 700px) 100vw, 33vw' }),
         h('span.card-badge', { class: s.glb ? 'live' : null }, s.glb ? `Real-time · ${Math.round(s.glb.tris / 1000)}k tris` : 'Studio still')),
       h('div.card-body',
-        h('div', h('span.micro', s.role), h('h3', { style: { 'margin-top': '8px' } }, s.name)),
+        h('div', h('span.micro', s.role), fitText(h('h3', { style: { 'margin-top': '8px' } }, s.name), 14)),
         h('p', s.copy),
         h('dl', h('div', h('dt', 'Length'), h('dd', fmtLen(s.length))), h('div', h('dt', 'Class'), h('dd', s.class.split(' /')[0])),
           h('div', h('dt', 'Crew'), h('dd', s.crew)))))))));
