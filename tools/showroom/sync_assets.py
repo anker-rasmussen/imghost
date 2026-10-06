@@ -243,10 +243,10 @@ KTX_BIN = Path.home() / ".local" / "opt" / "ktx" / "bin" / "ktx"
 
 
 def ship_glb(src: Path, dst: Path) -> Path:
-    """Ship glbs are served with KTX2 (Basis UASTC + zstd) textures: ~3x less GPU memory than WebP, at ~3x the
-    download. Re-encoded only when the export is newer. SHOWROOM_KTX2=0 (or no KTX-Software) copies the WebP glb.
-    Rooms stay WebP: their baked lightmaps visibly shifted under UASTC (identical-camera diff), ships did not."""
-    if os.environ.get("SHOWROOM_KTX2", "1") == "0" or not KTX_BIN.exists():
+    """WebP glbs by default. SHOWROOM_KTX2=1 serves KTX2 (Basis UASTC + zstd) instead: ~55-70 % less GPU memory,
+    but ~2.5x the download (UASTC is 6-9x a WebP texture; RDO only trims ~20 %), so it is opt-in. Rooms always stay
+    WebP: their baked lightmaps visibly shifted under UASTC (identical-camera diff)."""
+    if os.environ.get("SHOWROOM_KTX2", "0") != "1" or not KTX_BIN.exists():
         return copy(src, dst)
     if not fresh(src, dst):
         dst.parent.mkdir(parents=True, exist_ok=True)
