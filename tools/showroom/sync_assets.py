@@ -285,6 +285,22 @@ def ship_glb(src: Path, dst: Path) -> Path:
     return dst
 
 
+def mesh_lods(M: str, meta: dict) -> list:
+    """Exporter mesh LODs for the giants (LOD2: ~1/5 the triangles, 1024 px textures). The viewer draws a giant that
+    is only seen far off through the glass from LOD2 and swaps in the full hull once it is close or in focus."""
+    out = []
+    mp = SHIPS_SRC / M / "meta.json"                 # the export manifest may predate the LODs: meta.json has them
+    lods = (json.loads(mp.read_text()).get("lods") if mp.exists() else None) or meta.get("lods") or []
+    for l in lods:
+        if l.get("suffix") != "_LOD2":
+            continue
+        src = SHIPS_SRC / l["file"]
+        if src.exists():
+            dst = copy(src, ASSETS / "ships" / f"{M}_LOD2.glb")
+            out.append({"src": url(dst), "tris": l.get("tris"), "bytes": dst.stat().st_size})
+    return out
+
+
 def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
     mk, M = s["maker"], s["model"]
     c = size_class(canon["size_classes"], s["length"])
@@ -317,7 +333,8 @@ def ship_entry(canon: dict, s: dict, manifest: dict) -> dict:
         e["glb"] = {"src": url(glb), "bytes": glb.stat().st_size, "tris": meta.get("tris"),
                     "draw_calls": meta.get("draw_calls"), "has_gear": bool(meta.get("has_gear")),
                     "export_length": meta.get("length"), "lights": kinds,
-                    "retro": "retro_glow" in mats or "retro_plume" in mats, "lods": lod_entries(M)}
+                    "retro": "retro_glow" in mats or "retro_plume" in mats, "lods": lod_entries(M),
+                    "mesh_lods": mesh_lods(M, meta)}
 
     # exporter thumbnail (small turntable still): shown where no studio poster exists yet
     th = SHIPS_SRC / M / "thumb.png"

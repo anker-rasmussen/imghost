@@ -4,10 +4,10 @@
 //   #/<maker>          maker page            e.g. #/helios
 //   #/<maker>/<ship>   showroom viewer       e.g. #/helios/zenith
 //   #/making-of        how it was made
-import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=43c75d9741074c83';
-import { makingOf } from './making.js?v=848124924dda5e3b';
-import { landing, makerPage } from './pages.js?v=97345420f7b9c326';
-import { Showroom } from './showroom.js?v=370d538d4134d584';
+import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=55cda4b6c9a221bb';
+import { makingOf } from './making.js?v=613eaf4cb9ee8e42';
+import { landing, makerPage } from './pages.js?v=9744d03818e8ee38';
+import { Showroom } from './showroom.js?v=75844ad0f08b6ae5';
 
 const main = $('#main');
 const curtain = $('.curtain');

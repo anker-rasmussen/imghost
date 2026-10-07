@@ -16,13 +16,15 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=0ec40c3e2f1c1502';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=c09d0b0665d09327';
-import data from './data.js?v=f0bf902cca452cd9';
+import data from './data.js?v=df704b342e8e9df9';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
 function mkRay(...a) { const r = new THREE.Raycaster(...a); r.layers.enableAll(); return r; }
 const IDLE_MS = 45000;                                 // loop sleeps after this long without input (wakes on any)
 const PLANET_SRC = new URLSearchParams(location.search).get('planets');   // ?planets=procedural : A/B only
+const GIANT_LOD_PX = 160;   // LOD2 only below this on-screen size: above it the side-by-side starts to differ
+const GIANT_LOD = new URLSearchParams(location.search).get('giantlod') !== 'off';   // ?giantlod=off : A/B only
 const REFL_SCALE = +new URLSearchParams(location.search).get('reflres') || 0.5;   // ?reflres= : A/B tests only
 const CAM_MARGIN = 0.35;                                  // camera keeps this far from any hull box, wall or pillar
 const _v = new THREE.Vector3();
@@ -679,11 +681,16 @@ export class Viewer {
     e.state = 'loading';
     const token = this.fleetToken;
     e.promise = (async () => {
-      const gl = (e.prefetch && await e.prefetch) || await this.gltf.loadAsync(e.model.glb.src, onProgress);
+      // a giant only seen far off through the glass starts from its exporter LOD2 (a fifth of the triangles,
+      // 1024 px maps): identical at that size, a fraction of the download; the full hull replaces it when it is
+      // focused or comes close (upgradeMesh)
+      const far = e.outdoor && e !== this.ship && !e.prefetch && GIANT_LOD && this.screenPx(e) < GIANT_LOD_PX && e.model.glb.mesh_lods?.[0];
+      const gl = (e.prefetch && await e.prefetch) || await this.gltf.loadAsync(far ? far.src : e.model.glb.src, onProgress);
       e.prefetch = null;
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
       const rig = rigShip(gl, { realLights: false, length: e.model.length });
-      this.indexLods(e, gl);
+      e.meshLod = !!far;
+      if (far) e.lodSlots = []; else this.indexLods(e, gl);
       e.rig = rig;
       this.placeEntry(e);
       if (e.ghost) { e.holder.remove(e.ghost); disposeTree(e.ghost); e.ghost = null; }
@@ -790,6 +797,32 @@ export class Viewer {
     return ok;
   }
 
+  /** rough on-screen diameter (device px) of a bay's hull from the current camera, before it is loaded */
+  screenPx(e) {
+    const r = e.bay.focus_radius || (e.model.length || 100) / 2;
+    const k = 1 / Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2), H = this.canvas.clientHeight * this.dpr;
+    return (r / Math.max(1, e.base.distanceTo(this.camera.position))) * k * H;
+  }
+
+  /** swap a giant's far LOD for the full hull (texture LODs then stream as usual) */
+  upgradeMesh(e) {
+    if (!e.meshLod) return null;
+    e.upgrading ||= (async () => {
+      const token = this.fleetToken;
+      const gl = await this.gltf.loadAsync(e.model.glb.src);
+      if (token !== this.fleetToken || !e.meshLod) { disposeTree(gl.scene); return; }
+      const old = e.rig, rig = rigShip(gl, { realLights: false, length: e.model.length });
+      e.holder.remove(old.root);
+      e.rig = rig; e.meshLod = false;
+      this.indexLods(e, gl);
+      this.placeEntry(e);
+      old.dispose();
+      e.upgrading = null;
+      this.redraw();
+    })();
+    return e.upgrading;
+  }
+
   /** Make `ship` the focused hull: load it (first), fly the camera to its bay, then stream in the rest. */
   async focus(ship, progress, instant) {
     const e = this.fleet?.get(ship.id);
@@ -799,6 +832,8 @@ export class Viewer {
     this.ship = e;
     if (!e.outdoor && e.bay.plinth_radius) this.aimShadow({ x: e.base.x, z: e.base.z, top: e.base.y, r: Math.max(e.bay.plinth_radius, e.bay.spin_radius || 0) });
     if (e.state !== 'ready') await this.loadEntry(e, progress);
+    if (this.ship !== e) return;
+    if (e.meshLod) await this.upgradeMesh(e);
     if (this.ship !== e) return;
     // the focused hull never shows its 1024 px base: 2048 is in place before it is revealed, full res follows
     await this.setLod(e, 2048);
@@ -890,7 +925,7 @@ export class Viewer {
     const fr = this._lfr ||= new THREE.Frustum(), m = this._lfm ||= new THREE.Matrix4();
     fr.setFromProjectionMatrix(m.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
     for (const e of this.fleet.values()) {
-      if (e.state !== 'ready' || !e.lodSlots?.length) continue;
+      if (e.state !== 'ready' || (!e.lodSlots?.length && !e.meshLod)) continue;
       let want = 1024;
       if (e === this.ship || this.lodAll) want = 'full';
       else if (e.holder.visible) {
@@ -898,6 +933,7 @@ export class Viewer {
         if (fr.intersectsSphere(sph)) {
           const px = (sph.radius / Math.max(1, sph.center.distanceTo(this.camera.position))) * k * H;   // on-screen diameter
           want = px > 1800 ? 'full' : px > 900 ? 2048 : 1024;   // thresholds checked: SSIM >= 0.999 vs all-full renders
+          if (e.meshLod && px > GIANT_LOD_PX) { this.upgradeMesh(e); continue; }
         }
       }
       // up at once; down only after a few seconds of not needing it (no thrash while orbiting)

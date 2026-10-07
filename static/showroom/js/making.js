@@ -1,5 +1,5 @@
 // "How it was made" — editorial page: art direction, Earth plate, RCS physics, spin audit, bake pipeline.
-import { h, reveal, FLEET_THEME, pad2 } from './util.js?v=43c75d9741074c83';
+import { h, reveal, FLEET_THEME, pad2 } from './util.js?v=55cda4b6c9a221bb';
 
 const A = 'assets/making/';
 const fig = (name, w, hgt, alt, caption, cls = '') =>

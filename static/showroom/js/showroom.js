@@ -6,7 +6,7 @@
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
 import { Ambience } from './ambience.js?v=aeff18b0c5f81fe5';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=43c75d9741074c83';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=55cda4b6c9a221bb';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -469,7 +469,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=46eabe1156f6531a');
+        const { Viewer } = await import('./viewer.js?v=01a0c9a41af48f05');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),

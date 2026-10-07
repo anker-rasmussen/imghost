@@ -2936,7 +2936,8 @@ export default {
        "2048": "assets/tex/SuperLightweight/11_hull_color@full.webp?v=d842a43090c2c794"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/SuperLightweight.webp?v=9c06d05b5b071df5",
@@ -3032,7 +3033,8 @@ export default {
        "2048": "assets/tex/Lightweight/11_hull_color@full.webp?v=80c7a427e2a04eb5"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Lightweight.webp?v=47c847f75a9d39d2",
@@ -3173,7 +3175,8 @@ export default {
        "full": "assets/tex/Heavyweight/11_hull_color@full.webp?v=5a71caaed2520f74"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Heavyweight.webp?v=781a55af537c87b6",
@@ -3290,6 +3293,13 @@ export default {
        "full": "assets/tex/SuperHeavyweight/08_hull_color@full.webp?v=d1f3fb66fd0bed67"
       }
      }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/SuperHeavyweight_LOD2.glb?v=7db2537713803c44",
+      "tris": 112134,
+      "bytes": 3041448
+     }
     ]
    },
    "thumb": {
@@ -3358,7 +3368,8 @@ export default {
        "2048": "assets/tex/Corona/10_hull_color@full.webp?v=7ecb3ce9cadc9c63"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Corona.webp?v=aaf85092fcb10ca8",
@@ -3458,7 +3469,8 @@ export default {
        "2048": "assets/tex/Zenith/07_hull_color@full.webp?v=7f340175ae6e6875"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Zenith.webp?v=2b1d15d225cca826",
@@ -3569,6 +3581,13 @@ export default {
        "2048": "assets/tex/Solstice/08_hull_color@2048.webp?v=d4c12d8ced4e3204",
        "full": "assets/tex/Solstice/08_hull_color@full.webp?v=c31d52b65e83ddd7"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Solstice_LOD2.glb?v=7a437a2dc9bbde2d",
+      "tris": 18957,
+      "bytes": 981992
      }
     ]
    },
@@ -3699,7 +3718,8 @@ export default {
        "full": "assets/tex/Mule/10_hull_color@full.webp?v=1a7a3d2903be3bec"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Mule.webp?v=31a945b12188fdce",
@@ -3803,7 +3823,8 @@ export default {
        "full": "assets/tex/Ox/07_hull_color@full.webp?v=48d7ada8ab467427"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Ox.webp?v=02348e293685e034",
@@ -3908,6 +3929,13 @@ export default {
        "full": "assets/tex/Titan/07_hull_color@full.webp?v=7ec6abee11619973"
       }
      }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Titan_LOD2.glb?v=c91956202884ce1d",
+      "tris": 60144,
+      "bytes": 1734220
+     }
     ]
    },
    "thumb": {
@@ -4010,6 +4038,13 @@ export default {
        "2048": "assets/tex/Minotaur/07_hull_color@2048.webp?v=4a7b2bd5c7d35ea6",
        "full": "assets/tex/Minotaur/07_hull_color@full.webp?v=990c7b75e345dc3e"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Minotaur_LOD2.glb?v=da8bf0f190043b7f",
+      "tris": 59681,
+      "bytes": 2116852
      }
     ]
    },
@@ -4146,7 +4181,8 @@ export default {
        "full": "assets/tex/Talon/11_hull_color@full.webp?v=765e995d374aa0c8"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Talon.webp?v=815667371c87e9ec",
@@ -4281,7 +4317,8 @@ export default {
        "full": "assets/tex/Halberd/11_hull_color@full.webp?v=9549e0e06a72309e"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Halberd.webp?v=20787f6c93d93393",
@@ -4391,7 +4428,8 @@ export default {
        "full": "assets/tex/Sabre/08_hull_color@full.webp?v=a5d9d61f67b29c14"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Sabre.webp?v=0aef5efb1f750cb7",
@@ -4501,7 +4539,8 @@ export default {
        "full": "assets/tex/Gladius/08_hull_color@full.webp?v=58e3b60f8c939a0c"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Gladius.webp?v=c65969a2185de99f",
@@ -4610,6 +4649,13 @@ export default {
        "2048": "assets/tex/Ares/08_hull_color@2048.webp?v=845d4bb30342d793",
        "full": "assets/tex/Ares/08_hull_color@full.webp?v=730abc010265e3f0"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Ares_LOD2.glb?v=94082495c9bd8d88",
+      "tris": 57656,
+      "bytes": 1947804
      }
     ]
    },
@@ -4722,6 +4768,13 @@ export default {
        "full": "assets/tex/Olympus/08_hull_color@full.webp?v=b7b576e1755c0c05"
       }
      }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Olympus_LOD2.glb?v=1f0efeca2348729d",
+      "tris": 57669,
+      "bytes": 1786272
+     }
     ]
    },
    "thumb": {
@@ -4829,6 +4882,13 @@ export default {
       "files": {
        "2048": "assets/tex/Valles/08_hull_color@full.webp?v=fab44384e494f941"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Valles_LOD2.glb?v=03f64fe2e5edca58",
+      "tris": 117087,
+      "bytes": 756692
      }
     ]
    },
@@ -4944,6 +5004,13 @@ export default {
       "files": {
        "2048": "assets/tex/Tharsis/08_hull_color@full.webp?v=49e6c2599c11d2bd"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Tharsis_LOD2.glb?v=36c450cdac41a741",
+      "tris": 122869,
+      "bytes": 2960016
      }
     ]
    },
@@ -5089,7 +5156,8 @@ export default {
        "full": "assets/tex/Sprite/12_hull_color@full.webp?v=ab061b2ac6c8647e"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Sprite.webp?v=54b6658d00439b0b",
@@ -5224,7 +5292,8 @@ export default {
        "full": "assets/tex/Ascot/11_hull_color@full.webp?v=b39c50c008888e55"
       }
      }
-    ]
+    ],
+    "mesh_lods": []
    },
    "thumb": {
     "src": "assets/thumbs/Ascot.webp?v=3ebb25505b395230",
@@ -5331,6 +5400,13 @@ export default {
       "files": {
        "2048": "assets/tex/Sovereign/08_hull_color@full.webp?v=96f9d7f6c32faad3"
       }
+     }
+    ],
+    "mesh_lods": [
+     {
+      "src": "assets/ships/Sovereign_LOD2.glb?v=a95fc8a263f197cd",
+      "tris": 142921,
+      "bytes": 2547160
      }
     ]
    },
