@@ -15,13 +15,15 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=0ec40c3e2f1c1502';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
-import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=705926d5be7c4fd7';
+import { buildPlanet } from './planets.js?v=c09d0b0665d09327';
+import data from './data.js?v=f0bf902cca452cd9';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
 function mkRay(...a) { const r = new THREE.Raycaster(...a); r.layers.enableAll(); return r; }
 const IDLE_MS = 45000;                                 // loop sleeps after this long without input (wakes on any)
+const PLANET_SRC = new URLSearchParams(location.search).get('planets');   // ?planets=procedural : A/B only
+const REFL_SCALE = +new URLSearchParams(location.search).get('reflres') || 0.5;   // ?reflres= : A/B tests only
 const CAM_MARGIN = 0.35;                                  // camera keeps this far from any hull box, wall or pillar
 const _v = new THREE.Vector3();
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -430,7 +432,7 @@ export class Viewer {
     // the baked bg.hdr is a view from the probe (dock walls and all); from the glass it reads as grey haze, so
     // exterior mode swaps it for black sky, stars and the maker's planet (caves keep their lit rock)
     if (on && x.kind && !x.planet) {
-      x.planet = buildPlanet(x.kind, 2600, { earthUrl: data.backdrops?.earth });
+      x.planet = buildPlanet(x.kind, 2600, { earthUrl: data.backdrops?.earth, baked: PLANET_SRC === 'procedural' ? null : data.planets?.[x.kind] });
       x.planet.group.position.set(3200, -2300, -9000);
       x.group.add(x.planet.group);
     }
@@ -506,8 +508,9 @@ export class Viewer {
   /** planar reflection under the additive floor, blurred (polished concrete / marble is not a mirror) */
   addFloorReflection(group, info, w, d, z, y) {
     const k = info.floor_reflect ?? 0.16;
+    const RS = REFL_SCALE;                                // reflection buffer scale (CSS px); blur radii follow it
     const refl = new Reflector(new THREE.PlaneGeometry(w, d), {
-      textureWidth: Math.round(innerWidth * 0.5), textureHeight: Math.round(innerHeight * 0.5),
+      textureWidth: Math.round(innerWidth * RS), textureHeight: Math.round(innerHeight * RS),
       color: new THREE.Color(k, k, k), clipBias: 0.003,
     });
     refl.rotation.x = -Math.PI / 2; refl.position.set(0, y, z);
@@ -531,7 +534,7 @@ export class Viewer {
       depthTest: false, depthWrite: false,
     });
     const quad = new FullScreenQuad(mat);
-    const radii = info.floor_blur ?? [3, 1.5];
+    const radii = (info.floor_blur ?? [3, 1.5]).map((r) => r * RS / 0.5);
     const render = refl.onBeforeRender;
     refl.onBeforeRender = function (r, s, cam, ...rest) {
       render.call(this, r, s, cam, ...rest);
@@ -1178,6 +1181,31 @@ export class Viewer {
         hit = ray.intersectObjects(e.meshes, false).find((h) => h.point.distanceTo(pw) < near) || null;
         if (hit) break;
       }
+      if (!hit) {
+        // thin or translucent parts (solar sails, canopies) are not in the solid set: try every visible surface
+        e.allMeshes ||= (() => { const l = []; root.traverse((o) => { if (o.isMesh && !/plume|rcs_glow|glare/.test(o.material.name || '')) l.push(o); }); return l; })();
+        for (const pr of [p.dir.toArray(), ...(PROBES[p.key] || [])]) {
+          dw = new THREE.Vector3(...pr).normalize().applyQuaternion(q);
+          ray.set(pw.clone().addScaledVector(dw, reach), dw.clone().negate());
+          hit = ray.intersectObjects(e.allMeshes, false).find((h) => h.point.distanceTo(pw) < near * 1.5) || null;
+          if (hit) break;
+        }
+      }
+      if (!hit) {
+        // last resort: the hull vertex nearest the authored spot (on the surface by definition); the dot sits a
+        // touch off it, along the authored view direction
+        let best = null, bd = Infinity;
+        const v = new THREE.Vector3();
+        for (const m of e.allMeshes) {
+          const pa = m.geometry?.attributes.position; if (!pa) continue;
+          const step = Math.max(1, Math.floor(pa.count / 4000));
+          for (let i = 0; i < pa.count; i += step) {
+            v.fromBufferAttribute(pa, i).applyMatrix4(m.matrixWorld);
+            const dd = v.distanceToSquared(pw); if (dd < bd) { bd = dd; best = v.clone(); }
+          }
+        }
+        if (best && Math.sqrt(bd) < near * 2) hit = { point: best, face: null };
+      }
       if (!hit) { p.nodot = true; continue; }
       const n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : dw.clone();
       if (n.dot(dw) < 0) n.negate();
@@ -1377,6 +1405,7 @@ export class Viewer {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
     const tick0 = this.perf ? performance.now() : 0;
     if (this.roomFade) this.stepFade(performance.now());
+    if (this.outside) this.exterior?.planet?.update?.(dt);
     this.updateLods(performance.now());
     this.updateGiantVisibility(performance.now());
     if (this.fleet && !this.streaming && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
@@ -1387,6 +1416,7 @@ export class Viewer {
     // otherwise the camera orbits the hull at the same rate (same effect, nothing ever passes through anything)
     const turn = !!(f?.rig && this.spin && !f.outdoor && !this.walk);
     const shipTurns = turn && f.bay.turntable && this.spinClear(f);
+    this.turning = shipTurns;
     if (shipTurns) { f.spinYaw += dt * 0.1; f.holder.rotation.y = f.yaw + f.spinYaw; this.shadowDirty = 1; }
     this.controls.autoRotate = turn && !shipTurns && !this.tween;
     this.controls.autoRotateSpeed = 60 * 0.1 / (2 * Math.PI);   // 0.1 rad/s, the turntable's rate

@@ -2,7 +2,7 @@
 import {
   h, fleet, makers, ships, shipsOf, maker, logo, picture, themeVars, fmtLen, pad2, cssUrl, reveal, reduceMotion,
   showroomShip, FLEET_THEME, fitText,
-} from './util.js?v=2731cfa6e957e7ce';
+} from './util.js?v=43c75d9741074c83';
 
 const range = (list) => `${fmtLen(list[0].length)} – ${fmtLen(list[list.length - 1].length)}`;
 const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
@@ -72,7 +72,7 @@ export function landing() {
     h('div.wrap.colophon.reveal',
       h('div', h('p.micro.eyebrow', 'Colophon'), h('h2.display#how-h', { style: { 'font-size': 'var(--fs-h2)' } }, 'Generated, baked, lit in real time')),
       h('div', { style: { display: 'grid', gap: '22px', 'align-content': 'end' } },
-        h('p', fleet.colophon), h('p.micro', fleet.registry))));
+        h('p', fleet.colophon), h('p', h('a.textlink', { href: '#/making-of' }, 'How it was made →')), h('p.micro', fleet.registry))));
 
   const foot = h('footer.foot', h('div.wrap',
     h('span.micro', 'The Aurelia Fleet · a real-time portfolio piece'),

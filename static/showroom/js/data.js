@@ -110,22 +110,22 @@ export default {
    "logo": "assets/brands/atlantia/logo.webp?v=6fee9db874e6c161",
    "mark": "assets/brands/atlantia/mark.webp?v=eb9712bce8f68ba8",
    "hero": {
-    "src": "assets/makers/atlantia-hero.webp?v=fa623dab81716d0e",
-    "small": "assets/makers/atlantia-hero-640.webp?v=53a0b5c38de466fc",
+    "src": "assets/makers/atlantia-hero.webp?v=2f79cacc7d4b5e73",
+    "small": "assets/makers/atlantia-hero-640.webp?v=696baeaf5effccc1",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/atlantia-wide.webp?v=b1169f899467f2a5",
-    "small": "assets/makers/atlantia-wide-640.webp?v=bbfda885ab679dde",
+    "src": "assets/makers/atlantia-wide.webp?v=484cc0dccacd531b",
+    "small": "assets/makers/atlantia-wide-640.webp?v=a926083510638cb5",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/atlantia/room.glb?v=0af14302fa116e59",
-    "env": "assets/rooms/atlantia/env.hdr?v=89dc6a7f1fbfaec2",
-    "bg": "assets/rooms/atlantia/bg.hdr?v=97cce1a82447efb8",
-    "bytes": 5315586,
+    "glb": "assets/rooms/atlantia/room.glb?v=04e7810c648c6e92",
+    "env": "assets/rooms/atlantia/env.hdr?v=9482b66ce0b4d98a",
+    "bg": "assets/rooms/atlantia/bg.hdr?v=2b519896cefd82fe",
+    "bytes": 5512939,
     "info": {
      "brand": "Atlantia",
      "turntable": {
@@ -360,8 +360,8 @@ export default {
       }
      ],
      "room": {
-      "triangles": 30506,
-      "glb_bytes": 648488,
+      "triangles": 30714,
+      "glb_bytes": 838816,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -371,10 +371,10 @@ export default {
         ]
        },
        "shell": {
-        "k": 2.6458,
+        "k": 2.0676,
         "size": [
-         2048,
-         2048
+         4096,
+         4096
         ]
        },
        "sign": {
@@ -405,9 +405,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 648488,
-      "env.hdr": 4135706,
-      "bg.hdr": 531392
+      "room.glb": 838816,
+      "env.hdr": 4142736,
+      "bg.hdr": 531387
      },
      "env": {
       "file": "env.hdr",
@@ -1181,22 +1181,22 @@ export default {
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
    "hero": {
-    "src": "assets/makers/daedalus-hero.webp?v=2b1265abfa27bf3b",
-    "small": "assets/makers/daedalus-hero-640.webp?v=2aacbcb1deb326f2",
+    "src": "assets/makers/daedalus-hero.webp?v=cde8e54bf051f10c",
+    "small": "assets/makers/daedalus-hero-640.webp?v=01a8562397dec5df",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/daedalus-wide.webp?v=d860c92cc16ac130",
-    "small": "assets/makers/daedalus-wide-640.webp?v=5d760a0833067f2f",
+    "src": "assets/makers/daedalus-wide.webp?v=7d6a15f701ce0801",
+    "small": "assets/makers/daedalus-wide-640.webp?v=dea62576e5c6cdfa",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/daedalus/room.glb?v=31873c176cb83df6",
-    "env": "assets/rooms/daedalus/env.hdr?v=5eeaa7b89bcf5122",
+    "glb": "assets/rooms/daedalus/room.glb?v=50670c924ee464b5",
+    "env": "assets/rooms/daedalus/env.hdr?v=6f404dace9d8250c",
     "bg": "assets/rooms/daedalus/bg.hdr?v=e24509615840770b",
-    "bytes": 11378059,
+    "bytes": 11519554,
     "info": {
      "brand": "Daedalus",
      "turntable": {
@@ -1406,8 +1406,8 @@ export default {
       }
      ],
      "room": {
-      "triangles": 40672,
-      "glb_bytes": 717280,
+      "triangles": 40776,
+      "glb_bytes": 686680,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1417,7 +1417,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 4.1055,
+        "k": 3.8478,
         "size": [
          2048,
          2048
@@ -1451,8 +1451,8 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 717280,
-      "env.hdr": 5085951,
+      "room.glb": 686680,
+      "env.hdr": 5258046,
       "bg.hdr": 5574828
      },
      "env": {
@@ -1715,7 +1715,8 @@ export default {
     "drives": "Drives recessed inside armoured skirts, so the hottest thing on the ship is the hardest to see.",
     "docking": "An armoured docking collar that opens for Commonwealth codes and nothing else.",
     "profile": "Arrowhead and wedge. No curves anywhere, except the gun barrels.",
-    "top": "The spear: thrust axis, spinal weapon and armour all on one line."
+    "top": "The spear: thrust axis, spinal weapon and armour all on one line.",
+    "weapons": "Turret barbettes sunk into the armour belts: point defence on every face, and no curves anywhere except the gun barrels."
    },
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
@@ -5343,5 +5344,65 @@ export default {
  ],
  "backdrops": {
   "earth": "assets/backdrops/earth.webp?v=3caf9ce1a0aac256"
+ },
+ "planets": {
+  "earth": {
+   "files": {
+    "albedo": "assets/planets/earth/albedo.webp?v=8860c4bb6674c295",
+    "night": "assets/planets/earth/night.webp?v=0f37d66daecb549d",
+    "normal": "assets/planets/earth/normal.webp?v=a3b0ec2b81c83d71",
+    "clouds": "assets/planets/earth/clouds.webp?v=91047df6b19d245c"
+   },
+   "radius_km": 6371.0,
+   "tilt_deg": 23.44,
+   "atmosphere": {
+    "color": [
+     0.35,
+     0.58,
+     1.0
+    ],
+    "thickness_km": 60.0,
+    "density": 1.0
+   },
+   "cloud_height_km": 8.0
+  },
+  "mars": {
+   "files": {
+    "albedo": "assets/planets/mars/albedo.webp?v=e0980e824814f31f",
+    "normal": "assets/planets/mars/normal.webp?v=238969b0100832fd"
+   },
+   "radius_km": 3389.5,
+   "tilt_deg": 25.2,
+   "atmosphere": {
+    "color": [
+     0.85,
+     0.62,
+     0.45
+    ],
+    "thickness_km": 11.0,
+    "density": 0.15
+   },
+   "cloud_height_km": null
+  },
+  "mercury": {
+   "files": {
+    "albedo": "assets/planets/mercury/albedo.webp?v=025a2dd90347489a",
+    "normal": "assets/planets/mercury/normal.webp?v=ac139edfdc80d095"
+   },
+   "radius_km": 2439.7,
+   "tilt_deg": 0.03,
+   "atmosphere": null,
+   "cloud_height_km": null
+  },
+  "moon": {
+   "files": {
+    "albedo": "assets/planets/moon/albedo.webp?v=c6dcb9bfe2f986f6",
+    "normal": "assets/planets/moon/normal.webp?v=95aba3c2d31de3ed"
+   },
+   "radius_km": 1737.4,
+   "tilt_deg": 1.5,
+   "atmosphere": null,
+   "cloud_height_km": null
+  }
  }
 };

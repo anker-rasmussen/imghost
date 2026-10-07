@@ -5,12 +5,13 @@
 // Same layout and icons for every maker; brands theme colour and type only. First visit gets three coach marks.
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=2731cfa6e957e7ce';
+import { Ambience } from './ambience.js?v=aeff18b0c5f81fe5';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=43c75d9741074c83';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
 })();
-const touch = () => matchMedia('(pointer: coarse)').matches;
+const touch = () => !!window.__forceTouch || matchMedia('(pointer: coarse)').matches;   // __forceTouch: layout tests
 const ls = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
@@ -175,6 +176,8 @@ export class Showroom {
       onLine: (who, text) => { this.caption.replaceChildren(h('span.who', h('span', { 'aria-hidden': 'true' }, '📻 '), who), h('span', text)); this.caption.classList.add('on'); this.S().rcs = 1; },
       onEnd: () => { this.caption.classList.remove('on'); },
     });
+    this.amb = new Ambience();                          // procedural hall sound (WebAudio), silent until the first gesture
+    this.amb.setMuted(this.voice.muted);
     this.press(this.b.sound, !this.voice.muted);
     this.setSoundIcon();
     this.wire();
@@ -223,7 +226,7 @@ export class Showroom {
     this.voice.ack();
   }
   retro(on) { this.S().retroTarget = on ? 1 : 0; this.press(this.b.retro, on); }
-  mute(m) { this.voice.setMuted(m); this.press(this.b.sound, !m); this.setSoundIcon(); }
+  mute(m) { this.voice.setMuted(m); this.amb.setMuted(m); this.press(this.b.sound, !m); this.setSoundIcon(); }
   setSoundIcon() {
     this.b.sound.querySelector('.ic').replaceWith(icon(this.voice.muted ? 'mute' : 'sound'));
     this.b.sound.querySelector('.lbl').textContent = this.voice.muted ? 'Sound off' : 'Sound';
@@ -379,6 +382,7 @@ export class Showroom {
 
   /** browsers only allow audio after a gesture: on the first one, say whether sound is on */
   soundPrompt() {
+    this.amb.unlock();                                  // hall ambience may only start inside a gesture
     removeEventListener('pointerdown', this.firstGesture, true);
     removeEventListener('keydown', this.firstGesture, true);
     if (ss.get('aurelia.soundprompt')) return;
@@ -465,7 +469,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=75d6b06abe8fd231');
+        const { Viewer } = await import('./viewer.js?v=46eabe1156f6531a');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),
@@ -551,6 +555,12 @@ export class Showroom {
       if (this.sGear.textContent !== g) this.sGear.textContent = g;
       const r = S.retro > 0.05 ? 'BURNING' : 'SAFE';
       if (this.sRetro.textContent !== r) this.sRetro.textContent = r;
+      // hall sound follows what the visitor sees: room tone, the turntable motor while the hull turns, engine idle by Thrust
+      const v = this.viewer, a = `${this.maker.id}|${!!v.turning}|${(S.thrust || 0).toFixed(2)}|${!!v.outside}`;
+      if (a !== this.ambState) {
+        this.ambState = a;
+        this.amb.setHall(this.maker.id); this.amb.setSpin(!!v.turning); this.amb.setThrust(S.thrust || 0); this.amb.setOutside(!!v.outside);
+      }
       const h0 = performance.now();
       this.drawDots();
       if (window.__hudMs) { window.__hudMs.push(performance.now() - h0); if (window.__hudMs.length > 300) window.__hudMs.shift(); }
@@ -578,6 +588,7 @@ export class Showroom {
     this.endTour(false);
     if (this.viewer?.walk) this.walkMode(false);
     this.voice.stop();
+    this.amb.setHall(null); this.ambState = null;
     this.specs(false); this.showHelp(false);
     this.coach.hidden = true; this.coachStep = null;
     this.root.hidden = true;
