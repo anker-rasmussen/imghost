@@ -5,7 +5,7 @@
 // Same layout and icons for every maker; brands theme colour and type only. First visit gets three coach marks.
 // three.js is imported on demand the first time a real-time model is opened.
 import { Voice } from './voice.js?v=cb60e8a719275616';
-import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=7ed997b35f5bd852';
+import { h, shipsOf, logo, cssUrl, fmtLen, fmtMB, fmtK, reduceMotion, fitText } from './util.js?v=b61caa13734a94e3';
 
 const webgl2 = (() => {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
@@ -418,7 +418,7 @@ export class Showroom {
     this.backBtn.href = `#/${m.id}`;
     this.backBtn.setAttribute('aria-label', `Back to ${m.full}`);
     this.title.textContent = s.name;
-    if (!this.title.__fit) fitText(this.title, 18); else this.title.__fit();
+    if (!this.title.__fit) fitText(this.title); else this.title.__fit();
     this.sub.replaceChildren(h('b', s.role), ` · ${s.class} · ${fmtLen(s.length)}`);
     this.specHead.textContent = `${m.name} ${s.name}`;
     const rows = [['Maker', m.full], ['Length', fmtLen(s.length)], ['Class', s.class], ['Crew', s.crew], ['Role', s.role]];

@@ -127,23 +127,27 @@ export function showroomShip(makerId) {
     list.find((s) => s.glb) || list[0];
 }
 
-/** Shrink a one-line heading's font until it fits its box (long names like SUPERHEAVYWEIGHT scale down instead of
- *  breaking or overflowing). Re-fits on resize and once webfonts are ready. */
-let fitRO = null;
-export function fitText(el, min = 12) {
-  const fit = () => {
-    if (!el.isConnected || !el.clientWidth) return;
-    el.style.fontSize = '';
-    let size = parseFloat(getComputedStyle(el).fontSize);
-    for (let i = 0; i < 8 && el.scrollWidth > el.clientWidth + 1 && size > min; i++) {
-      size = Math.max(min, Math.floor(size * (el.clientWidth / el.scrollWidth) * 0.98 * 10) / 10);
-      el.style.fontSize = `${size}px`;
-    }
+/** One-line headings that must fit their box (long names like SUPERHEAVYWEIGHT): measure the text's width in ems
+ *  once (scale-invariant) and hand it to CSS as --fit-em; the stylesheet caps the size at 100cqi / --fit-em, so the
+ *  name scales with its container on every resize with no script and no feedback loop. Re-measured when a webfont
+ *  arrives (it changes the em width). */
+const fitAll = new Set();
+let fitHooked = false;
+export function fitText(el) {
+  const measure = () => {
+    if (!el.isConnected) { fitAll.delete(el); return; }
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    if (!fs || !el.scrollWidth) return;
+    el.style.setProperty('--fit-em', (el.scrollWidth / fs + 0.15).toFixed(3));
   };
-  el.__fit = fit;
-  fitRO ||= new ResizeObserver((entries) => { for (const e of entries) e.target.__fit?.(); });
-  fitRO.observe(el);
-  requestAnimationFrame(fit);
-  document.fonts?.ready.then(fit);
+  el.__fit = measure;
+  el.classList.add('fit');
+  fitAll.add(el);
+  if (!fitHooked) {
+    fitHooked = true;
+    document.fonts?.addEventListener('loadingdone', () => { for (const x of fitAll) x.__fit(); });
+  }
+  requestAnimationFrame(measure);
+  document.fonts?.ready.then(measure);
   return el;
 }

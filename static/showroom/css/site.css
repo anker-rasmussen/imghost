@@ -347,7 +347,7 @@ a:hover > .link-arrow::after, .link-arrow:hover::after { transform: translateX(5
 
 /* top */
 .v-top { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: 12px; }
-.v-title { display: grid; gap: 6px; min-width: 0; text-shadow: 0 1px 18px rgba(0,0,0,.35); }
+.v-title { container-type: inline-size; display: grid; gap: 6px; min-width: 0; text-shadow: 0 1px 18px rgba(0,0,0,.35); }
 .v-nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .v-crumbs { display: flex; gap: 8px; align-items: center; font: 400 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--v-dim); }
 .v-crumbs a { color: var(--v-dim); padding: 6px 0; text-decoration: none; transition: color .2s; }
@@ -544,3 +544,11 @@ body.in-viewer #main { visibility: hidden; }
   .reveal { opacity: 1; transform: none; }
 }
 
+
+/* one-line names that always fit (see fitText): the authored size, capped so the measured text spans at most the
+   container (cqi). The containers below opt in. */
+.rung-name, .card-body > div, .v-title { container-type: inline-size; }
+.fit { font-size: min(var(--fit-size), calc(100cqi / var(--fit-em, 1))) !important; max-width: 100%; overflow: hidden; white-space: nowrap; }
+.rung-name b { --fit-size: clamp(15px, 1.35vw, 20px); }
+.card-body h3 { --fit-size: clamp(22px, 2vw, 30px); }
+.v-title h1 { --fit-size: clamp(26px, 3.4vw, 54px); }
