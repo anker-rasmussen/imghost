@@ -241,8 +241,10 @@ export function rigShip(gltf, { realLights = true, length = 40 } = {}) {
     const box = new THREE.Box3(), b = new THREE.Box3();
     root.traverse((o) => {
       if (!o.isMesh || isFx(o.material)) return;
-      if (o.isSkinnedMesh) { o.computeBoundingBox(); b.copy(o.boundingBox); }
-      else { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox); }
+      // skinned parts (gear) use their rest-pose geometry box: SkinnedMesh.computeBoundingBox() goes through the bones'
+      // world matrices, so once the hull sits in its bay that box already carries the bay offset (counted twice below)
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      b.copy(o.geometry.boundingBox);
       box.union(b.applyMatrix4(o.matrixWorld));
     });
     return box;

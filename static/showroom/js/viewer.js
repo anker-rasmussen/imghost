@@ -13,7 +13,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { rigShip } from './rig.js?v=886d45a05c4f8e20';
+import { rigShip } from './rig.js?v=0ec40c3e2f1c1502';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
 import data from './data.js?v=705926d5be7c4fd7';
@@ -706,6 +706,9 @@ export class Viewer {
     // bounds in the hull's own frame (holder is rotated; measure with the root detached from it)
     e.holder.remove(root); root.updateMatrixWorld(true);
     const box = e.rig.bounds();
+    // plan footprint measured in the same detached frame (attached, a hull that streams in after the hall has
+    // rendered would carry its bay transform into the measurement and be offset by it)
+    const plan = this.planOf(root);
     e.holder.add(root);
     const size = box.getSize(new THREE.Vector3());
     e.localBox = box.clone();
@@ -713,7 +716,6 @@ export class Viewer {
     e.fits = true; e.N = 1; e.plinthR = 0;
     // spin axis: the centre of the hull's smallest plan-view enclosing circle sits on the bay centre, so a turn
     // about the bay sweeps exactly that circle (an AABB centre would swing the long end out further)
-    const plan = this.planOf(root);
     const cx = plan.c.x, cz = plan.c.z, cy = (box.min.y + box.max.y) / 2;
     // indoor: stand on the bay floor (hover a little if the hull has no gear); outdoor: bay position is the hull centre
     // real bays: position is the ground contact point (lowest point of the hull, gear down); legacy stub bays put
