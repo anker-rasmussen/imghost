@@ -16,7 +16,7 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=886d45a05c4f8e20';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=0a7bf4d71433660a';
+import data from './data.js?v=705926d5be7c4fd7';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */

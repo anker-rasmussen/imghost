@@ -3,9 +3,9 @@
 //   #/                 fleet landing
 //   #/<maker>          maker page            e.g. #/helios
 //   #/<maker>/<ship>   showroom viewer       e.g. #/helios/zenith
-import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=7364ee5047e7d938';
-import { landing, makerPage } from './pages.js?v=876a83b155b8f486';
-import { Showroom } from './showroom.js?v=4e1f4de2d2e7006d';
+import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=2731cfa6e957e7ce';
+import { landing, makerPage } from './pages.js?v=1d42fbfee685a7cc';
+import { Showroom } from './showroom.js?v=8c05771d59db90c6';
 
 const main = $('#main');
 const curtain = $('.curtain');

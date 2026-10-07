@@ -110,22 +110,22 @@ export default {
    "logo": "assets/brands/atlantia/logo.webp?v=6fee9db874e6c161",
    "mark": "assets/brands/atlantia/mark.webp?v=eb9712bce8f68ba8",
    "hero": {
-    "src": "assets/makers/atlantia-hero.webp?v=7c31d733f08fb5aa",
-    "small": "assets/makers/atlantia-hero-640.webp?v=e73a6bdbe91ea3e2",
+    "src": "assets/makers/atlantia-hero.webp?v=fa623dab81716d0e",
+    "small": "assets/makers/atlantia-hero-640.webp?v=53a0b5c38de466fc",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/atlantia-wide.webp?v=95eea6ed5b5d2112",
-    "small": "assets/makers/atlantia-wide-640.webp?v=d1ff4267c68be8f0",
+    "src": "assets/makers/atlantia-wide.webp?v=b1169f899467f2a5",
+    "small": "assets/makers/atlantia-wide-640.webp?v=bbfda885ab679dde",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/atlantia/room.glb?v=6421c3bbad21dd82",
-    "env": "assets/rooms/atlantia/env.hdr?v=6d747c701c76dfb6",
-    "bg": "assets/rooms/atlantia/bg.hdr?v=af6884ac12f59f8a",
-    "bytes": 5219828,
+    "glb": "assets/rooms/atlantia/room.glb?v=0af14302fa116e59",
+    "env": "assets/rooms/atlantia/env.hdr?v=89dc6a7f1fbfaec2",
+    "bg": "assets/rooms/atlantia/bg.hdr?v=97cce1a82447efb8",
+    "bytes": 5315586,
     "info": {
      "brand": "Atlantia",
      "turntable": {
@@ -360,8 +360,8 @@ export default {
       }
      ],
      "room": {
-      "triangles": 24668,
-      "glb_bytes": 541608,
+      "triangles": 30506,
+      "glb_bytes": 648488,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -371,7 +371,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 1.0279,
+        "k": 2.6458,
         "size": [
          2048,
          2048
@@ -405,9 +405,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 541608,
-      "env.hdr": 4146831,
-      "bg.hdr": 531389
+      "room.glb": 648488,
+      "env.hdr": 4135706,
+      "bg.hdr": 531392
      },
      "env": {
       "file": "env.hdr",
@@ -677,22 +677,22 @@ export default {
    "logo": "assets/brands/helios/logo.webp?v=4f09be2fc66dcb33",
    "mark": "assets/brands/helios/mark.webp?v=81c05910731f8a83",
    "hero": {
-    "src": "assets/makers/helios-hero.webp?v=c7d275e2ab88974f",
-    "small": "assets/makers/helios-hero-640.webp?v=92af0608c082c97b",
+    "src": "assets/makers/helios-hero.webp?v=d9ac0454d19de7dc",
+    "small": "assets/makers/helios-hero-640.webp?v=ddae4e44b0401f15",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/helios-wide.webp?v=9b79798a492fd309",
-    "small": "assets/makers/helios-wide-640.webp?v=c4de856241fd2962",
+    "src": "assets/makers/helios-wide.webp?v=e468c850ed3bb02b",
+    "small": "assets/makers/helios-wide-640.webp?v=188f1864b4a6c5b0",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/helios/room.glb?v=99427fd06ac78d94",
-    "env": "assets/rooms/helios/env.hdr?v=c215166ebe2e7fce",
-    "bg": "assets/rooms/helios/bg.hdr?v=5e738d2d4dd8cf4a",
-    "bytes": 9571189,
+    "glb": "assets/rooms/helios/room.glb?v=f61bdd695814497e",
+    "env": "assets/rooms/helios/env.hdr?v=3233ffd666cb27ce",
+    "bg": "assets/rooms/helios/bg.hdr?v=0bb176767836dd58",
+    "bytes": 9586104,
     "info": {
      "brand": "Helios",
      "turntable": {
@@ -884,24 +884,24 @@ export default {
      ],
      "room": {
       "triangles": 370968,
-      "glb_bytes": 3782724,
+      "glb_bytes": 3795168,
       "lightmaps": {
        "floor": {
-        "k": 1.8845,
+        "k": 2.7812,
         "size": [
          3072,
          2048
         ]
        },
        "shell": {
-        "k": 6.2556,
+        "k": 6.2417,
         "size": [
          2048,
          2048
         ]
        },
        "sign": {
-        "k": 1.0,
+        "k": 1.0848,
         "size": [
          2048,
          2048
@@ -928,9 +928,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 3782724,
-      "env.hdr": 3968866,
-      "bg.hdr": 1819599
+      "room.glb": 3795168,
+      "env.hdr": 3971404,
+      "bg.hdr": 1819532
      },
      "env": {
       "file": "env.hdr",
@@ -1181,22 +1181,22 @@ export default {
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
    "hero": {
-    "src": "assets/makers/daedalus-hero.webp?v=66820b266e3d91c4",
-    "small": "assets/makers/daedalus-hero-640.webp?v=9cf6022c6712e747",
+    "src": "assets/makers/daedalus-hero.webp?v=2b1265abfa27bf3b",
+    "small": "assets/makers/daedalus-hero-640.webp?v=2aacbcb1deb326f2",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/daedalus-wide.webp?v=545f63c4c6becfdb",
-    "small": "assets/makers/daedalus-wide-640.webp?v=aa1f6a050f009cfd",
+    "src": "assets/makers/daedalus-wide.webp?v=d860c92cc16ac130",
+    "small": "assets/makers/daedalus-wide-640.webp?v=5d760a0833067f2f",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/daedalus/room.glb?v=32e1db6aed24a2de",
-    "env": "assets/rooms/daedalus/env.hdr?v=42671cc09ebb3629",
+    "glb": "assets/rooms/daedalus/room.glb?v=31873c176cb83df6",
+    "env": "assets/rooms/daedalus/env.hdr?v=5eeaa7b89bcf5122",
     "bg": "assets/rooms/daedalus/bg.hdr?v=e24509615840770b",
-    "bytes": 11539166,
+    "bytes": 11378059,
     "info": {
      "brand": "Daedalus",
      "turntable": {
@@ -1407,7 +1407,7 @@ export default {
      ],
      "room": {
       "triangles": 40672,
-      "glb_bytes": 625112,
+      "glb_bytes": 717280,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1417,7 +1417,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 2.3197,
+        "k": 4.1055,
         "size": [
          2048,
          2048
@@ -1451,8 +1451,8 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 625112,
-      "env.hdr": 5339226,
+      "room.glb": 717280,
+      "env.hdr": 5085951,
       "bg.hdr": 5574828
      },
      "env": {
@@ -1468,7 +1468,7 @@ export default {
      "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
      "tone_mapping": {
       "three": "AgXToneMapping",
-      "exposure": 6.498
+      "exposure": 6.0629
      }
     }
    },
@@ -1720,22 +1720,22 @@ export default {
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
    "hero": {
-    "src": "assets/makers/cydonia-hero.webp?v=4928eeb8d687d938",
-    "small": "assets/makers/cydonia-hero-640.webp?v=708a901e287c849f",
+    "src": "assets/makers/cydonia-hero.webp?v=ed0ef2ce0f3ba843",
+    "small": "assets/makers/cydonia-hero-640.webp?v=7a3db6cf8e7d2384",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/cydonia-wide.webp?v=7dc850466047febf",
-    "small": "assets/makers/cydonia-wide-640.webp?v=3f9eb46699034be8",
+    "src": "assets/makers/cydonia-wide.webp?v=81c6f6146cf8f0c0",
+    "small": "assets/makers/cydonia-wide-640.webp?v=e09be9a14212f466",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/cydonia/room.glb?v=ceb56529316e8f1d",
-    "env": "assets/rooms/cydonia/env.hdr?v=8698164c1939ceb7",
-    "bg": "assets/rooms/cydonia/bg.hdr?v=f0a1c3e1c0182f20",
-    "bytes": 7566777,
+    "glb": "assets/rooms/cydonia/room.glb?v=37cc3a4f3390f005",
+    "env": "assets/rooms/cydonia/env.hdr?v=4c3fb4067eb89367",
+    "bg": "assets/rooms/cydonia/bg.hdr?v=04d26defd4998b29",
+    "bytes": 7663159,
     "info": {
      "brand": "Cydonia",
      "turntable": {
@@ -2091,7 +2091,7 @@ export default {
      ],
      "room": {
       "triangles": 43660,
-      "glb_bytes": 615068,
+      "glb_bytes": 725320,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -2135,9 +2135,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 615068,
-      "env.hdr": 6510505,
-      "bg.hdr": 441204
+      "room.glb": 725320,
+      "env.hdr": 6496578,
+      "bg.hdr": 441261
      },
      "env": {
       "file": "env.hdr",
@@ -2152,7 +2152,7 @@ export default {
      "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
      "tone_mapping": {
       "three": "AgXToneMapping",
-      "exposure": 6.498
+      "exposure": 11.3137
      }
     }
    },
@@ -2437,22 +2437,22 @@ export default {
    "logo": "assets/brands/kingsley/logo.webp?v=a49d124d82bd8399",
    "mark": "assets/brands/kingsley/mark.webp?v=4c2a3580cc3c268c",
    "hero": {
-    "src": "assets/makers/kingsley-hero.webp?v=bf03abab2294e3c1",
-    "small": "assets/makers/kingsley-hero-640.webp?v=98d2d1666ac3eecd",
+    "src": "assets/makers/kingsley-hero.webp?v=dbdb3f842e0e1fee",
+    "small": "assets/makers/kingsley-hero-640.webp?v=20e81cef4d151d97",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/kingsley-wide.webp?v=41813c467b83d3cb",
-    "small": "assets/makers/kingsley-wide-640.webp?v=d282ea5aece6b95c",
+    "src": "assets/makers/kingsley-wide.webp?v=9b6ceed50bf256c4",
+    "small": "assets/makers/kingsley-wide-640.webp?v=8ccfecf8572fcacd",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/kingsley/room.glb?v=9d130470cd757605",
-    "env": "assets/rooms/kingsley/env.hdr?v=36f5148a76ba2f82",
-    "bg": "assets/rooms/kingsley/bg.hdr?v=2ca045b9096febf7",
-    "bytes": 8889080,
+    "glb": "assets/rooms/kingsley/room.glb?v=2fd2dc95945ac365",
+    "env": "assets/rooms/kingsley/env.hdr?v=24993f1f70365955",
+    "bg": "assets/rooms/kingsley/bg.hdr?v=3a705d4643dfe834",
+    "bytes": 9166124,
     "info": {
      "brand": "Kingsley",
      "turntable": {
@@ -2643,7 +2643,7 @@ export default {
      ],
      "room": {
       "triangles": 82665,
-      "glb_bytes": 1896872,
+      "glb_bytes": 2024224,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -2653,7 +2653,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 1.0,
+        "k": 1.0757,
         "size": [
          2048,
          2048
@@ -2687,9 +2687,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 1896872,
-      "env.hdr": 4869741,
-      "bg.hdr": 2122467
+      "room.glb": 2024224,
+      "env.hdr": 5019430,
+      "bg.hdr": 2122470
      },
      "env": {
       "file": "env.hdr",
