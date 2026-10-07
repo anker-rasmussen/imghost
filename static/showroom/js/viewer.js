@@ -16,7 +16,7 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { rigShip } from './rig.js?v=886d45a05c4f8e20';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=880a9062e2d65f42';
-import data from './data.js?v=6eccc3943f11efc8';
+import data from './data.js?v=0a7bf4d71433660a';
 
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 /** raycaster that also sees layer 1 (the giants outside) */
@@ -553,13 +553,9 @@ export class Viewer {
     const key = new THREE.DirectionalLight(new THREE.Color(...info.key_light.color), info.key_light.intensity);
     const kd = v3(info.key_light.direction).normalize();
     // the shadow camera covers the whole hall floor: every indoor bay gets a real-time contact shadow
-    const cz = 0;
-    const R = tt.radius + 8;                            // the turntable hull is the only real-time shadow caster
-    key.position.copy(kd.clone().multiplyScalar(-(R * 3 + 40))).add(new THREE.Vector3(0, top, cz));
-    key.target.position.set(0, top, cz);
     key.castShadow = true;
+    this.keyLight = key; this.keyDir = kd;
     key.shadow.mapSize.setScalar(matchMedia('(max-width: 760px)').matches ? 2048 : 4096);
-    Object.assign(key.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 1, far: R * 6 + 80 });
     key.shadow.bias = -0.0005; key.shadow.normalBias = 0.05; key.shadow.radius = 5;
     group.add(key, key.target);
     if (info.fill_light) {
@@ -572,8 +568,26 @@ export class Viewer {
       const m = new THREE.Mesh(geo, new THREE.ShadowMaterial({ opacity: 0.5, depthWrite: false }));
       m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; m.renderOrder = 2; group.add(m); return m;
     };
-    mk(new THREE.CircleGeometry(tt.radius, 96), top + 0.012);
+    // one catcher disc (unit radius, scaled), moved onto the focused bay's plinth by aimShadow()
+    this.shadowCatcher = mk(new THREE.CircleGeometry(1, 96), top + 0.012);
+    this.aimShadow(tt.center ? { x: tt.center[0], z: tt.center[2], top, r: tt.radius } : { x: 0, z: 0, top, r: 15 });
     void hall;
+  }
+
+  /** The real-time shadow (map + catcher) covers the focused bay only: every indoor bay is its own turntable, so the
+   *  key light's shadow camera follows focus. {x, z, top, r}: plinth centre, plinth top height, plinth radius. */
+  aimShadow(b) {
+    const key = this.keyLight;
+    if (!key) return;
+    const R = b.r + 8;
+    key.target.position.set(b.x, b.top, b.z);
+    key.position.copy(this.keyDir).multiplyScalar(-(R * 3 + 40)).add(key.target.position);
+    Object.assign(key.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 1, far: R * 6 + 80 });
+    key.shadow.camera.updateProjectionMatrix();
+    key.target.updateMatrixWorld(); key.updateMatrixWorld();
+    const c = this.shadowCatcher;
+    if (c) { c.position.set(b.x, b.top + 0.012, b.z); c.scale.setScalar(b.r); }
+    this.shadowDirty = Math.max(this.shadowDirty || 0, 2);
   }
 
   /** floor height under (x, z): ray down onto the baked floor mesh (turntable top included) */
@@ -755,7 +769,10 @@ export class Viewer {
     const bayAt = (c) => [...this.fleet.values()].some((f) => Math.hypot(f.base.x - c[0], f.base.z - c[1]) < 1.5);
     if (!e.outdoor) for (const o of info.obstacles || []) if (o.type === 'circle' && !bayAt(o.center) && Math.hypot(o.center[0] - x, o.center[1] - z) < R + o.radius) ok = false;
     const tt = info.turntable;
-    if (tt && !e.outdoor && !e.bay.turntable && e.plan.y0 < tt.top + 0.05 && Math.hypot(tt.center[0] - x, tt.center[2] - z) < R + tt.radius) ok = false;
+    if (tt?.center && tt.radius && !e.outdoor && !e.bay.turntable && e.plan.y0 < tt.top + 0.05 && Math.hypot(tt.center[0] - x, tt.center[2] - z) < R + tt.radius) ok = false;
+    // every-bay-a-turntable rooms: a neighbour's plinth is an obstacle at the hull's lowest height
+    for (const f of this.fleet.values()) if (f !== e && !f.outdoor && f.bay.plinth_radius && e.plan.y0 < (f.bay.ground ?? 0) + 0.05 &&
+      Math.hypot(f.base.x - x, f.base.z - z) < R + f.bay.plinth_radius) ok = false;
     for (const f of this.fleet.values()) {
       if (f === e || f.outdoor !== e.outdoor) continue;
       if (!f.plan) { if (f.state !== 'ready') { this.spinCache.delete(e); return false; } continue; }   // decide once neighbours are in
@@ -775,6 +792,7 @@ export class Viewer {
     const prev = this.ship;
     if (prev && prev !== e) { prev.holder.rotation.y = prev.yaw; prev.spinYaw = 0; prev.rig?.setHighlight(0); }
     this.ship = e;
+    if (!e.outdoor && e.bay.plinth_radius) this.aimShadow({ x: e.base.x, z: e.base.z, top: e.base.y, r: Math.max(e.bay.plinth_radius, e.bay.spin_radius || 0) });
     if (e.state !== 'ready') await this.loadEntry(e, progress);
     if (this.ship !== e) return;
     // the focused hull never shows its 1024 px base: 2048 is in place before it is revealed, full res follows
@@ -1320,7 +1338,13 @@ export class Viewer {
     const r = (k.has('r') ? 1 : 0) - (k.has('l') ? 1 : 0) + w.stick.x;
     if (k.has('tl')) w.yaw += dt * 1.6;
     if (k.has('tr')) w.yaw -= dt * 1.6;
-    const speed = k.has('run') ? 7 : 3.2;
+    // a person's pace for short moves; holding a direction glides up to the hall's scale (a 270 m hall is not
+    // crossed at walking pace), eased in over ~3 s so it reads as acceleration, not a jump
+    const moving = f !== 0 || r !== 0;
+    w.hold = moving ? (w.hold || 0) + dt : 0;
+    const fb = this.room.info.floor_bounds, span = fb ? Math.max(fb.x[1] - fb.x[0], fb.z[1] - fb.z[0]) : 100;
+    const glide = THREE.MathUtils.clamp(span / 100, 1, 3), ramp = THREE.MathUtils.smoothstep(w.hold, 0.6, 3.5);
+    const speed = (k.has('run') ? 7 : 3.2) * (1 + (glide - 1) * ramp);
     const fwd = new THREE.Vector3(-Math.sin(w.yaw), 0, -Math.cos(w.yaw));
     const right = new THREE.Vector3(Math.cos(w.yaw), 0, -Math.sin(w.yaw));
     const want = fwd.multiplyScalar(f).add(right.multiplyScalar(r));

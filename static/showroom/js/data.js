@@ -110,44 +110,38 @@ export default {
    "logo": "assets/brands/atlantia/logo.webp?v=6fee9db874e6c161",
    "mark": "assets/brands/atlantia/mark.webp?v=eb9712bce8f68ba8",
    "hero": {
-    "src": "assets/makers/atlantia-hero.webp?v=a60d626300dbc959",
-    "small": "assets/makers/atlantia-hero-640.webp?v=73e7a5494de51155",
+    "src": "assets/makers/atlantia-hero.webp?v=7c31d733f08fb5aa",
+    "small": "assets/makers/atlantia-hero-640.webp?v=e73a6bdbe91ea3e2",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/atlantia-wide.webp?v=da9f3a455fa153a3",
-    "small": "assets/makers/atlantia-wide-640.webp?v=876a80bcc770c3e6",
+    "src": "assets/makers/atlantia-wide.webp?v=95eea6ed5b5d2112",
+    "small": "assets/makers/atlantia-wide-640.webp?v=d1ff4267c68be8f0",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/atlantia/room.glb?v=b0547c7fd3fbc8bd",
-    "env": "assets/rooms/atlantia/env.hdr?v=d434a68b216ac9e0",
-    "bg": "assets/rooms/atlantia/bg.hdr?v=d3d6656c5ee2dbdf",
-    "bytes": 4778624,
+    "glb": "assets/rooms/atlantia/room.glb?v=6421c3bbad21dd82",
+    "env": "assets/rooms/atlantia/env.hdr?v=6d747c701c76dfb6",
+    "bg": "assets/rooms/atlantia/bg.hdr?v=af6884ac12f59f8a",
+    "bytes": 5219828,
     "info": {
      "brand": "Atlantia",
      "turntable": {
-      "center": [
-       0,
-       0.3,
-       0
-      ],
-      "radius": 24.0,
       "top": 0.3,
-      "max_ship_length": 50.0
+      "note": "every indoor bay is a turntable: see bays[].plinth_radius"
      },
      "camera": {
       "position": [
-       -58.0,
-       7.5,
-       50.0
+       -75.0,
+       8.0,
+       72.0
       ],
       "target": [
+       5.0,
        8.0,
-       7.5,
-       -22.0
+       -10.0
       ],
       "fov": 53.7,
       "orbit_min_distance": 20.0,
@@ -170,10 +164,10 @@ export default {
       "note": "direction the light travels (three.js). Softbox overhead; shadow camera covers the turntable."
      },
      "hall": {
-      "half_width": 95.0,
-      "back_y": -55.0,
-      "glass_y": 60.0,
-      "height": 30.0
+      "half_width": 135.0,
+      "back_y": -76.0,
+      "glass_y": 64.0,
+      "height": 32.0
      },
      "sun_dir": [
       0.5503,
@@ -184,7 +178,7 @@ export default {
       {
        "model": "Lightweight",
        "position": [
-        0.0,
+        -24.0,
         0.3,
         -0.0
        ],
@@ -192,46 +186,55 @@ export default {
        "yaw_deg": 160.0,
        "indoor": true,
        "length": 47.8,
-       "focus_radius": 29.6,
+       "focus_radius": 32.2,
        "turntable": true,
+       "spin_radius": 24.18,
+       "plinth_radius": 25.18,
+       "top": 11.11,
        "totem_position": null
       },
       {
        "model": "Heavyweight",
        "position": [
-        55.0,
-        0.0,
-        -6.0
+        62.0,
+        0.3,
+        -0.0
        ],
-       "ground": 0.0,
+       "ground": 0.3,
        "yaw_deg": 196.0,
        "indoor": true,
-       "length": 98.6,
-       "focus_radius": 61.1,
-       "turntable": false,
+       "length": 98.7,
+       "focus_radius": 61.5,
+       "turntable": true,
+       "spin_radius": 49.62,
+       "plinth_radius": 50.62,
+       "top": 23.54,
        "totem_position": [
-        26.0,
+        62.0,
         0.0,
-        36.0
+        66.0
        ]
       },
       {
        "model": "SuperLightweight",
        "position": [
-        -48.0,
-        0.0,
-        18.0
+        -72.0,
+        0.3,
+        -0.0
        ],
-       "ground": 0.0,
+       "ground": 0.3,
        "yaw_deg": 208.0,
        "indoor": true,
        "length": 25.9,
-       "focus_radius": 16.1,
-       "turntable": false,
+       "focus_radius": 21.0,
+       "turntable": true,
+       "spin_radius": 13.0,
+       "plinth_radius": 14.0,
+       "top": 7.98,
        "totem_position": [
-        -36.0,
+        -72.0,
         0.0,
-        33.0
+        26.0
        ]
       },
       {
@@ -245,20 +248,23 @@ export default {
        "yaw_deg": 90.0,
        "indoor": false,
        "length": 243.9,
-       "focus_radius": 151.2,
+       "focus_radius": 151.5,
        "turntable": false,
+       "spin_radius": 122.25,
+       "plinth_radius": null,
+       "top": 39.02,
        "totem_position": null
       }
      ],
      "bays_note": "position = ground contact point under the ship centre (three.js); place the ship glb so its lowest point (gear down) sits at position.y, centred on x/z, rotated yaw_deg about +Y (Blender yaw: ship +Y forward -> glTF -Z). length in metres; true scale.",
      "floor_bounds": {
       "x": [
-       -95.0,
-       95.0
+       -135.0,
+       135.0
       ],
       "z": [
-       -60.0,
-       55.0
+       -64.0,
+       76.0
       ],
       "note": "three.js XZ rectangle of walkable floor"
      },
@@ -266,40 +272,40 @@ export default {
       {
        "type": "circle",
        "center": [
-        0.0,
+        -24.0,
         -0.0
        ],
-       "radius": 29.6
+       "radius": 32.2
       },
       {
        "type": "circle",
        "center": [
-        55.0,
-        -6.0
+        62.0,
+        -0.0
        ],
-       "radius": 61.1
+       "radius": 61.5
       },
       {
        "type": "circle",
        "center": [
-        -48.0,
-        18.0
+        -72.0,
+        -0.0
        ],
-       "radius": 16.1
+       "radius": 21.0
       },
       {
        "type": "circle",
        "center": [
-        26.0,
-        36.0
+        62.0,
+        66.0
        ],
        "radius": 0.8
       },
       {
        "type": "circle",
        "center": [
-        -36.0,
-        33.0
+        -72.0,
+        26.0
        ],
        "radius": 0.8
       }
@@ -323,9 +329,39 @@ export default {
       3.0,
       1.5
      ],
+     "spin_audit": [
+      {
+       "model": "Lightweight",
+       "nearest": "swept disc Heavyweight",
+       "clearance_m": 12.2,
+       "required_m": 11.8,
+       "pass": true
+      },
+      {
+       "model": "Heavyweight",
+       "nearest": "swept disc Lightweight",
+       "clearance_m": 12.2,
+       "required_m": 11.8,
+       "pass": true
+      },
+      {
+       "model": "SuperLightweight",
+       "nearest": "swept disc Lightweight",
+       "clearance_m": 10.8,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "SuperHeavyweight",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 48.8,
+       "required_m": 1.0,
+       "pass": true
+      }
+     ],
      "room": {
-      "triangles": 15016,
-      "glb_bytes": 473376,
+      "triangles": 24668,
+      "glb_bytes": 541608,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -335,7 +371,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 1.0,
+        "k": 1.0279,
         "size": [
          2048,
          2048
@@ -349,7 +385,7 @@ export default {
         ]
        },
        "glow": {
-        "k": 1.4208,
+        "k": 2.5,
         "size": [
          256,
          256
@@ -369,9 +405,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 473376,
-      "env.hdr": 3780312,
-      "bg.hdr": 524936
+      "room.glb": 541608,
+      "env.hdr": 4146831,
+      "bg.hdr": 531389
      },
      "env": {
       "file": "env.hdr",
@@ -641,50 +677,44 @@ export default {
    "logo": "assets/brands/helios/logo.webp?v=4f09be2fc66dcb33",
    "mark": "assets/brands/helios/mark.webp?v=81c05910731f8a83",
    "hero": {
-    "src": "assets/makers/helios-hero.webp?v=ca405dc8ff327d07",
-    "small": "assets/makers/helios-hero-640.webp?v=f930ead76bf4de2e",
+    "src": "assets/makers/helios-hero.webp?v=c7d275e2ab88974f",
+    "small": "assets/makers/helios-hero-640.webp?v=92af0608c082c97b",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/helios-wide.webp?v=5d57e417cd4d6958",
-    "small": "assets/makers/helios-wide-640.webp?v=6e618d1a6637bb9d",
+    "src": "assets/makers/helios-wide.webp?v=9b79798a492fd309",
+    "small": "assets/makers/helios-wide-640.webp?v=c4de856241fd2962",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/helios/room.glb?v=25b3c56fb7819ba1",
-    "env": "assets/rooms/helios/env.hdr?v=9845b6f6b44f2ac0",
-    "bg": "assets/rooms/helios/bg.hdr?v=4a344814be56e138",
-    "bytes": 7822613,
+    "glb": "assets/rooms/helios/room.glb?v=99427fd06ac78d94",
+    "env": "assets/rooms/helios/env.hdr?v=c215166ebe2e7fce",
+    "bg": "assets/rooms/helios/bg.hdr?v=5e738d2d4dd8cf4a",
+    "bytes": 9571189,
     "info": {
      "brand": "Helios",
      "turntable": {
-      "center": [
-       0,
-       0.25,
-       0
-      ],
-      "radius": 17.0,
       "top": 0.25,
-      "max_ship_length": 36.0
+      "note": "every indoor bay is a turntable: see bays[].plinth_radius"
      },
      "camera": {
       "position": [
-       36.0,
-       3.6,
-       39.5
+       60.0,
+       4.5,
+       66.0
       ],
       "target": [
-       -12.0,
-       3.6,
-       -12.0
+       -10.0,
+       4.5,
+       -15.0
       ],
-      "fov": 61.56,
+      "fov": 58.72,
       "orbit_min_distance": 14.0,
-      "orbit_max_distance": 110.0,
+      "orbit_max_distance": 150.0,
       "min_height": 1.2,
-      "max_height": 20.0
+      "max_height": 26.0
      },
      "key_light": {
       "direction": [
@@ -701,11 +731,11 @@ export default {
       "note": "the Sun through the gold louvres (three.js travel direction); long low shadows"
      },
      "hall": {
-      "half_width": 62.0,
-      "back_y": -42.0,
-      "glass_y": 34.0,
-      "height": 22.0,
-      "apex_y": 50.0
+      "half_width": 99.0,
+      "back_y": -70.0,
+      "glass_y": 56.0,
+      "height": 28.0,
+      "apex_y": 72.0
      },
      "sun_dir": [
       0.297,
@@ -716,62 +746,71 @@ export default {
       {
        "model": "Corona",
        "position": [
-        0.0,
+        35.0,
         0.25,
         -0.0
        ],
        "ground": 0.25,
        "yaw_deg": 175.0,
        "indoor": true,
-       "length": 30.0,
-       "focus_radius": 18.6,
+       "length": 32.7,
+       "focus_radius": 26.2,
        "turntable": true,
+       "spin_radius": 18.17,
+       "plinth_radius": 19.17,
+       "top": 9.0,
        "totem_position": null
       },
       {
        "model": "Zenith",
        "position": [
         -40.0,
-        0.0,
-        4.0
+        0.25,
+        -0.0
        ],
-       "ground": 0.0,
+       "ground": 0.25,
        "yaw_deg": 200.0,
        "indoor": true,
-       "length": 80.0,
-       "focus_radius": 49.6,
-       "turntable": false,
+       "length": 81.8,
+       "focus_radius": 55.1,
+       "turntable": true,
+       "spin_radius": 45.26,
+       "plinth_radius": 46.26,
+       "top": 21.13,
        "totem_position": [
-        -22.0,
+        -40.0,
         0.0,
-        32.0
+        62.0
        ]
       },
       {
        "model": "Solstice",
        "position": [
-        30.0,
+        40.0,
         -4.0,
-        -150.0
+        -210.0
        ],
        "ground": -4.0,
        "yaw_deg": 105.0,
        "indoor": false,
-       "length": 180.0,
-       "focus_radius": 111.6,
+       "length": 207.1,
+       "focus_radius": 139.8,
        "turntable": false,
+       "spin_radius": 114.92,
+       "plinth_radius": null,
+       "top": 31.55,
        "totem_position": null
       }
      ],
      "bays_note": "position = ground contact point under the ship centre (three.js); place the ship glb so its lowest point (gear down) sits at position.y, centred on x/z, rotated yaw_deg about +Y (Blender yaw: ship +Y forward -> glTF -Z). length in metres; true scale.",
      "floor_bounds": {
       "x": [
-       -62.0,
-       62.0
+       -99.0,
+       99.0
       ],
       "z": [
-       -34.0,
-       42.0
+       -56.0,
+       70.0
       ],
       "note": "three.js XZ rectangle of walkable floor"
      },
@@ -779,24 +818,24 @@ export default {
       {
        "type": "circle",
        "center": [
-        0.0,
+        35.0,
         -0.0
        ],
-       "radius": 18.6
+       "radius": 26.2
       },
       {
        "type": "circle",
        "center": [
         -40.0,
-        4.0
+        -0.0
        ],
-       "radius": 49.6
+       "radius": 55.1
       },
       {
        "type": "circle",
        "center": [
-        -22.0,
-        32.0
+        -40.0,
+        62.0
        ],
        "radius": 0.8
       }
@@ -820,26 +859,49 @@ export default {
       2.0,
       1.0
      ],
+     "spin_audit": [
+      {
+       "model": "Corona",
+       "nearest": "swept disc Zenith",
+       "clearance_m": 11.6,
+       "required_m": 9.8,
+       "pass": true
+      },
+      {
+       "model": "Zenith",
+       "nearest": "ceiling",
+       "clearance_m": 6.9,
+       "required_m": 6.0,
+       "pass": true
+      },
+      {
+       "model": "Solstice",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 23.1,
+       "required_m": 1.0,
+       "pass": true
+      }
+     ],
      "room": {
-      "triangles": 133294,
-      "glb_bytes": 2096004,
+      "triangles": 370968,
+      "glb_bytes": 3782724,
       "lightmaps": {
        "floor": {
-        "k": 3.3331,
+        "k": 1.8845,
         "size": [
          3072,
          2048
         ]
        },
        "shell": {
-        "k": 6.2705,
+        "k": 6.2556,
         "size": [
          2048,
          2048
         ]
        },
        "sign": {
-        "k": 1.0595,
+        "k": 1.0,
         "size": [
          2048,
          2048
@@ -866,9 +928,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 2096004,
-      "env.hdr": 3907101,
-      "bg.hdr": 1819508
+      "room.glb": 3782724,
+      "env.hdr": 3968866,
+      "bg.hdr": 1819599
      },
      "env": {
       "file": "env.hdr",
@@ -1119,50 +1181,44 @@ export default {
    "logo": "assets/brands/daedalus/logo.webp?v=b053ce77caf3db7d",
    "mark": "assets/brands/daedalus/mark.webp?v=6fb43006653bd2f7",
    "hero": {
-    "src": "assets/makers/daedalus-hero.webp?v=d27107b5beb31c76",
-    "small": "assets/makers/daedalus-hero-640.webp?v=f9bed9bf450ede0a",
+    "src": "assets/makers/daedalus-hero.webp?v=66820b266e3d91c4",
+    "small": "assets/makers/daedalus-hero-640.webp?v=9cf6022c6712e747",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/daedalus-wide.webp?v=c353542702970cd2",
-    "small": "assets/makers/daedalus-wide-640.webp?v=5b1b5d176fb72a04",
+    "src": "assets/makers/daedalus-wide.webp?v=545f63c4c6becfdb",
+    "small": "assets/makers/daedalus-wide-640.webp?v=aa1f6a050f009cfd",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/daedalus/room.glb?v=4079ef725a5d7821",
-    "env": "assets/rooms/daedalus/env.hdr?v=d189545f61549498",
+    "glb": "assets/rooms/daedalus/room.glb?v=32e1db6aed24a2de",
+    "env": "assets/rooms/daedalus/env.hdr?v=42671cc09ebb3629",
     "bg": "assets/rooms/daedalus/bg.hdr?v=e24509615840770b",
-    "bytes": 11512275,
+    "bytes": 11539166,
     "info": {
      "brand": "Daedalus",
      "turntable": {
-      "center": [
-       0,
-       0.3,
-       0
-      ],
-      "radius": 17.0,
       "top": 0.3,
-      "max_ship_length": 40.0
+      "note": "every indoor bay is a turntable: see bays[].plinth_radius"
      },
      "camera": {
       "position": [
-       -34.0,
-       3.4,
-       30.0
+       -105.0,
+       4.0,
+       55.0
       ],
       "target": [
-       8.0,
-       3.4,
-       -22.0
+       -10.0,
+       4.0,
+       -30.0
       ],
-      "fov": 49.43,
+      "fov": 58.72,
       "orbit_min_distance": 16.0,
-      "orbit_max_distance": 140.0,
+      "orbit_max_distance": 200.0,
       "min_height": 1.2,
-      "max_height": 30.0
+      "max_height": 34.0
      },
      "key_light": {
       "direction": [
@@ -1179,44 +1235,50 @@ export default {
       "note": "sodium floods under the gantry crane (three.js travel direction)"
      },
      "hall": {
-      "half_width": 72.0,
-      "back_y": -45.0,
-      "glass_y": 82.0,
-      "height": 34.0
+      "half_width": 116.0,
+      "back_y": -60.0,
+      "glass_y": 96.0,
+      "height": 40.0
      },
      "bays": [
       {
        "model": "Mule",
        "position": [
-        0.0,
+        -60.0,
         0.3,
-        -0.0
+        10.0
        ],
        "ground": 0.3,
        "yaw_deg": 205.0,
        "indoor": true,
-       "length": 34.6,
-       "focus_radius": 21.5,
+       "length": 35.1,
+       "focus_radius": 25.8,
        "turntable": true,
+       "spin_radius": 17.78,
+       "plinth_radius": 18.78,
+       "top": 9.85,
        "totem_position": null
       },
       {
        "model": "Ox",
        "position": [
-        4.0,
-        0.0,
-        -44.0
+        40.0,
+        0.3,
+        -20.0
        ],
-       "ground": 0.0,
+       "ground": 0.3,
        "yaw_deg": 95.0,
        "indoor": true,
        "length": 120.0,
-       "focus_radius": 74.4,
-       "turntable": false,
+       "focus_radius": 74.6,
+       "turntable": true,
+       "spin_radius": 60.17,
+       "plinth_radius": 61.17,
+       "top": 19.17,
        "totem_position": [
-        -30.0,
+        40.0,
         0.0,
-        -12.0
+        57.0
        ]
       },
       {
@@ -1229,9 +1291,12 @@ export default {
        "ground": -12.0,
        "yaw_deg": 60.0,
        "indoor": false,
-       "length": 452.0,
-       "focus_radius": 280.2,
+       "length": 450.8,
+       "focus_radius": 280.1,
        "turntable": false,
+       "spin_radius": 226.04,
+       "plinth_radius": null,
+       "top": 64.47,
        "totem_position": null
       },
       {
@@ -1244,21 +1309,24 @@ export default {
        "ground": -60.0,
        "yaw_deg": 100.0,
        "indoor": false,
-       "length": 930.0,
-       "focus_radius": 576.6,
+       "length": 931.5,
+       "focus_radius": 578.8,
        "turntable": false,
+       "spin_radius": 466.99,
+       "plinth_radius": null,
+       "top": 266.95,
        "totem_position": null
       }
      ],
      "bays_note": "position = ground contact point under the ship centre (three.js); place the ship glb so its lowest point (gear down) sits at position.y, centred on x/z, rotated yaw_deg about +Y (Blender yaw: ship +Y forward -> glTF -Z). length in metres; true scale.",
      "floor_bounds": {
       "x": [
-       -72.0,
-       72.0
+       -116.0,
+       116.0
       ],
       "z": [
-       -82.0,
-       45.0
+       -96.0,
+       60.0
       ],
       "note": "three.js XZ rectangle of walkable floor"
      },
@@ -1266,24 +1334,24 @@ export default {
       {
        "type": "circle",
        "center": [
-        0.0,
-        -0.0
+        -60.0,
+        10.0
        ],
-       "radius": 21.5
+       "radius": 25.8
       },
       {
        "type": "circle",
        "center": [
-        4.0,
-        -44.0
+        40.0,
+        -20.0
        ],
-       "radius": 74.4
+       "radius": 74.6
       },
       {
        "type": "circle",
        "center": [
-        -30.0,
-        -12.0
+        40.0,
+        57.0
        ],
        "radius": 0.8
       }
@@ -1307,9 +1375,39 @@ export default {
       4.0,
       2.0
      ],
+     "spin_audit": [
+      {
+       "model": "Mule",
+       "nearest": "SpecTotem_body",
+       "clearance_m": 14.1,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "Ox",
+       "nearest": "Seller_legs",
+       "clearance_m": 15.6,
+       "required_m": 14.4,
+       "pass": true
+      },
+      {
+       "model": "Titan",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 105.0,
+       "required_m": 1.0,
+       "pass": true
+      },
+      {
+       "model": "Minotaur",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 354.0,
+       "required_m": 1.0,
+       "pass": true
+      }
+     ],
      "room": {
-      "triangles": 24414,
-      "glb_bytes": 508088,
+      "triangles": 40672,
+      "glb_bytes": 625112,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1319,7 +1417,7 @@ export default {
         ]
        },
        "shell": {
-        "k": 1.8254,
+        "k": 2.3197,
         "size": [
          2048,
          2048
@@ -1353,8 +1451,8 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 508088,
-      "env.hdr": 5429359,
+      "room.glb": 625112,
+      "env.hdr": 5339226,
       "bg.hdr": 5574828
      },
      "env": {
@@ -1370,7 +1468,7 @@ export default {
      "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
      "tone_mapping": {
       "three": "AgXToneMapping",
-      "exposure": 4.5948
+      "exposure": 6.498
      }
     }
    },
@@ -1622,48 +1720,42 @@ export default {
    "logo": "assets/brands/cydonia/logo.webp?v=a0409211aa52815d",
    "mark": "assets/brands/cydonia/mark.webp?v=9eb3d5cef9734f1c",
    "hero": {
-    "src": "assets/makers/cydonia-hero.webp?v=95360377c9b15eba",
-    "small": "assets/makers/cydonia-hero-640.webp?v=e5effc7b84b7de8f",
+    "src": "assets/makers/cydonia-hero.webp?v=4928eeb8d687d938",
+    "small": "assets/makers/cydonia-hero-640.webp?v=708a901e287c849f",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/cydonia-wide.webp?v=8f14c471531d62b4",
-    "small": "assets/makers/cydonia-wide-640.webp?v=e1b1a5b013b96baf",
+    "src": "assets/makers/cydonia-wide.webp?v=7dc850466047febf",
+    "small": "assets/makers/cydonia-wide-640.webp?v=3f9eb46699034be8",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/cydonia/room.glb?v=f22cb54b9e6c82c2",
-    "env": "assets/rooms/cydonia/env.hdr?v=8ad190cc0f24804b",
-    "bg": "assets/rooms/cydonia/bg.hdr?v=65fe262a3c3499d1",
-    "bytes": 7459647,
+    "glb": "assets/rooms/cydonia/room.glb?v=ceb56529316e8f1d",
+    "env": "assets/rooms/cydonia/env.hdr?v=8698164c1939ceb7",
+    "bg": "assets/rooms/cydonia/bg.hdr?v=f0a1c3e1c0182f20",
+    "bytes": 7566777,
     "info": {
      "brand": "Cydonia",
      "turntable": {
-      "center": [
-       0,
-       0.25,
-       0
-      ],
-      "radius": 10.0,
       "top": 0.25,
-      "max_ship_length": 22.0
+      "note": "every indoor bay is a turntable: see bays[].plinth_radius"
      },
      "camera": {
       "position": [
-       -64.0,
+       -128.0,
        6.0,
-       45.0
+       80.0
       ],
       "target": [
-       12.0,
+       -10.0,
        6.0,
        -40.0
       ],
       "fov": 58.72,
       "orbit_min_distance": 9.0,
-      "orbit_max_distance": 160.0,
+      "orbit_max_distance": 240.0,
       "min_height": 1.0,
       "max_height": 36.0
      },
@@ -1682,9 +1774,9 @@ export default {
       "note": "task floods under the I-beams (three.js travel direction)"
      },
      "hall": {
-      "half_width": 85.0,
-      "back_y": -50.0,
-      "glass_y": 95.0,
+      "half_width": 137.0,
+      "back_y": -85.0,
+      "glass_y": 117.0,
       "height": 40.0
      },
      "sun_dir": [
@@ -1696,73 +1788,85 @@ export default {
       {
        "model": "Talon",
        "position": [
-        0.0,
+        -60.0,
         0.25,
-        -0.0
+        -40.0
        ],
        "ground": 0.25,
        "yaw_deg": 210.0,
        "indoor": true,
-       "length": 16.0,
-       "focus_radius": 9.9,
+       "length": 16.1,
+       "focus_radius": 16.2,
        "turntable": true,
+       "spin_radius": 8.16,
+       "plinth_radius": 9.16,
+       "top": 4.64,
        "totem_position": null
       },
       {
        "model": "Halberd",
        "position": [
-        -34.0,
-        0.0,
-        14.0
+        -115.0,
+        0.25,
+        -40.0
        ],
-       "ground": 0.0,
+       "ground": 0.25,
        "yaw_deg": 215.0,
        "indoor": true,
-       "length": 24.0,
-       "focus_radius": 14.9,
-       "turntable": false,
+       "length": 23.8,
+       "focus_radius": 20.1,
+       "turntable": true,
+       "spin_radius": 12.09,
+       "plinth_radius": 13.09,
+       "top": 6.07,
        "totem_position": [
-        -24.0,
+        -115.0,
         0.0,
-        32.0
+        -14.0
        ]
       },
       {
        "model": "Sabre",
        "position": [
-        45.0,
-        0.0,
-        6.0
+        -80.0,
+        0.25,
+        30.0
        ],
-       "ground": 0.0,
+       "ground": 0.25,
        "yaw_deg": 160.0,
        "indoor": true,
-       "length": 70.0,
-       "focus_radius": 43.4,
-       "turntable": false,
+       "length": 72.9,
+       "focus_radius": 46.0,
+       "turntable": true,
+       "spin_radius": 37.24,
+       "plinth_radius": 38.24,
+       "top": 15.64,
        "totem_position": [
-        22.0,
+        -80.0,
         0.0,
-        34.0
+        78.0
        ]
       },
       {
        "model": "Gladius",
        "position": [
-        -12.0,
-        0.0,
-        -64.0
+        45.0,
+        0.25,
+        -25.0
        ],
-       "ground": 0.0,
+       "ground": 0.25,
        "yaw_deg": 95.0,
        "indoor": true,
-       "length": 140.0,
-       "focus_radius": 86.8,
-       "turntable": false,
+       "length": 145.5,
+       "focus_radius": 91.3,
+       "turntable": true,
+       "spin_radius": 73.8,
+       "plinth_radius": 74.8,
+       "top": 24.64,
        "totem_position": [
-        -40.0,
+        45.0,
         0.0,
-        -26.0
+        70.0
        ]
       },
       {
@@ -1775,9 +1879,12 @@ export default {
        "ground": -20.0,
        "yaw_deg": 175.0,
        "indoor": false,
-       "length": 320.0,
-       "focus_radius": 198.4,
+       "length": 356.3,
+       "focus_radius": 222.7,
        "turntable": false,
+       "spin_radius": 179.9,
+       "plinth_radius": null,
+       "top": 15.5,
        "totem_position": null
       },
       {
@@ -1790,9 +1897,12 @@ export default {
        "ground": -45.0,
        "yaw_deg": 185.0,
        "indoor": false,
-       "length": 650.0,
-       "focus_radius": 403.0,
+       "length": 722.7,
+       "focus_radius": 458.4,
        "turntable": false,
+       "spin_radius": 371.69,
+       "plinth_radius": null,
+       "top": 34.95,
        "totem_position": null
       },
       {
@@ -1805,9 +1915,12 @@ export default {
        "ground": -80.0,
        "yaw_deg": 170.0,
        "indoor": false,
-       "length": 1100.0,
-       "focus_radius": 682.0,
+       "length": 1209.2,
+       "focus_radius": 761.5,
        "turntable": false,
+       "spin_radius": 616.41,
+       "plinth_radius": null,
+       "top": 8.98,
        "totem_position": null
       },
       {
@@ -1820,21 +1933,24 @@ export default {
        "ground": -160.0,
        "yaw_deg": 195.0,
        "indoor": false,
-       "length": 2400.0,
-       "focus_radius": 1488.0,
+       "length": 2651.7,
+       "focus_radius": 1670.9,
        "turntable": false,
+       "spin_radius": 1352.69,
+       "plinth_radius": null,
+       "top": 101.68,
        "totem_position": null
       }
      ],
      "bays_note": "position = ground contact point under the ship centre (three.js); place the ship glb so its lowest point (gear down) sits at position.y, centred on x/z, rotated yaw_deg about +Y (Blender yaw: ship +Y forward -> glTF -Z). length in metres; true scale.",
      "floor_bounds": {
       "x": [
-       -85.0,
-       85.0
+       -137.0,
+       137.0
       ],
       "z": [
-       -95.0,
-       50.0
+       -117.0,
+       85.0
       ],
       "note": "three.js XZ rectangle of walkable floor"
      },
@@ -1842,56 +1958,56 @@ export default {
       {
        "type": "circle",
        "center": [
-        0.0,
-        -0.0
+        -60.0,
+        -40.0
        ],
-       "radius": 9.9
+       "radius": 16.2
       },
       {
        "type": "circle",
        "center": [
-        -34.0,
-        14.0
+        -115.0,
+        -40.0
        ],
-       "radius": 14.9
+       "radius": 20.1
+      },
+      {
+       "type": "circle",
+       "center": [
+        -80.0,
+        30.0
+       ],
+       "radius": 46.0
       },
       {
        "type": "circle",
        "center": [
         45.0,
-        6.0
+        -25.0
        ],
-       "radius": 43.4
+       "radius": 91.3
       },
       {
        "type": "circle",
        "center": [
-        -12.0,
-        -64.0
-       ],
-       "radius": 86.8
-      },
-      {
-       "type": "circle",
-       "center": [
-        -24.0,
-        32.0
+        -115.0,
+        -14.0
        ],
        "radius": 0.8
       },
       {
        "type": "circle",
        "center": [
-        22.0,
-        34.0
+        -80.0,
+        78.0
        ],
        "radius": 0.8
       },
       {
        "type": "circle",
        "center": [
-        -40.0,
-        -26.0
+        45.0,
+        70.0
        ],
        "radius": 0.8
       }
@@ -1915,9 +2031,67 @@ export default {
       3.0,
       1.5
      ],
+     "spin_audit": [
+      {
+       "model": "Talon",
+       "nearest": "Pilot_torso",
+       "clearance_m": 11.2,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "Halberd",
+       "nearest": "walls",
+       "clearance_m": 9.9,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "Sabre",
+       "nearest": "Totem_Sabre_body",
+       "clearance_m": 10.6,
+       "required_m": 8.7,
+       "pass": true
+      },
+      {
+       "model": "Gladius",
+       "nearest": "walls",
+       "clearance_m": 18.2,
+       "required_m": 17.5,
+       "pass": true
+      },
+      {
+       "model": "Ares",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 117.1,
+       "required_m": 1.0,
+       "pass": true
+      },
+      {
+       "model": "Olympus",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 405.3,
+       "required_m": 1.0,
+       "pass": true
+      },
+      {
+       "model": "Valles",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 1160.6,
+       "required_m": 1.0,
+       "pass": true
+      },
+      {
+       "model": "Tharsis",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 2124.3,
+       "required_m": 1.0,
+       "pass": true
+      }
+     ],
      "room": {
-      "triangles": 26790,
-      "glb_bytes": 517060,
+      "triangles": 43660,
+      "glb_bytes": 615068,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -1961,9 +2135,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 517060,
-      "env.hdr": 6504974,
-      "bg.hdr": 437613
+      "room.glb": 615068,
+      "env.hdr": 6510505,
+      "bg.hdr": 441204
      },
      "env": {
       "file": "env.hdr",
@@ -1978,7 +2152,7 @@ export default {
      "axes": "glTF/three: +Y up, metres; turntable centre on the origin",
      "tone_mapping": {
       "three": "AgXToneMapping",
-      "exposure": 4.9246
+      "exposure": 6.498
      }
     }
    },
@@ -2263,50 +2437,44 @@ export default {
    "logo": "assets/brands/kingsley/logo.webp?v=a49d124d82bd8399",
    "mark": "assets/brands/kingsley/mark.webp?v=4c2a3580cc3c268c",
    "hero": {
-    "src": "assets/makers/kingsley-hero.webp?v=552338027dd8cd0e",
-    "small": "assets/makers/kingsley-hero-640.webp?v=ecb1492b2e0ba707",
+    "src": "assets/makers/kingsley-hero.webp?v=bf03abab2294e3c1",
+    "small": "assets/makers/kingsley-hero-640.webp?v=98d2d1666ac3eecd",
     "w": 1280,
     "h": 720
    },
    "wide": {
-    "src": "assets/makers/kingsley-wide.webp?v=e7b2b76217443249",
-    "small": "assets/makers/kingsley-wide-640.webp?v=8eedb0d9e39f8fea",
+    "src": "assets/makers/kingsley-wide.webp?v=41813c467b83d3cb",
+    "small": "assets/makers/kingsley-wide-640.webp?v=d282ea5aece6b95c",
     "w": 1280,
     "h": 720
    },
    "room": {
-    "glb": "assets/rooms/kingsley/room.glb?v=2480b35956779f4a",
-    "env": "assets/rooms/kingsley/env.hdr?v=4c42cc61f8fe7982",
-    "bg": "assets/rooms/kingsley/bg.hdr?v=fc99f3f0c5a9509e",
-    "bytes": 9343918,
+    "glb": "assets/rooms/kingsley/room.glb?v=9d130470cd757605",
+    "env": "assets/rooms/kingsley/env.hdr?v=36f5148a76ba2f82",
+    "bg": "assets/rooms/kingsley/bg.hdr?v=2ca045b9096febf7",
+    "bytes": 8889080,
     "info": {
      "brand": "Kingsley",
      "turntable": {
-      "center": [
-       0,
-       0.22,
-       0
-      ],
-      "radius": 10.5,
       "top": 0.22,
-      "max_ship_length": 22.0
+      "note": "every indoor bay is a turntable: see bays[].plinth_radius"
      },
      "camera": {
       "position": [
-       -20.0,
-       3.2,
-       24.0
+       -40.0,
+       3.4,
+       34.0
       ],
       "target": [
-       8.0,
-       3.2,
+       5.0,
+       3.4,
        -8.0
       ],
-      "fov": 49.43,
+      "fov": 53.7,
       "orbit_min_distance": 9.0,
-      "orbit_max_distance": 60.0,
+      "orbit_max_distance": 90.0,
       "min_height": 1.0,
-      "max_height": 14.0
+      "max_height": 18.0
      },
      "key_light": {
       "direction": [
@@ -2323,10 +2491,10 @@ export default {
       "note": "warm tungsten pendants overhead (three.js travel direction)"
      },
      "hall": {
-      "half_width": 38.0,
-      "back_y": -30.0,
-      "glass_y": 34.0,
-      "height": 17.0
+      "half_width": 58.0,
+      "back_y": -40.0,
+      "glass_y": 36.0,
+      "height": 20.0
      },
      "sun_dir": [
       0.4508,
@@ -2337,7 +2505,7 @@ export default {
       {
        "model": "Sprite",
        "position": [
-        0.0,
+        -20.0,
         0.22,
         -0.0
        ],
@@ -2345,27 +2513,33 @@ export default {
        "yaw_deg": 200.0,
        "indoor": true,
        "length": 18.0,
-       "focus_radius": 11.2,
+       "focus_radius": 17.6,
        "turntable": true,
+       "spin_radius": 9.55,
+       "plinth_radius": 10.55,
+       "top": 4.7,
        "totem_position": null
       },
       {
        "model": "Ascot",
        "position": [
-        23.0,
-        0.0,
-        -10.0
+        25.0,
+        0.22,
+        -0.0
        ],
-       "ground": 0.0,
+       "ground": 0.22,
        "yaw_deg": 190.0,
        "indoor": true,
-       "length": 45.0,
-       "focus_radius": 27.9,
-       "turntable": false,
+       "length": 45.1,
+       "focus_radius": 30.9,
+       "turntable": true,
+       "spin_radius": 22.91,
+       "plinth_radius": 23.91,
+       "top": 8.75,
        "totem_position": [
-        12.0,
+        25.0,
         0.0,
-        18.0
+        33.0
        ]
       },
       {
@@ -2378,21 +2552,24 @@ export default {
        "ground": -40.0,
        "yaw_deg": 115.0,
        "indoor": false,
-       "length": 260.0,
-       "focus_radius": 161.2,
+       "length": 261.6,
+       "focus_radius": 162.7,
        "turntable": false,
+       "spin_radius": 131.27,
+       "plinth_radius": null,
+       "top": 76.1,
        "totem_position": null
       }
      ],
      "bays_note": "position = ground contact point under the ship centre (three.js); place the ship glb so its lowest point (gear down) sits at position.y, centred on x/z, rotated yaw_deg about +Y (Blender yaw: ship +Y forward -> glTF -Z). length in metres; true scale.",
      "floor_bounds": {
       "x": [
-       -38.0,
-       38.0
+       -58.0,
+       58.0
       ],
       "z": [
-       -34.0,
-       30.0
+       -36.0,
+       40.0
       ],
       "note": "three.js XZ rectangle of walkable floor"
      },
@@ -2400,24 +2577,24 @@ export default {
       {
        "type": "circle",
        "center": [
-        0.0,
+        -20.0,
         -0.0
        ],
-       "radius": 11.2
+       "radius": 17.6
       },
       {
        "type": "circle",
        "center": [
-        23.0,
-        -10.0
+        25.0,
+        -0.0
        ],
-       "radius": 27.9
+       "radius": 30.9
       },
       {
        "type": "circle",
        "center": [
-        12.0,
-        18.0
+        25.0,
+        33.0
        ],
        "radius": 0.8
       }
@@ -2441,9 +2618,32 @@ export default {
       3.0,
       1.5
      ],
+     "spin_audit": [
+      {
+       "model": "Sprite",
+       "nearest": "SpecTotem_body",
+       "clearance_m": 12.3,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "Ascot",
+       "nearest": "Totem_Ascot_body",
+       "clearance_m": 10.0,
+       "required_m": 8.0,
+       "pass": true
+      },
+      {
+       "model": "Sovereign",
+       "nearest": "facade (disc beyond glass)",
+       "clearance_m": 61.7,
+       "required_m": 1.0,
+       "pass": true
+      }
+     ],
      "room": {
-      "triangles": 62211,
-      "glb_bytes": 2349640,
+      "triangles": 82665,
+      "glb_bytes": 1896872,
       "lightmaps": {
        "floor": {
         "k": 1.0,
@@ -2487,9 +2687,9 @@ export default {
       "notes": "Baked materials are emissive (baseColor black, emissiveTexture = lightmap, KHR_materials_emissive_strength = k). room_floor (floor + turntable top) is the reflective group: draw it additively over a planar reflector."
      },
      "files": {
-      "room.glb": 2349640,
-      "env.hdr": 4871808,
-      "bg.hdr": 2122470
+      "room.glb": 1896872,
+      "env.hdr": 4869741,
+      "bg.hdr": 2122467
      },
      "env": {
       "file": "env.hdr",
