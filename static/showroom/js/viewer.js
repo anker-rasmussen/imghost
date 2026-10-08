@@ -23,6 +23,7 @@ const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 function mkRay(...a) { const r = new THREE.Raycaster(...a); r.layers.enableAll(); return r; }
 const IDLE_MS = 45000;                                 // loop sleeps after this long without input (wakes on any)
 const PLANET_SRC = new URLSearchParams(location.search).get('planets');   // ?planets=procedural : A/B only
+const BLOOM_CLAMP = +new URLSearchParams(location.search).get('bloomclamp') || 12;   // ?bloomclamp= : A/B only
 const GIANT_LOD_PX = 160;   // LOD2 only below this on-screen size: above it the side-by-side starts to differ
 const GIANT_LOD = new URLSearchParams(location.search).get('giantlod') !== 'off';   // ?giantlod=off : A/B only
 const REFL_SCALE = +new URLSearchParams(location.search).get('reflres') || 0.5;   // ?reflres= : A/B tests only
@@ -133,6 +134,16 @@ export class Viewer {
     this.composer = new EffectComposer(r, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.95);
+    // firefly clamp on the bloom input (as offline renderers do): a sun glint one pixel wide on polished brightwork is
+    // hundreds of times brighter than its neighbours, and the half-res bloom mips turn it into a grey square tile.
+    // Clamping what feeds the bloom keeps glints round and small; broad emitters (drives, lamps) bloom as before.
+    {
+      const hp = this.bloom.materialHighPassFilter;
+      hp.fragmentShader = hp.fragmentShader.replace('gl_FragColor = mix( outputColor, texel, alpha );',
+        'texel.rgb *= min( 1.0, BLOOM_CLAMP / max( v, 1e-4 ) );\n\t\t\tgl_FragColor = mix( outputColor, texel, alpha );');
+      hp.defines = { ...(hp.defines || {}), BLOOM_CLAMP: BLOOM_CLAMP.toFixed(2) };
+      hp.needsUpdate = true;
+    }
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
