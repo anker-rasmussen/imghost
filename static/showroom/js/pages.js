@@ -72,7 +72,7 @@ export function landing() {
     h('div.wrap.colophon.reveal',
       h('div', h('p.micro.eyebrow', 'Colophon'), h('h2.display#how-h', { style: { 'font-size': 'var(--fs-h2)' } }, 'Generated, baked, lit in real time')),
       h('div', { style: { display: 'grid', gap: '22px', 'align-content': 'end' } },
-        h('p', fleet.colophon), h('p', h('a.textlink', { href: '#/making-of' }, 'How it was made →')), h('p.micro', fleet.registry))));
+        h('p', fleet.colophon), h('p.micro', fleet.registry))));
 
   const foot = h('footer.foot', h('div.wrap',
     h('span.micro', 'The Aurelia Fleet · a real-time portfolio piece'),

@@ -3,10 +3,8 @@
 //   #/                 fleet landing
 //   #/<maker>          maker page            e.g. #/helios
 //   #/<maker>/<ship>   showroom viewer       e.g. #/helios/zenith
-//   #/making-of        how it was made
 import { $, h, makers, maker, ship, applyTheme, reduceMotion, wait, frame, logo, FLEET_THEME } from './util.js?v=55cda4b6c9a221bb';
-import { makingOf } from './making.js?v=613eaf4cb9ee8e42';
-import { landing, makerPage } from './pages.js?v=9744d03818e8ee38';
+import { landing, makerPage } from './pages.js?v=82c7cc3ae3bc3550';
 import { Showroom } from './showroom.js?v=75844ad0f08b6ae5';
 
 const main = $('#main');
@@ -19,7 +17,6 @@ const scrollMemory = new Map();
 
 function parse() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map((p) => decodeURIComponent(p).toLowerCase());
-  if (parts[0] === 'making-of') return { kind: 'making', key: 'making' };
   const m = parts[0] && maker(parts[0]);
   if (!m) return { kind: 'fleet', key: 'fleet' };
   const s = parts[1] && ship(m.id, parts[1]);
@@ -92,7 +89,7 @@ async function route() {
   } else {
     if (prev?.kind === 'ship') showroom.close();
     document.body.classList.remove('in-viewer');
-    const page = r.kind === 'maker' ? makerPage(r.maker.id) : r.kind === 'making' ? makingOf() : landing();
+    const page = r.kind === 'maker' ? makerPage(r.maker.id) : landing();
     prev?.page?.unmount?.();
     applyTheme(page.theme);
     document.title = page.title;
