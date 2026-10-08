@@ -469,7 +469,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=01a0c9a41af48f05');
+        const { Viewer } = await import('./viewer.js?v=3826e5bb1459f2d2');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),

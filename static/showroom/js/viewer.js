@@ -352,7 +352,20 @@ export class Viewer {
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-      const stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true, depthWrite: false, fog: false }));
+      // round, soft-edged stars: a square GL point with bloom on top reads as a grey tile; a small gaussian sprite
+      // (same total light as the old 1.6 px square) stays a point of light at every zoom and pixel ratio
+      const N = 32, px = new Uint8Array(N * N * 4);
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+        const r = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2) / (N / 2);
+        const a = r >= 1 ? 0 : Math.exp(-r * r * 5) * (1 - r * r);
+        px.set([255, 255, 255, Math.round(a * 255)], (y * N + x) * 4);
+      }
+      const dot = new THREE.DataTexture(px, N, N); dot.needsUpdate = true; dot.magFilter = THREE.LinearFilter; dot.minFilter = THREE.LinearFilter;
+      const stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 3.2,
+        sizeAttenuation: false, vertexColors: true, map: dot, transparent: true, depthWrite: false, fog: false }));
+      // the soft sprite covers ~1.3 px² of full weight vs the old 2.56; every star stays just under the bloom
+      // threshold, so none of them grows the blocky low-mip bloom halo that read as grey tiles
+      for (let i = 0; i < n * 3; i++) col[i] = Math.min(0.9, col[i] * 2.0);
       stars.renderOrder = -2; stars.frustumCulled = false;
       group.add(stars);
     }
