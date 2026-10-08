@@ -134,13 +134,21 @@ export class Viewer {
     this.composer = new EffectComposer(r, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.95);
-    // firefly clamp on the bloom input (as offline renderers do): a sun glint one pixel wide on polished brightwork is
-    // hundreds of times brighter than its neighbours, and the half-res bloom mips turn it into a grey square tile.
-    // Clamping what feeds the bloom keeps glints round and small; broad emitters (drives, lamps) bloom as before.
+    // firefly clamp on the bloom input: a sun glint a pixel or two wide on polished brightwork is hundreds of times
+    // brighter than its surroundings, and the half-res bloom mips turn it into a grey square tile. Only such
+    // isolated points are clamped; broad emitters and lit surfaces bloom exactly as before.
     {
       const hp = this.bloom.materialHighPassFilter;
       hp.fragmentShader = hp.fragmentShader.replace('gl_FragColor = mix( outputColor, texel, alpha );',
-        'texel.rgb *= min( 1.0, BLOOM_CLAMP / max( v, 1e-4 ) );\n\t\t\tgl_FragColor = mix( outputColor, texel, alpha );');
+        `if ( v > BLOOM_CLAMP ) {
+            // only isolated glints: a pixel far brighter than its ring of neighbours (3 px out). Large bright
+            // surfaces (drive bells, lamps, lit panels) have bright neighbours and keep their full bloom
+            vec2 px = 3.0 / vec2( textureSize( tDiffuse, 0 ) ); float n = 0.0;
+            for ( int i = 0; i < 8; i ++ ) { float a = float( i ) * 0.785398; n += luminance( texture2D( tDiffuse, vUv + px * vec2( cos( a ), sin( a ) ) ).rgb ); }
+            n /= 8.0;
+            if ( v > 6.0 * n ) texel.rgb *= max( 6.0 * n, BLOOM_CLAMP ) / v;
+          }
+          gl_FragColor = mix( outputColor, texel, alpha );`);
       hp.defines = { ...(hp.defines || {}), BLOOM_CLAMP: BLOOM_CLAMP.toFixed(2) };
       hp.needsUpdate = true;
     }
