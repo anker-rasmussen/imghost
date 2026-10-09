@@ -30,7 +30,10 @@ const SHOWROOM_CSP: &str = "default-src 'none'; \
 /// page's relative asset paths resolve.
 pub(crate) fn router(dir: &Path) -> Router<AppState> {
     let serve = ServeDir::new(dir).append_index_html_on_directories(true);
-    let hashes = Arc::new(Hashes { root: dir.to_path_buf(), seen: Mutex::new(HashMap::new()) });
+    let hashes = Arc::new(Hashes {
+        root: dir.to_path_buf(),
+        seen: Mutex::new(HashMap::new()),
+    });
 
     Router::new()
         .route(
@@ -38,10 +41,12 @@ pub(crate) fn router(dir: &Path) -> Router<AppState> {
             get(|| async { Redirect::permanent("/showroom/") }),
         )
         .nest_service("/showroom/", serve)
-        .layer(axum::middleware::from_fn(move |req: Request, next: Next| {
-            let hashes = hashes.clone();
-            async move { cache_policy(hashes, req, next).await }
-        }))
+        .layer(axum::middleware::from_fn(
+            move |req: Request, next: Next| {
+                let hashes = hashes.clone();
+                async move { cache_policy(hashes, req, next).await }
+            },
+        ))
         .layer(SetResponseHeaderLayer::overriding(
             header::X_CONTENT_TYPE_OPTIONS,
             HeaderValue::from_static("nosniff"),
@@ -70,9 +75,13 @@ const SHORT: &str = "public, max-age=300";
 
 async fn cache_policy(hashes: Arc<Hashes>, req: Request, next: Next) -> Response {
     let want = req.uri().query().and_then(|q| {
-        q.split('&').find_map(|kv| kv.strip_prefix("v=")).filter(|v| {
-            v.len() == 16 && v.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
-        })
+        q.split('&')
+            .find_map(|kv| kv.strip_prefix("v="))
+            .filter(|v| {
+                v.len() == 16
+                    && v.bytes()
+                        .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+            })
     });
     let file = want.and_then(|_| safe_rel(req.uri().path()).map(|rel| hashes.root.join(rel)));
     let want = want.map(str::to_owned);
@@ -112,17 +121,27 @@ fn safe_rel(path: &str) -> Option<PathBuf> {
 
 impl Hashes {
     fn matches(&self, file: &Path, want: &str) -> bool {
-        let Ok(meta) = std::fs::metadata(file) else { return false };
+        let Ok(meta) = std::fs::metadata(file) else {
+            return false;
+        };
         if !meta.is_file() {
             return false;
         }
         let mtime = meta.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-        if let Some((m, h)) = self.seen.lock().map(|s| s.get(file).cloned()).ok().flatten() {
+        if let Some((m, h)) = self
+            .seen
+            .lock()
+            .map(|s| s.get(file).cloned())
+            .ok()
+            .flatten()
+        {
             if m == mtime {
                 return h == want;
             }
         }
-        let Ok(bytes) = std::fs::read(file) else { return false };
+        let Ok(bytes) = std::fs::read(file) else {
+            return false;
+        };
         let h = hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&bytes))[..16].to_owned();
         let ok = h == want;
         if let Ok(mut s) = self.seen.lock() {
