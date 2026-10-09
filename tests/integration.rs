@@ -694,3 +694,33 @@ async fn test_showroom_static_serving_is_inert() {
         );
     }
 }
+
+#[tokio::test]
+async fn test_showroom_cache_policy() {
+    let (base, _tmp) = spawn_app(1024).await;
+    let c = client();
+    let cc = |r: &reqwest::Response| {
+        r.headers()["cache-control"].to_str().unwrap().to_string()
+    };
+    let site = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static/showroom"));
+    let bytes = std::fs::read(site.join("js/util.js")).unwrap();
+    let good = &hex::encode(<sha2::Sha256 as sha2::Digest>::digest(&bytes))[..16];
+
+    // a content-hashed URL whose hash matches the file: cached for a year, never revalidated
+    let r = c.get(format!("{base}/showroom/js/util.js?v={good}")).send().await.unwrap();
+    assert_eq!(r.status(), 200);
+    assert_eq!(cc(&r), "public, max-age=31536000, immutable");
+
+    // a wrong / stale / malformed hash, no hash, the page itself, traversal tricks: short-lived only
+    for url in [
+        "/showroom/js/util.js?v=0000000000000000".to_string(),
+        "/showroom/js/util.js?v=ZZZZ".to_string(),
+        "/showroom/js/util.js".to_string(),
+        "/showroom/".to_string(),
+        "/showroom/index.html".to_string(),
+        format!("/showroom/js/%75til.js?v={good}"),
+    ] {
+        let r = c.get(format!("{base}{url}")).send().await.unwrap();
+        assert_eq!(cc(&r), "public, max-age=300", "{url}");
+    }
+}

@@ -185,21 +185,29 @@ export class Viewer {
     c.addEventListener('start', () => { this.dragging = true; canvas.style.cursor = 'grabbing'; onDrag?.(); });
     for (const ev of ['pointerdown', 'pointermove', 'wheel', 'touchstart']) canvas.addEventListener(ev, () => this.poke(), { passive: true });
     addEventListener('keydown', () => this.poke());
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.poke(); });
+    // a hidden tab draws nothing at all (not even throttled frames); coming back wakes the loop
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (this.running) { this.stop(); this.sleeping = true; } } else this.poke(); });
     canvas.parentElement?.addEventListener('click', () => this.poke());   // HUD buttons (gear, lights, tour...)
     c.addEventListener('end', () => { this.dragging = false; canvas.style.cursor = ''; });
     let hoverAt = 0, hoverEv = null;
-    canvas.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch') return;
-      hoverEv = e;
-      const now = performance.now();
-      if (now - hoverAt < 90 || this.dragging || this.walk || !this.fleet) return;
+    // hover: at most one pick per animation frame and ~11 a second, never inside the input event itself
+    let hoverRaf = 0;
+    const hoverPick = () => {
+      hoverRaf = 0;
+      const e = hoverEv, now = performance.now();
+      if (!e || this.dragging || this.walk || !this.fleet) return;
+      if (now - hoverAt < 90) { hoverRaf = requestAnimationFrame(hoverPick); return; }
       hoverAt = now;
       const rect = canvas.getBoundingClientRect();
-      const hit = this.pick(e.clientX, e.clientY);
+      const hit = this.pick(e.clientX, e.clientY, true);
       if (this.hovered !== hit) { this.hovered?.rig?.setHighlight(0); hit?.rig?.setHighlight(1); this.hovered = hit; }
       canvas.style.cursor = hit ? 'pointer' : '';
       onHover?.(hit ? hit.model : null, e.clientX - rect.left, e.clientY - rect.top, hit === this.ship);
+    };
+    canvas.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
+      hoverEv = e;
+      if (!hoverRaf) hoverRaf = requestAnimationFrame(hoverPick);
     });
     canvas.addEventListener('pointerleave', () => { this.hovered?.rig?.setHighlight(0); this.hovered = null; canvas.style.cursor = ''; onHover?.(null); void hoverEv; });
 
@@ -307,6 +315,7 @@ export class Viewer {
       }
     });
     this.scene.add(this.room.group);
+    await this.prepare(this.room.group, false);         // with the hall's own lights in the scene: the right programs
     this.renderer.toneMappingExposure = info.tone_mapping?.exposure ?? 1;
     // the hall exposure is tuned for the interior; outside is space: keep the backdrop near its own exposure so
     // faint scatter in bg.hdr reads as black sky (with stars and the authored planet / dock), not grey haze
@@ -721,6 +730,10 @@ export class Viewer {
       e.prefetch = null;
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
       const rig = rigShip(gl, { realLights: false, length: e.model.length });
+      // shaders compiled and textures uploaded before the hull is shown: no first-frame hitch when it appears
+      // (background hulls upload one texture per idle slice; the focused one at once)
+      await this.prepare(rig.root, e !== this.ship);
+      if (token !== this.fleetToken) { rig.dispose(); return null; }
       e.meshLod = !!far;
       if (far) e.lodSlots = []; else this.indexLods(e, gl);
       e.rig = rig;
@@ -836,6 +849,23 @@ export class Viewer {
     return (r / Math.max(1, e.base.distanceTo(this.camera.position))) * k * H;
   }
 
+  /** Compile every program `obj` needs (with this scene's lights) and upload its textures, before it is shown.
+   *  idle: one texture per idle slice, so a background hull never costs a frame */
+  async prepare(obj, idle) {
+    // attached (the hall): compile the whole scene so every light is counted once; detached (a hull about to be
+    // placed): compile it against the scene's lights
+    try { if (obj.parent) await this.renderer.compileAsync(this.scene, this.camera); else await this.renderer.compileAsync(obj, this.camera, this.scene); } catch { /* compiled on first draw instead */ }
+    const texs = new Set();
+    obj.traverse((o) => {
+      if (!o.material) return;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) for (const k in m) { const v = m[k]; if (v?.isTexture) texs.add(v); }
+    });
+    for (const x of texs) {
+      if (idle) await new Promise((r) => ('requestIdleCallback' in window ? requestIdleCallback(() => r(), { timeout: 250 }) : setTimeout(r, 16)));
+      this.renderer.initTexture(x);
+    }
+  }
+
   /** swap a giant's far LOD for the full hull (texture LODs then stream as usual) */
   upgradeMesh(e) {
     if (!e.meshLod) return null;
@@ -843,7 +873,10 @@ export class Viewer {
       const token = this.fleetToken;
       const gl = await this.gltf.loadAsync(e.model.glb.src);
       if (token !== this.fleetToken || !e.meshLod) { disposeTree(gl.scene); return; }
-      const old = e.rig, rig = rigShip(gl, { realLights: false, length: e.model.length });
+      const rig = rigShip(gl, { realLights: false, length: e.model.length });
+      await this.prepare(rig.root, e !== this.ship);
+      if (token !== this.fleetToken || !e.meshLod) { rig.dispose(); return; }
+      const old = e.rig;
       e.holder.remove(old.root);
       e.rig = rig; e.meshLod = false;
       this.indexLods(e, gl);
@@ -1170,17 +1203,28 @@ export class Viewer {
   idle() { this.disposeFleet(); this.stop(); }
 
   /** the hull under a screen point (any ship in the hall) */
-  pick(clientX, clientY) {
+  /** The hull under a screen point. Each hull's own box is tested first (cheap), nearest first, and only hulls whose
+   *  box the ray enters are raycast triangle by triangle. coarse: giants count on their box alone (hover). */
+  pick(clientX, clientY, coarse = false) {
     if (!this.fleet) return null;
     const rect = this.canvas.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
-    const ray = mkRay(); ray.setFromCamera(ndc, this.camera);
-    const holders = [...this.fleet.values()].filter((e) => e.state === 'ready').map((e) => e.holder);
-    const hit = ray.intersectObjects(holders, true).find((x) => x.object.isMesh && !/plume|rcs_glow/.test(x.object.material?.name || '') && x.object.material?.opacity > 0.05 && x.object.visible);
-    if (!hit) return null;
-    let o = hit.object;
-    while (o && !o.userData.entry) o = o.parent;
-    return o?.userData.entry || null;
+    const ndc = (this._pickNdc ||= new THREE.Vector2()).set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    const ray = (this._pickRay ||= mkRay()); ray.setFromCamera(ndc, this.camera);
+    const inv = (this._pickInv ||= new THREE.Matrix4()), lr = (this._pickLr ||= new THREE.Ray()), hp = (this._pickHp ||= new THREE.Vector3());
+    const cand = [];
+    for (const e of this.fleet.values()) {
+      if (e.state !== 'ready' || !e.holder.visible || !e.localBox) continue;
+      inv.copy(e.rig.root.matrixWorld).invert();
+      lr.copy(ray.ray).applyMatrix4(inv);
+      if (lr.intersectBox(e.localBox, hp)) cand.push([hp.applyMatrix4(e.rig.root.matrixWorld).distanceToSquared(ray.ray.origin), e]);
+    }
+    cand.sort((a, b) => a[0] - b[0]);
+    for (const [, e] of cand) {
+      if (coarse && e.outdoor) return e;
+      const hit = ray.intersectObject(e.rig.root, true).find((x) => x.object.isMesh && !/plume|rcs_glow/.test(x.object.material?.name || '') && x.object.material?.opacity > 0.05 && x.object.visible);
+      if (hit) return e;
+    }
+    return null;
   }
 
   // ---------------------------------------------------------------- points of interest
@@ -1318,6 +1362,13 @@ export class Viewer {
     const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
     const now = performance.now(), ray = this._occRay ||= mkRay();
     const cam = this.camera.position, out = [];
+    // view signature: camera pose + hull turn, coarsely quantised; 'still' once it has not changed for 250 ms
+    const vk = `${cam.x.toFixed(1)},${cam.y.toFixed(1)},${cam.z.toFixed(1)},${this.controls.target.x.toFixed(1)},${this.controls.target.z.toFixed(1)},${(s.spinYaw || 0).toFixed(2)}`;
+    if (vk !== this._viewKeyLive) { this._viewKeyLive = vk; this._viewAt = now; }
+    const still = now - (this._viewAt || 0) > 250;
+    if (still) this._viewKey = vk;
+    let rayed = false;
+    const cheap = (s.model.length || 0) < 150;          // small hulls: cheap rays, keep testing while turning
     s.pois.forEach((p, i) => {
       if (p.flat || p.nodot) return;
       const wp = root.localToWorld((p.dotLocal || p.local).clone());
@@ -1326,9 +1377,12 @@ export class Viewer {
       const facing = toCam.clone().normalize().dot(nrm);
       const v = wp.clone().project(this.camera);
       if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) return;
-      // hidden behind the hull? (re-tested a few times a second)
-      if (!p.occAt || now - p.occAt > 160) {
-        p.occAt = now;
+      // hidden behind the hull? Rays against a full hull are expensive: re-tested only once the view has been still
+      // for a moment (camera and hull), one hotspot per frame; while things move the last answer holds
+      const due = still ? (!p.occAt || p.occView !== this._viewKey) : (cheap && now - (p.occAt || 0) > 200);
+      if (due && !rayed) {
+        rayed = true;
+        p.occAt = now; p.occView = still ? this._viewKey : null;
         const d = toCam.length();
         ray.set(cam, wp.clone().sub(cam).normalize()); ray.far = d;
         const hit = s.meshes?.length ? ray.intersectObjects(s.meshes, false)[0] : null;
