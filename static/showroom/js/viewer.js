@@ -13,6 +13,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { TIERS, ORDER, preference, savePreference, detectTier } from './quality.js?v=0004fdb81c0135ba';
 import { rigShip } from './rig.js?v=0ec40c3e2f1c1502';
 import { SafeKTX2Loader } from './ktx2.js?v=01483ad04d1ddd13';
 import { buildPlanet } from './planets.js?v=c09d0b0665d09327';
@@ -26,7 +28,29 @@ const PLANET_SRC = new URLSearchParams(location.search).get('planets');   // ?pl
 const BLOOM_CLAMP = +new URLSearchParams(location.search).get('bloomclamp') || 12;   // ?bloomclamp= : A/B only
 const GIANT_LOD_PX = 160;   // LOD2 only below this on-screen size: above it the side-by-side starts to differ
 const GIANT_LOD = new URLSearchParams(location.search).get('giantlod') !== 'off';   // ?giantlod=off : A/B only
-const REFL_SCALE = +new URLSearchParams(location.search).get('reflres') || 0.5;   // ?reflres= : A/B tests only
+// FXAA (the classic luma-edge version) for the Low tier, which drops MSAA
+const FXAA = {
+  uniforms: { tDiffuse: { value: null }, px: { value: new THREE.Vector2(1, 1) } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform vec2 px; varying vec2 vUv;
+    float lu(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    void main() {
+      vec3 nw = texture2D(tDiffuse, vUv + vec2(-1.0, -1.0) * px).rgb, ne = texture2D(tDiffuse, vUv + vec2(1.0, -1.0) * px).rgb;
+      vec3 sw = texture2D(tDiffuse, vUv + vec2(-1.0, 1.0) * px).rgb, se = texture2D(tDiffuse, vUv + vec2(1.0, 1.0) * px).rgb;
+      vec4 m = texture2D(tDiffuse, vUv);
+      float lnw = lu(nw), lne = lu(ne), lsw = lu(sw), lse = lu(se), lm = lu(m.rgb);
+      float lo = min(lm, min(min(lnw, lne), min(lsw, lse))), hi = max(lm, max(max(lnw, lne), max(lsw, lse)));
+      vec2 d = vec2(-((lnw + lne) - (lsw + lse)), (lnw + lsw) - (lne + lse));
+      float red = max((lnw + lne + lsw + lse) * 0.03125, 1.0 / 128.0);
+      d = clamp(d / (min(abs(d.x), abs(d.y)) + red), vec2(-8.0), vec2(8.0)) * px;
+      vec3 a = 0.5 * (texture2D(tDiffuse, vUv + d * (1.0 / 3.0 - 0.5)).rgb + texture2D(tDiffuse, vUv + d * (2.0 / 3.0 - 0.5)).rgb);
+      vec3 b = a * 0.5 + 0.25 * (texture2D(tDiffuse, vUv - d * 0.5).rgb + texture2D(tDiffuse, vUv + d * 0.5).rgb);
+      float lb = lu(b);
+      gl_FragColor = vec4((lb < lo || lb > hi) ? a : b, m.a);
+    }`,
+};
+const REFL_PARAM = +new URLSearchParams(location.search).get('reflres') || 0;
+const REFL_SCALE = REFL_PARAM || 0.5;   // ?reflres= : A/B tests only
 const CAM_MARGIN = 0.35;                                  // camera keeps this far from any hull box, wall or pillar
 const _v = new THREE.Vector3();
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -154,6 +178,15 @@ export class Viewer {
     }
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+    this.fxaa = new ShaderPass(FXAA); this.fxaa.enabled = false;
+    this.composer.addPass(this.fxaa);
+
+    // quality tier: the visitor's choice or a guess from the device, corrected live by measured frame times
+    this.qualityPref = preference();
+    this.tierAuto = detectTier(r);
+    this.tierMax = this.tierAuto;                       // auto never climbs above the device guess
+    this.qSamples = [];
+    this.applyTier(this.tier);
 
     this.pmrem = new THREE.PMREMGenerator(r);
     // KTX2 (Basis UASTC) hull and room textures stay GPU-compressed in VRAM; WebP glbs still load as before
@@ -249,6 +282,11 @@ export class Viewer {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
+    const q = this.q;
+    if (q && q.bloom && q.bloom < 1) this.bloom.setSize(Math.round(w * this.dpr * q.bloom), Math.round(h * this.dpr * q.bloom));
+    this.fxaa.uniforms.px.value.set(1 / (w * this.dpr), 1 / (h * this.dpr));
+    const refl = this.room?.floor?.refl;
+    if (refl && q) refl.getRenderTarget().setSize(Math.round(w * q.reflScale), Math.round(h * q.reflScale));
     this.camera.aspect = w / h;
     const fov = this.room?.info.camera.fov ?? 40;
     if (!this.ship?.outdoor && !this.walk) this.camera.fov = w / h < 0.8 ? Math.min(62, fov * 1.25) : fov;
@@ -442,7 +480,8 @@ export class Viewer {
       x.m.depthWrite = partial ? false : x.dw;
     }
     // indoor hulls and the hall's reflector / shadows / lights go with the room
-    r.group.traverse((o) => { if (o.isReflector || o.isLight || o.material?.isShadowMaterial) o.visible = f.k > 0.999; });
+    const q = this.q || TIERS.high;
+    r.group.traverse((o) => { if (o.isReflector || o.isLight || o.material?.isShadowMaterial) o.visible = f.k > 0.999 && !(o.isReflector && q.refl === 'off') && !(o.material?.isShadowMaterial && !q.shadow); });
     // with the hall faded out only the focused giant remains: indoor hulls and the other giants step aside
     for (const e of this.fleet?.values() || []) if (e !== this.ship) e.holder.visible = f.k > 0.02;
     if (u >= 1) {
@@ -551,7 +590,7 @@ export class Viewer {
   /** planar reflection under the additive floor, blurred (polished concrete / marble is not a mirror) */
   addFloorReflection(group, info, w, d, z, y) {
     const k = info.floor_reflect ?? 0.16;
-    const RS = REFL_SCALE;                                // reflection buffer scale (CSS px); blur radii follow it
+    const RS = REFL_PARAM ? REFL_SCALE : (this.q?.reflScale ?? 0.5);   // reflection buffer scale (CSS px); blur radii follow it
     const refl = new Reflector(new THREE.PlaneGeometry(w, d), {
       textureWidth: Math.round(innerWidth * RS), textureHeight: Math.round(innerHeight * RS),
       color: new THREE.Color(k, k, k), clipBias: 0.003,
@@ -577,13 +616,19 @@ export class Viewer {
       depthTest: false, depthWrite: false,
     });
     const quad = new FullScreenQuad(mat);
-    const radii = (info.floor_blur ?? [3, 1.5]).map((r) => r * RS / 0.5);
-    const render = refl.onBeforeRender;
+    const radii = info.floor_blur ?? [3, 1.5];
+    const render = refl.onBeforeRender, viewer = this, lastCam = new THREE.Matrix4();
+    let fresh = false;
     refl.onBeforeRender = function (r, s, cam, ...rest) {
+      // Medium tier: the mirror is re-rendered only when the camera has moved (a turning hull waits a frame)
+      if (viewer.q?.refl === 'move' && fresh && lastCam.equals(cam.matrixWorld) && rt.width === tmp.width) return;
+      lastCam.copy(cam.matrixWorld); fresh = true;
       render.call(this, r, s, cam, ...rest);
+      const kx = rt.width / Math.max(1, innerWidth * 0.5);   // blur radii are authored for the half-res buffer
       if (tmp.width !== rt.width || tmp.height !== rt.height) tmp.setSize(rt.width, rt.height);
       const prev = r.getRenderTarget();
-      for (const rad of radii) {
+      for (const rad0 of radii) {
+        const rad = rad0 * kx;
         mat.uniforms.tex.value = rt.texture; mat.uniforms.dir.value.set(rad / rt.width, 0);
         r.setRenderTarget(tmp); quad.render(r);
         mat.uniforms.tex.value = tmp.texture; mat.uniforms.dir.value.set(0, rad / rt.height);
@@ -601,7 +646,7 @@ export class Viewer {
     // the shadow camera covers the whole hall floor: every indoor bay gets a real-time contact shadow
     key.castShadow = true;
     this.keyLight = key; this.keyDir = kd;
-    key.shadow.mapSize.setScalar(matchMedia('(max-width: 760px)').matches ? 2048 : 4096);
+    key.shadow.mapSize.setScalar(Math.min(this.q?.shadow || 4096, matchMedia('(max-width: 760px)').matches ? 2048 : 4096));
     key.shadow.bias = -0.0005; key.shadow.normalBias = 0.05; key.shadow.radius = 5;
     group.add(key, key.target);
     if (info.fill_light) {
@@ -616,6 +661,7 @@ export class Viewer {
     };
     // one catcher disc (unit radius, scaled), moved onto the focused bay's plinth by aimShadow()
     this.shadowCatcher = mk(new THREE.CircleGeometry(1, 96), top + 0.012);
+    this.shadowCatcher.visible = (this.q?.shadow ?? 1) > 0;
     this.aimShadow(tt.center ? { x: tt.center[0], z: tt.center[2], top, r: tt.radius } : { x: 0, z: 0, top, r: 15 });
     void hall;
   }
@@ -725,7 +771,7 @@ export class Viewer {
       // a giant only seen far off through the glass starts from its exporter LOD2 (a fifth of the triangles,
       // 1024 px maps): identical at that size, a fraction of the download; the full hull replaces it when it is
       // focused or comes close (upgradeMesh)
-      const far = e.outdoor && e !== this.ship && !e.prefetch && GIANT_LOD && this.screenPx(e) < GIANT_LOD_PX && e.model.glb.mesh_lods?.[0];
+      const far = e.outdoor && e !== this.ship && !e.prefetch && GIANT_LOD && (this.q?.giants !== 'auto' || this.screenPx(e) < GIANT_LOD_PX) && e.model.glb.mesh_lods?.[0];
       const gl = (e.prefetch && await e.prefetch) || await this.gltf.loadAsync(far ? far.src : e.model.glb.src, onProgress);
       e.prefetch = null;
       if (token !== this.fleetToken) { disposeTree(gl.scene); return null; }
@@ -992,20 +1038,22 @@ export class Viewer {
     for (const e of this.fleet.values()) {
       if (e.state !== 'ready' || (!e.lodSlots?.length && !e.meshLod)) continue;
       let want = 1024;
+      const cap = this.lodAll ? 'full' : e === this.ship ? (this.q?.texFocus ?? 'full') : (this.q?.texOther ?? 'full');
       if (e === this.ship || this.lodAll) want = 'full';
       else if (e.holder.visible) {
         const sph = e.rig.bounds().getBoundingSphere(new THREE.Sphere());
         if (fr.intersectsSphere(sph)) {
           const px = (sph.radius / Math.max(1, sph.center.distanceTo(this.camera.position))) * k * H;   // on-screen diameter
           want = px > 1800 ? 'full' : px > 900 ? 2048 : 1024;   // thresholds checked: SSIM >= 0.999 vs all-full renders
-          if (e.meshLod && px > GIANT_LOD_PX) { this.upgradeMesh(e); continue; }
+          if (e.meshLod && px > GIANT_LOD_PX && this.q?.giants === 'auto') { this.upgradeMesh(e); continue; }
         }
       }
       // up at once; down only after a few seconds of not needing it (no thrash while orbiting)
       const rank = (l) => (l === 1024 ? 0 : l === 2048 ? 1 : 2);
+      if (rank(want) > rank(cap)) want = cap;           // the quality tier's ceiling
       if (rank(want) >= rank(e.level)) { e.lodLow = 0; if (want !== e.level) this.setLod(e, want); }
       else if (!e.lodLow) e.lodLow = now;
-      else if (now - e.lodLow > 4000) { e.lodLow = 0; this.setLod(e, want); }
+      else if (now - e.lodLow > 4000 || rank(e.level) > rank(cap)) { e.lodLow = 0; this.setLod(e, want); }
     }
   }
 
@@ -1071,8 +1119,14 @@ export class Viewer {
     this.streaming = true;
     const token = this.fleetToken;
     try {
-      const rest = [...this.fleet.values()].filter((x) => x.state === 'pending' && (!x.outdoor || this.bayVisible(x)))
+      let rest = [...this.fleet.values()].filter((x) => x.state === 'pending' && (!x.outdoor || this.bayVisible(x)))
         .sort((a, b) => (a.outdoor - b.outdoor) || (a.model.length - b.model.length));
+      // Low tier: the focused hull's two nearest indoor neighbours only (the rest stay as silhouettes); giants
+      // load when they are focused
+      if (this.q?.bays === 'near' && this.ship) {
+        const f = this.ship.base;
+        rest = rest.filter((x) => !x.outdoor).sort((a, b) => a.base.distanceTo(f) - b.base.distanceTo(f)).slice(0, 2);
+      }
       for (const e of rest) {
         if (token !== this.fleetToken) break;
         try { await this.loadEntry(e); } catch (err) { console.warn(`could not load ${e.model.name}`, err); }
@@ -1359,7 +1413,7 @@ export class Viewer {
   hotspots(w, h) {
     const s = this.ship;
     if (!s?.pois || !s.rig || s.state !== 'ready' || this.walk) return [];
-    const root = s.rig.root, q = root.getWorldQuaternion(new THREE.Quaternion());
+    const root = s.rig.root, q = root.getWorldQuaternion(this._hsQ ||= new THREE.Quaternion());
     const now = performance.now(), ray = this._occRay ||= mkRay();
     const cam = this.camera.position, out = [];
     // view signature: camera pose + hull turn, coarsely quantised; 'still' once it has not changed for 250 ms
@@ -1371,11 +1425,13 @@ export class Viewer {
     const cheap = (s.model.length || 0) < 150;          // small hulls: cheap rays, keep testing while turning
     s.pois.forEach((p, i) => {
       if (p.flat || p.nodot) return;
-      const wp = root.localToWorld((p.dotLocal || p.local).clone());
-      const nrm = (p.normalLocal || p.dir).clone().applyQuaternion(q);
-      const toCam = cam.clone().sub(wp);
-      const facing = toCam.clone().normalize().dot(nrm);
-      const v = wp.clone().project(this.camera);
+      // scratch vectors: this runs every frame for every hotspot (no garbage, no GC hitches)
+      const T = (this._hsTmp ||= [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]);
+      const wp = root.localToWorld(T[0].copy(p.dotLocal || p.local));
+      const nrm = T[1].copy(p.normalLocal || p.dir).applyQuaternion(q);
+      const toCam = T[2].copy(cam).sub(wp);
+      const facing = T[3].copy(toCam).normalize().dot(nrm);
+      const v = T[3].copy(wp).project(this.camera);
       if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) return;
       // hidden behind the hull? Rays against a full hull are expensive: re-tested only once the view has been still
       // for a moment (camera and hull), one hotspot per frame; while things move the last answer holds
@@ -1384,7 +1440,7 @@ export class Viewer {
         rayed = true;
         p.occAt = now; p.occView = still ? this._viewKey : null;
         const d = toCam.length();
-        ray.set(cam, wp.clone().sub(cam).normalize()); ray.far = d;
+        ray.set(cam, T[1].copy(wp).sub(cam).normalize()); ray.far = d;
         const hit = s.meshes?.length ? ray.intersectObjects(s.meshes, false)[0] : null;
         p.occluded = !!hit && hit.distance < d - 0.45;
       }
@@ -1529,8 +1585,9 @@ export class Viewer {
     if (this.roomFade) this.stepFade(performance.now());
     if (this.outside) this.exterior?.planet?.update?.(dt);
     this.updateLods(performance.now());
+    if (this.perfTiers !== false) this.qualityMonitor(dt);
     this.updateGiantVisibility(performance.now());
-    if (this.fleet && !this.streaming && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
+    if (this.fleet && !this.streaming && this.q?.giants !== 'focus' && (this._viewCheck = (this._viewCheck || 0) + 1) % 30 === 0 &&
       [...this.fleet.values()].some((e) => e.state === 'pending' && e.outdoor && this.bayVisible(e))) this.streamRest();
     // every hull in the hall lives (lights, gear); only the focused one takes the visitor's system toggles
     const f = this.ship;
@@ -1639,6 +1696,58 @@ export class Viewer {
     p.copy(root.localToWorld(lp));
   }
 
+  // ---------------------------------------------------------------- quality tiers
+  get tier() { return this.qualityPref === 'auto' ? (this._autoTier || this.tierAuto) : this.qualityPref; }
+
+  /** 'auto' | 'high' | 'medium' | 'low' (saved); applies at once, without a reload */
+  setQuality(pref) {
+    this.qualityPref = pref; savePreference(pref);
+    this.applyTier(this.tier);
+  }
+
+  applyTier(name) {
+    const q = TIERS[name] || TIERS.high, prev = this.q;
+    this.q = q; this.tierName = name;
+    const small = Math.min(innerWidth, innerHeight) < 500 && (devicePixelRatio || 1) > 1.5;
+    this.dprMax = Math.min(devicePixelRatio || 1, name === 'low' && small ? 1.25 : q.dpr);
+    this.dpr = Math.min(this.dpr || this.dprMax, this.dprMax);
+    if (!prev || prev.msaa !== q.msaa) {
+      for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) { rt.samples = q.msaa; rt.dispose(); }
+    }
+    this.fxaa.enabled = q.fxaa;
+    this.bloom.enabled = q.bloom > 0;
+    const r = this.renderer;
+    if (!prev || prev.shadow !== q.shadow) {
+      const on = q.shadow > 0;
+      if (r.shadowMap.enabled !== on) { r.shadowMap.enabled = on; this.scene.traverse((o) => { if (o.material) for (const m of [].concat(o.material)) m.needsUpdate = true; }); }
+      const key = this.keyLight;
+      if (key && on) { key.shadow.mapSize.setScalar(Math.min(q.shadow, matchMedia('(max-width: 760px)').matches ? 2048 : 4096)); key.shadow.map?.dispose(); key.shadow.map = null; }
+      if (this.shadowCatcher) this.shadowCatcher.visible = on;
+      this.shadowDirty = 4;
+    }
+    const refl = this.room?.floor?.refl;
+    if (refl) refl.visible = q.refl !== 'off';
+    r.setPixelRatio(this.dpr); this.resize();
+    this.lodAt = 0;                                     // re-pick texture levels for the new caps
+    if (this.fleet && prev) this.streamRest();
+    this.onQuality?.(name);
+    this.redraw();
+  }
+
+  /** live correction (auto only): a p95 frame time over 25 ms for 2 s steps down a tier; 30 s of comfortable
+   *  headroom steps back up, never above the device guess */
+  qualityMonitor(dt) {
+    if (this.qualityPref !== 'auto' || this.tween || this.roomFade || this.sleeping) { this.qSamples.length = 0; return; }
+    const s = this.qSamples; s.push(dt * 1000);
+    if (s.length < 120) return;
+    const sorted = s.slice().sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * 0.95)];
+    s.length = 0;
+    const i = ORDER.indexOf(this.tier);
+    if (p95 > 25) { this.qOver = (this.qOver || 0) + 1; this.qUnder = 0; } else if (p95 < 12) { this.qUnder = (this.qUnder || 0) + 1; this.qOver = 0; } else { this.qOver = 0; this.qUnder = 0; }
+    if (this.qOver >= 1 && i > 0 && this.dpr <= 1) { this._autoTier = ORDER[i - 1]; this.qOver = 0; this.applyTier(this._autoTier); }
+    else if (this.qUnder >= 15 && i < ORDER.indexOf(this.tierMax)) { this._autoTier = ORDER[i + 1]; this.qUnder = 0; this.applyTier(this._autoTier); }
+  }
+
   /** a single frame while the loop sleeps (a hull streamed in, the window resized) */
   redraw() {
     if (!this.sleeping || !this.room) return;
@@ -1654,6 +1763,7 @@ export class Viewer {
   /** one frame through the composer; with ?perf=1 it is timed (gl.finish, so GPU work counts) and reported */
   render() {
     this.frameCount = (this.frameCount || 0) + 1;
+    this.firstFrameAt ||= performance.now();           // time to first render (perf harness)
     if (!this.perf) { this.composer.render(); return; }
     const info0 = this.renderer.info;
     info0.autoReset = false; info0.reset();               // count every pass of the frame (reflection, bloom, output)

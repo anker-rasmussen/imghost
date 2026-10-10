@@ -553,3 +553,9 @@ body.in-viewer #main { visibility: hidden; }
 .card-body h3 { --fit-size: clamp(22px, 2vw, 30px); }
 .v-title h1 { --fit-size: clamp(26px, 3.4vw, 54px); }
 .viewer .v-drawer, .viewer .v-help { -webkit-user-select: text; user-select: text; }
+
+.v-quality { gap: 6px; }
+.v-qlabel { font: 500 10.5px/1 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--v-dim); margin-right: 4px; }
+.v-q { min-height: 32px; padding: 0 12px; font-size: 12px; }
+.v-q[aria-pressed="true"] { background: #fff; color: #111; border-color: #fff; }
+.v-qnow { font: 400 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--v-dim); }

@@ -151,7 +151,13 @@ export class Showroom {
       h('div.v-row', this.b.spin, this.b.gear, this.b.strobe, this.b.retro, this.b.hail, this.b.reset),
       h('div.v-row',
         h('div.v-thrust', h('label', { for: 'v-thr' }, 'Thrust'), this.thr, this.thrOut),
-        h('div.v-status', h('span', 'GEAR ', this.sGear), h('span', 'RETRO ', this.sRetro))));
+        h('div.v-status', h('span', 'GEAR ', this.sGear), h('span', 'RETRO ', this.sRetro))),
+      // quality: Auto picks a tier from the device and keeps it smooth; the others pin one
+      this.qRow = h('div.v-row.v-quality', { role: 'group', 'aria-label': 'Quality' },
+        h('span.v-qlabel', 'Quality'),
+        ...['auto', 'high', 'medium', 'low'].map((k) => h('button.vbtn.quiet.v-q', { type: 'button', 'data-q': k, 'aria-pressed': 'false',
+          onclick: () => { this.viewer?.setQuality(k); this.markQuality(); } }, k === 'auto' ? 'Auto' : k[0].toUpperCase() + k.slice(1))),
+        this.qNow = h('span.v-qnow')));
     this.b.systems.setAttribute('aria-controls', 'v-systems');
     this.dock = h('div.v-dock', this.b.tour, this.b.walk, this.b.lights, this.b.sound, h('span.v-sep', { 'aria-hidden': 'true' }), this.b.systems);
 
@@ -395,6 +401,13 @@ export class Showroom {
     clearTimeout(this.toastT); this.toastT = setTimeout(() => { this.toast.hidden = true; }, 6000);
   }
 
+  /** reflect the quality choice (and, on Auto, the tier it is running at) in the Systems panel */
+  markQuality() {
+    const v = this.viewer; if (!v || !this.qRow) return;
+    for (const b of this.qRow.querySelectorAll('[data-q]')) b.setAttribute('aria-pressed', String(b.dataset.q === v.qualityPref));
+    this.qNow.textContent = v.qualityPref === 'auto' ? `now ${v.tierName}` : '';
+  }
+
   // ================================================================ open / close
   async open(m, s) {
     const token = ++this.token;
@@ -469,7 +482,7 @@ export class Showroom {
     if (this.fullLoader) this.loading(s, m);
     try {
       if (!this.viewer) {
-        const { Viewer } = await import('./viewer.js?v=7836766eea43597a');
+        const { Viewer } = await import('./viewer.js?v=b26536fd52114f8a');
         if (token !== this.token) return;
         this.viewer = new Viewer(this.canvas, {
           onTap: (model) => this.tapShip(model),
@@ -478,6 +491,8 @@ export class Showroom {
           onHover: (hit, x, y) => this.hover(hit, x, y),
         });
         this.viewer.spin = !reduceMotion();
+        this.viewer.onQuality = () => this.markQuality();
+        this.markQuality();
         if (/[?&](debug|perf=1)\b/.test(location.search)) window.__viewer = this.viewer;   // console poking, opt-in only
       }
       await this.viewer.show(m, s, (p, label) => {
@@ -487,6 +502,7 @@ export class Showroom {
         if (!this.fullLoader) { this.tag.textContent = `${label.split(' · ')[0]} · ${Math.round(p * 100)}%`; this.tag.hidden = false; }
       }, shipsOf(m.id));
       if (token !== this.token) return;
+      this.viewer.interactiveAt ||= performance.now();   // time to interactive (perf harness)
       this.ready(s);
       if (this.pendingHail === s.id) { this.pendingHail = null; this.hail(); }
       if (keep.walk) this.walkMode(true);
